@@ -1,7 +1,6 @@
 from typing_extensions import TypeAlias
 
 from .base import Base as Base
-from .base import LightningDataModuleBase as LightningDataModuleBase
 from .base import LightningModuleBase as LightningModuleBase
 from .config import ActSaveConfig as ActSaveConfig
 from .config import BaseConfig as BaseConfig

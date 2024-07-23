@@ -24,10 +24,10 @@ from .config import (
     EnvironmentLSFInformationConfig,
     EnvironmentSLURMInformationConfig,
 )
-from .modules.callback import CallbackModuleMixin, CallbackRegistrarModuleMixin
+from .modules.callback import CallbackModuleMixin
 from .modules.debug import DebugModuleMixin
 from .modules.distributed import DistributedMixin
-from .modules.logger import LoggerLightningModuleMixin, LoggerModuleMixin
+from .modules.logger import LoggerLightningModuleMixin
 from .modules.profiler import ProfilerMixin
 from .modules.rlp_sanity_checks import RLPSanityCheckModuleMixin
 from .modules.shared_parameters import SharedParametersModuleMixin
@@ -309,15 +309,12 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     @property
     def datamodule(self):
         datamodule = getattr(self.trainer, "datamodule", None)
-        if datamodule is None:
+        if (datamodule := getattr(self.trainer, "datamodule", None)) is None:
             return None
-
-        if not isinstance(datamodule, LightningDataModuleBase):
+        if not isinstance(datamodule, LightningDataModule):
             raise TypeError(
-                f"datamodule must be a LightningDataModuleBase: {type(datamodule)}"
+                f"datamodule must be a LightningDataModule: {type(datamodule)}"
             )
-
-        datamodule = cast(LightningDataModuleBase[THparams], datamodule)
         return datamodule
 
     if TYPE_CHECKING:
@@ -576,66 +573,3 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
             "batch": batch,
             "batch_idx": batch_idx,
         }
-
-
-class LightningDataModuleBase(
-    LoggerModuleMixin,
-    CallbackRegistrarModuleMixin,
-    Base[THparams],
-    LightningDataModule,
-    ABC,
-    Generic[THparams],
-):
-    hparams: THparams  # pyright: ignore[reportIncompatibleMethodOverride]
-    hparams_initial: THparams  # pyright: ignore[reportIncompatibleMethodOverride]
-
-    def pre_init_update_hparams_dict(self, hparams: MutableMapping[str, Any]):
-        """
-        Override this method to update the hparams dictionary before it is used to create the hparams object.
-        Mapping-based parameters are passed to the constructor of the hparams object when we're loading the model from a checkpoint.
-        """
-        return hparams
-
-    def pre_init_update_hparams(self, hparams: THparams):
-        """
-        Override this method to update the hparams object before it is used to create the hparams_initial object.
-        """
-        return hparams
-
-    @classmethod
-    def _update_environment(cls, hparams: THparams):
-        hparams.environment.data = _cls_info(cls)
-
-    @override
-    def __init__(self, hparams: THparams):
-        if not isinstance(hparams, BaseConfig):
-            if not isinstance(hparams, MutableMapping):
-                raise TypeError(
-                    f"hparams must be a BaseConfig or a MutableMapping: {type(hparams)}"
-                )
-
-            hparams = self.pre_init_update_hparams_dict(hparams)
-            hparams = self.config_cls().from_dict(hparams)
-        self._update_environment(hparams)
-        hparams = self.pre_init_update_hparams(hparams)
-        super().__init__(hparams)
-
-        self.save_hyperparameters(hparams)
-
-    @property
-    def lightning_module(self):
-        if not self.trainer:
-            raise ValueError("Trainer has not been set.")
-
-        module = self.trainer.lightning_module
-        if not isinstance(module, LightningModuleBase):
-            raise ValueError(
-                f"Trainer's lightning_module is not a LightningModuleBase: {type(module)}"
-            )
-
-        module = cast(LightningModuleBase[THparams], module)
-        return module
-
-    @property
-    def device(self):
-        return self.lightning_module.device

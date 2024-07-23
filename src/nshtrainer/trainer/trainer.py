@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 def _is_bf16_supported_no_emulation():
     r"""Return a bool indicating if the current CUDA/ROCm device supports dtype bfloat16."""
-    version = cast(Any, torch.version)
+    version = getattr(torch, "version")
 
     # Check for ROCm, if true return true, no ROCM_VERSION check required,
     # since it is supported on AMD GPU archs.

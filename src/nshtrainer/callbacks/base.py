@@ -4,9 +4,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeAlias, TypedDict
 
+import nshconfig as C
 from lightning.pytorch import Callback
-
-from ..config import TypedConfig
 
 if TYPE_CHECKING:
     from ..model.config import BaseConfig
@@ -20,7 +19,7 @@ class CallbackMetadataDict(TypedDict, total=False):
     """Priority of the callback. Callbacks with higher priority will be loaded first."""
 
 
-class CallbackMetadataConfig(TypedConfig):
+class CallbackMetadataConfig(C.Config):
     ignore_if_exists: bool = False
     """If `True`, the callback will not be added if another callback with the same class already exists."""
 
@@ -37,7 +36,7 @@ class CallbackWithMetadata:
 ConstructedCallback: TypeAlias = Callback | CallbackWithMetadata
 
 
-class CallbackConfigBase(TypedConfig, ABC):
+class CallbackConfigBase(C.Config, ABC):
     metadata: CallbackMetadataConfig = CallbackMetadataConfig()
     """Metadata for the callback."""
 

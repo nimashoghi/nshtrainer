@@ -82,6 +82,7 @@ def typecheck_this_module(additional_modules: Sequence[str] = ()):
     frame = get_frame(1)
     assert frame is not None, "frame is None"
     calling_module_name = get_frame_package_name(frame)
+    assert calling_module_name is not None, "calling_module_name is None"
 
     # Typecheck the calling module + any additional modules.
     typecheck_modules((calling_module_name, *additional_modules))

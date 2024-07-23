@@ -2,12 +2,12 @@ import math
 import warnings
 from typing import Literal
 
+import nshconfig as C
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from typing_extensions import override
 
-from ..config import Field
-from ._base import LRSchedulerConfigBase
+from ._base import LRSchedulerConfigBase, LRSchedulerMetadata
 
 
 class LinearWarmupCosineAnnealingLR(LRScheduler):
@@ -91,11 +91,11 @@ class LinearWarmupCosineAnnealingLR(LRScheduler):
 class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
     name: Literal["linear_warmup_cosine_decay"] = "linear_warmup_cosine_decay"
 
-    warmup_epochs: int = Field(ge=0)
+    warmup_epochs: int = C.Field(ge=0)
     r"""The number of epochs for the linear warmup phase.
     The learning rate is linearly increased from `warmup_start_lr` to the initial learning rate over this number of epochs."""
 
-    max_epochs: int = Field(gt=0)
+    max_epochs: int = C.Field(gt=0)
     r"""The total number of epochs.
     The learning rate is decayed to `min_lr` over this number of epochs."""
 
@@ -113,7 +113,7 @@ class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
     If `True`, the learning rate will be decayed to `min_lr` over `max_epochs` epochs, and then the learning rate will be increased back to the initial learning rate over `max_epochs` epochs, and so on (this is called a cosine annealing schedule)."""
 
     @override
-    def metadata(self) -> LRSchedulerConfigBase.Metadata:
+    def metadata(self) -> LRSchedulerMetadata:
         return {
             "interval": "step",
         }

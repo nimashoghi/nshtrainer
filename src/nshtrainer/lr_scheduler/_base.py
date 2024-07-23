@@ -1,16 +1,15 @@
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, ClassVar, Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal
 
+import nshconfig as C
 from lightning.pytorch.utilities.types import (
     LRSchedulerConfigType,
     LRSchedulerTypeUnion,
 )
 from torch.optim import Optimizer
 from typing_extensions import NotRequired, TypedDict
-
-from ..config import TypedConfig
 
 if TYPE_CHECKING:
     from ..model.base import LightningModuleBase
@@ -37,9 +36,7 @@ class LRSchedulerMetadata(TypedDict):
     """Whether to enforce that the monitor exists for reducing the learning rate on plateau. Default is `True`."""
 
 
-class LRSchedulerConfigBase(TypedConfig, ABC):
-    Metadata: ClassVar[TypeAlias] = LRSchedulerMetadata
-
+class LRSchedulerConfigBase(C.Config, ABC):
     @abstractmethod
     def metadata(self) -> LRSchedulerMetadata: ...
 

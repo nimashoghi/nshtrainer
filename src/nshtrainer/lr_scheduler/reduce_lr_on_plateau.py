@@ -1,12 +1,11 @@
 from typing import TYPE_CHECKING, Literal, cast
 
+from lightning.pytorch.utilities.types import LRSchedulerConfigType
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from typing_extensions import override
 
-from ll.lr_scheduler._base import LRSchedulerMetadata
-
 from ..model.config import MetricConfig
-from ._base import LRSchedulerConfigBase
+from ._base import LRSchedulerConfigBase, LRSchedulerMetadata
 
 if TYPE_CHECKING:
     from ..model.base import BaseConfig
@@ -43,7 +42,9 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
     r"""One of `rel`, `abs`. In `rel` mode, dynamic_threshold = best * (1 + threshold) in 'max' mode or best * (1 - threshold) in `min` mode. In `abs` mode, dynamic_threshold = best + threshold in `max` mode or best - threshold in `min` mode. Default: 'rel'."""
 
     @override
-    def create_scheduler_impl(self, optimizer, lightning_module, lr):
+    def create_scheduler_impl(
+        self, optimizer, lightning_module, lr
+    ) -> LRSchedulerConfigType:
         if (metric := self.metric) is None:
             lm_config = cast("BaseConfig", lightning_module.config)
             assert (

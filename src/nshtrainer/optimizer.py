@@ -2,14 +2,13 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import Annotated, Any, Literal, TypeAlias
 
+import nshconfig as C
 import torch.nn as nn
 from torch.optim import Optimizer
 from typing_extensions import override
 
-from .config import Field, TypedConfig
 
-
-class OptimizerConfigBase(TypedConfig, ABC):
+class OptimizerConfigBase(C.Config, ABC):
     @abstractmethod
     def create_optimizer(
         self,
@@ -56,7 +55,4 @@ class AdamWConfig(OptimizerConfigBase):
         )
 
 
-OptimizerConfig: TypeAlias = Annotated[
-    AdamWConfig,
-    Field(discriminator="name"),
-]
+OptimizerConfig: TypeAlias = Annotated[AdamWConfig, C.Field(discriminator="name")]

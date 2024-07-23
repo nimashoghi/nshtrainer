@@ -21,6 +21,7 @@ from typing import (
     runtime_checkable,
 )
 
+import nshconfig as C
 import numpy as np
 import torch
 from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
@@ -39,7 +40,6 @@ from typing_extensions import Self, TypedDict, TypeVar, override
 from ..callbacks import CallbackConfig
 from ..callbacks.base import CallbackConfigBase
 from ..callbacks.wandb_watch import WandbWatchConfig
-from ..config import Field, TypedConfig
 from ..util.slurm import parse_slurm_node_list
 
 log = getLogger(__name__)
@@ -49,7 +49,7 @@ class IdSeedWarning(Warning):
     pass
 
 
-class BaseProfilerConfig(TypedConfig, ABC):
+class BaseProfilerConfig(C.Config, ABC):
     dirpath: str | Path | None = None
     """
     Directory path for the ``filename``. If ``dirpath`` is ``None`` but ``filename`` is present, the
@@ -200,11 +200,11 @@ class PyTorchProfilerConfig(BaseProfilerConfig):
 
 ProfilerConfig: TypeAlias = Annotated[
     SimpleProfilerConfig | AdvancedProfilerConfig | PyTorchProfilerConfig,
-    Field(discriminator="kind"),
+    C.Field(discriminator="kind"),
 ]
 
 
-class EnvironmentClassInformationConfig(TypedConfig):
+class EnvironmentClassInformationConfig(C.Config):
     name: str
     module: str
     full_name: str
@@ -213,7 +213,7 @@ class EnvironmentClassInformationConfig(TypedConfig):
     source_file_path: Path | None = None
 
 
-class EnvironmentSLURMInformationConfig(TypedConfig):
+class EnvironmentSLURMInformationConfig(C.Config):
     hostname: str
     hostnames: list[str]
     job_id: str
@@ -271,7 +271,7 @@ class EnvironmentSLURMInformationConfig(TypedConfig):
             return None
 
 
-class EnvironmentLSFInformationConfig(TypedConfig):
+class EnvironmentLSFInformationConfig(C.Config):
     hostname: str
     hostnames: list[str]
     job_id: str
@@ -328,7 +328,7 @@ class EnvironmentLSFInformationConfig(TypedConfig):
             return None
 
 
-class EnvironmentLinuxEnvironmentConfig(TypedConfig):
+class EnvironmentLinuxEnvironmentConfig(C.Config):
     """
     Information about the Linux environment (e.g., current user, hostname, etc.)
     """
@@ -347,7 +347,7 @@ class EnvironmentLinuxEnvironmentConfig(TypedConfig):
     load_avg: tuple[float, float, float] | None = None
 
 
-class EnvironmentConfig(TypedConfig):
+class EnvironmentConfig(C.Config):
     cwd: Path | None = None
 
     python_executable: Path | None = None
@@ -372,7 +372,7 @@ class EnvironmentConfig(TypedConfig):
     seed_workers: bool | None = None
 
 
-class BaseLoggerConfig(TypedConfig, ABC):
+class BaseLoggerConfig(C.Config, ABC):
     enabled: bool = True
     """Enable this logger."""
 
@@ -426,7 +426,7 @@ def _wandb_available():
 class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     kind: Literal["wandb"] = "wandb"
 
-    enabled: bool = Field(default_factory=lambda: _wandb_available())
+    enabled: bool = C.Field(default_factory=lambda: _wandb_available())
     """Enable WandB logging."""
 
     priority: int = 2
@@ -543,7 +543,7 @@ def _tensorboard_available():
 class TensorboardLoggerConfig(BaseLoggerConfig):
     kind: Literal["tensorboard"] = "tensorboard"
 
-    enabled: bool = Field(default_factory=lambda: _tensorboard_available())
+    enabled: bool = C.Field(default_factory=lambda: _tensorboard_available())
     """Enable TensorBoard logging."""
 
     priority: int = 2
@@ -589,7 +589,7 @@ class TensorboardLoggerConfig(BaseLoggerConfig):
 
 LoggerConfig: TypeAlias = Annotated[
     WandbLoggerConfig | CSVLoggerConfig | TensorboardLoggerConfig,
-    Field(discriminator="kind"),
+    C.Field(discriminator="kind"),
 ]
 
 
@@ -684,7 +684,7 @@ class LoggingConfig(CallbackConfigBase):
             yield from logger.construct_callbacks(root_config)
 
 
-class GradientClippingConfig(TypedConfig):
+class GradientClippingConfig(C.Config):
     enabled: bool = True
     """Enable gradient clipping."""
     value: int | float
@@ -724,7 +724,7 @@ LogLevel: TypeAlias = Literal[
 ]
 
 
-class PythonLogging(TypedConfig):
+class PythonLogging(C.Config):
     log_level: LogLevel | None = None
     """Log level to use for the Python logger (or None to use the default)."""
 
@@ -813,7 +813,7 @@ StrategyLiteral: TypeAlias = Literal[
 ]
 
 
-class CheckpointLoadingConfig(TypedConfig):
+class CheckpointLoadingConfig(C.Config):
     path: Literal["best", "last", "hpc"] | str | Path | None = None
     """
     Checkpoint path to use when loading a checkpoint.
@@ -825,7 +825,7 @@ class CheckpointLoadingConfig(TypedConfig):
     """
 
 
-class DirectoryConfig(TypedConfig):
+class DirectoryConfig(C.Config):
     project_root: Path | None = None
     """
     Root directory for this project.
@@ -901,7 +901,7 @@ class DirectoryConfig(TypedConfig):
         return log_dir
 
 
-class ReproducibilityConfig(TypedConfig):
+class ReproducibilityConfig(C.Config):
     deterministic: bool | Literal["warn"] | None = None
     """
     If ``True``, sets whether PyTorch operations must use deterministic algorithms.
@@ -1116,7 +1116,7 @@ CheckpointCallbackConfig: TypeAlias = Annotated[
     ModelCheckpointCallbackConfig
     | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig,
-    Field(discriminator="kind"),
+    C.Field(discriminator="kind"),
 ]
 
 
@@ -1514,7 +1514,7 @@ class ActSaveConfig(CallbackConfigBase):
         return [ActSaveCallback()]
 
 
-class SanityCheckingConfig(TypedConfig):
+class SanityCheckingConfig(C.Config):
     reduce_lr_on_plateau: Literal["disable", "error", "warn"] = "error"
     """
     If enabled, will do some sanity checks if the `ReduceLROnPlateau` scheduler is used:
@@ -1524,7 +1524,7 @@ class SanityCheckingConfig(TypedConfig):
     """
 
 
-class TrainerConfig(TypedConfig):
+class TrainerConfig(C.Config):
     checkpoint_loading: CheckpointLoadingConfig = CheckpointLoadingConfig()
     """Checkpoint loading configuration options."""
 
@@ -1739,7 +1739,7 @@ class TrainerConfig(TypedConfig):
     """If enabled, will set the torch float32 matmul precision to the specified value. Useful for faster training on Ampere+ GPUs."""
 
 
-class SeedConfig(TypedConfig):
+class SeedConfig(C.Config):
     seed: int
     """Seed for the random number generator."""
 
@@ -1783,7 +1783,7 @@ Signal: TypeAlias = Literal[
 ]
 
 
-class SubmitConfig(TypedConfig):
+class SubmitConfig(C.Config):
     auto_requeue_signals: list[Signal] = [
         # "SIGUSR1",
         # On SIGURG:
@@ -1797,7 +1797,7 @@ class SubmitConfig(TypedConfig):
         return [getattr(signal.Signals, sig) for sig in self.auto_requeue_signals]
 
 
-class RunnerConfig(TypedConfig):
+class RunnerConfig(C.Config):
     python_logging: PythonLogging = PythonLogging()
     """Python logging configuration options."""
 
@@ -1819,7 +1819,7 @@ class RunnerConfig(TypedConfig):
     """Additional environment variables to set when running the script."""
 
 
-class MetricConfig(TypedConfig):
+class MetricConfig(C.Config):
     name: str
     """The name of the primary metric."""
 
@@ -1851,8 +1851,8 @@ class MetricConfig(TypedConfig):
 PrimaryMetricConfig: TypeAlias = MetricConfig
 
 
-class BaseConfig(TypedConfig):
-    id: str = Field(default_factory=lambda: BaseConfig.generate_id())
+class BaseConfig(C.Config):
+    id: str = C.Field(default_factory=lambda: BaseConfig.generate_id())
     """ID of the run."""
     name: str | None = None
     """Run name."""
@@ -1867,7 +1867,7 @@ class BaseConfig(TypedConfig):
 
     debug: bool = False
     """Whether to run in debug mode. This will enable debug logging and enable debug code paths."""
-    environment: Annotated[EnvironmentConfig, Field(repr=False)] = EnvironmentConfig()
+    environment: Annotated[EnvironmentConfig, C.Field(repr=False)] = EnvironmentConfig()
     """A snapshot of the current environment information (e.g. python version, slurm info, etc.). This is automatically populated by the run script."""
 
     directory: DirectoryConfig = DirectoryConfig()

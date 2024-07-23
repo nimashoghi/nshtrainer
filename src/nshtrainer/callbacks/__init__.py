@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from ..config import Field
+import nshconfig as C
+
 from .base import CallbackConfigBase as CallbackConfigBase
 from .early_stopping import EarlyStopping as EarlyStopping
 from .ema import EMA as EMA
@@ -31,5 +32,5 @@ CallbackConfig = Annotated[
     | NormLoggingConfig
     | GradientSkippingConfig
     | EMAConfig,
-    Field(discriminator="name"),
+    C.Field(discriminator="name"),
 ]

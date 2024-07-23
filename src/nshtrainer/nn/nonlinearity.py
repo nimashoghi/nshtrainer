@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Annotated, Literal
 
+import nshconfig as C
 import torch
 import torch.nn as nn
 from typing_extensions import override
 
-from ..config import Field, TypedConfig
 
-
-class BaseNonlinearityConfig(TypedConfig, ABC):
+class BaseNonlinearityConfig(C.Config, ABC):
     @abstractmethod
     def create_module(self) -> nn.Module:
         pass
@@ -153,5 +152,5 @@ NonlinearityConfig = Annotated[
     | SiLUNonlinearityConfig
     | MishNonlinearityConfig
     | SwiGLUNonlinearityConfig,
-    Field(discriminator="name"),
+    C.Field(discriminator="name"),
 ]
