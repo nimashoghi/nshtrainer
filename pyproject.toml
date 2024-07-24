@@ -16,10 +16,7 @@ lightning = "*"
 pytorch-lightning = "*"
 torchmetrics = "*"
 numpy = "*"
-lovely-numpy = "^0.2.13"
-lovely-tensors = "^0.1.16"
 wrapt = "*"
-rich = "*"
 
 
 [tool.poetry.group.dev.dependencies]
