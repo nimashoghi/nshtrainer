@@ -59,7 +59,32 @@ class Runner(
         transforms.append(
             functools.partial(self._fast_dev_run_transform, n_batches=n_batches)
         )
-        return self.local(runs, env=env, transforms=transforms)
+        return self.local(
+            runs,
+            env=env,
+            transforms=transforms,
+        )
+
+    def fast_dev_run_generator(
+        self,
+        runs: Sequence[tuple[TConfig, Unpack[TArguments]]],
+        n_batches: int = 1,
+        *,
+        env: Mapping[str, str] | None = None,
+        transforms: list[
+            Callable[[TConfig, Unpack[TArguments]], tuple[TConfig, Unpack[TArguments]]]
+        ]
+        | None = None,
+    ):
+        transforms = transforms or []
+        transforms.append(
+            functools.partial(self._fast_dev_run_transform, n_batches=n_batches)
+        )
+        return self.local_generator(
+            runs,
+            env=env,
+            transforms=transforms,
+        )
 
     def fast_dev_run_session(
         self,
