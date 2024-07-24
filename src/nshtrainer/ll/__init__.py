@@ -1,6 +1,7 @@
 import importlib
 import sys
 from types import ModuleType
+from typing import TYPE_CHECKING
 
 # The name of your new package
 NEW_PACKAGE = "nshtrainer"
@@ -40,3 +41,6 @@ class SubmoduleProxy:
 old_module.__class__ = type(
     "ProxyModuleWithSubmodules", (ProxyModule, SubmoduleProxy), {}
 )
+
+if TYPE_CHECKING:
+    from nshtrainer import *  # noqa: F401, F403
