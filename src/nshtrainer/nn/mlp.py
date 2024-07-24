@@ -2,9 +2,10 @@ import copy
 from collections.abc import Callable, Sequence
 from typing import Literal, Protocol, runtime_checkable
 
+import nshconfig as C
 import torch
 import torch.nn as nn
-from typing_extensions import override
+from typing_extensions import TypedDict, override
 
 from .nonlinearity import BaseNonlinearityConfig
 
@@ -20,6 +21,71 @@ class ResidualSequential(nn.Sequential):
     @override
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         return input + super().forward(input)
+
+
+class MLPConfigDict(TypedDict):
+    bias: bool
+    """Whether to include bias terms in the linear layers."""
+
+    no_bias_scalar: bool
+    """Whether to exclude bias terms when the output dimension is 1."""
+
+    nonlinearity: BaseNonlinearityConfig | None
+    """Activation function to use between layers."""
+
+    ln: bool | Literal["pre", "post"]
+    """Whether to apply layer normalization before or after the linear layers."""
+
+    dropout: float | None
+    """Dropout probability to apply between layers."""
+
+    residual: bool
+    """Whether to use residual connections between layers."""
+
+
+class MLPConfig(C.Config):
+    bias: bool = True
+    """Whether to include bias terms in the linear layers."""
+
+    no_bias_scalar: bool = True
+    """Whether to exclude bias terms when the output dimension is 1."""
+
+    nonlinearity: BaseNonlinearityConfig | None = None
+    """Activation function to use between layers."""
+
+    ln: bool | Literal["pre", "post"] = False
+    """Whether to apply layer normalization before or after the linear layers."""
+
+    dropout: float | None = None
+    """Dropout probability to apply between layers."""
+
+    residual: bool = False
+    """Whether to use residual connections between layers."""
+
+    def to_kwargs(self) -> MLPConfigDict:
+        return {
+            "bias": self.bias,
+            "no_bias_scalar": self.no_bias_scalar,
+            "nonlinearity": self.nonlinearity,
+            "ln": self.ln,
+            "dropout": self.dropout,
+            "residual": self.residual,
+        }
+
+    def create_module(
+        self,
+        dims: Sequence[int],
+        pre_layers: Sequence[nn.Module] = [],
+        post_layers: Sequence[nn.Module] = [],
+        linear_cls: LinearModuleConstructor = nn.Linear,
+    ):
+        return MLP(
+            dims,
+            **self.to_kwargs(),
+            pre_layers=pre_layers,
+            post_layers=post_layers,
+            linear_cls=linear_cls,
+        )
 
 
 def MLP(

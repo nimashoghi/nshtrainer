@@ -1,4 +1,6 @@
 from .mlp import MLP as MLP
+from .mlp import MLPConfig as MLPConfig
+from .mlp import MLPConfigDict as MLPConfigDict
 from .mlp import ResidualSequential as ResidualSequential
 from .module_dict import TypedModuleDict as TypedModuleDict
 from .module_list import TypedModuleList as TypedModuleList
