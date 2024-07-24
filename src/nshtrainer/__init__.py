@@ -1,11 +1,11 @@
 from . import _experimental as _experimental
 from . import actsave as actsave
 from . import callbacks as callbacks
+from . import config as config
 from . import lr_scheduler as lr_scheduler
 from . import model as model
 from . import nn as nn
 from . import optimizer as optimizer
-from . import snapshot as snapshot
 from . import typecheck as typecheck
 from ._snoop import snoop as snoop
 from .actsave import ActLoad as ActLoad

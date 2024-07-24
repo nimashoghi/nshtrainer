@@ -1480,13 +1480,13 @@ pydantic = "*"
 
 [[package]]
 name = "nshrunner"
-version = "0.5.3"
+version = "0.5.4"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshrunner-0.5.3-py3-none-any.whl", hash = "sha256:95f2955b2ac0c0545910c713016b906f7766f7799ce1ef1b1494a6511c5eba2d"},
-    {file = "nshrunner-0.5.3.tar.gz", hash = "sha256:9c18d0004790343c38304f290b26de8b0187899940e5070a0fdee97fcb6fe0d9"},
+    {file = "nshrunner-0.5.4-py3-none-any.whl", hash = "sha256:2688029242e054c5ac7bb69268b2bbdc23c84f5230423648446dad0961604889"},
+    {file = "nshrunner-0.5.4.tar.gz", hash = "sha256:fc2b1bcdfdd825595732b0e9293b33db51f3129d32f05554642ea9e8aa374372"},
 ]
 
 [package.dependencies]
@@ -2851,4 +2851,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8c8fddadec03569b9490c38bdcefecf94a903576f4ef0825b83dd48e81f71407"
+content-hash = "db9127733575bcee2db94ff863ce70f70dab815f7c66e07244ecf32864f8c09d"

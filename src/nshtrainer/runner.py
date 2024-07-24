@@ -7,13 +7,13 @@ from typing_extensions import TypeVar, TypeVarTuple, Unpack, override
 from .model.config import BaseConfig
 
 TConfig = TypeVar("TConfig", bound=BaseConfig, infer_variance=True)
-TArguments = TypeVarTuple("TArguments")
+TArguments = TypeVarTuple("TArguments", default=Unpack[tuple[()]])
 TReturn = TypeVar("TReturn", infer_variance=True)
 
 
 class Runner(
-    _Runner[Unpack[tuple[TConfig, Unpack[TArguments]]], TReturn],
-    Generic[TConfig, Unpack[TArguments], TReturn],
+    _Runner[TReturn, TConfig, Unpack[TArguments]],
+    Generic[TReturn, TConfig, Unpack[TArguments]],
 ):
     @override
     @classmethod
