@@ -1,7 +1,6 @@
 import copy
 import os
 import re
-import signal
 import socket
 import string
 import time
@@ -733,41 +732,6 @@ class OptimizationConfig(CallbackConfigBase):
             log_param_norm=self.log_param_norm,
             log_param_norm_per_param=self.log_param_norm_per_param,
         ).construct_callbacks(root_config)
-
-
-LogLevel: TypeAlias = Literal[
-    "CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG"
-]
-
-
-class PythonLogging(C.Config):
-    log_level: LogLevel | None = None
-    """Log level to use for the Python logger (or None to use the default)."""
-
-    rich: bool = False
-    """If enabled, will use the rich library to format the Python logger output."""
-    rich_tracebacks: bool = True
-    """If enabled, will use the rich library to format the Python logger tracebacks."""
-
-    lovely_tensors: bool = False
-    """If enabled, will use the lovely-tensors library to format PyTorch tensors. False by default as it causes issues when used with `torch.vmap`."""
-    lovely_numpy: bool = False
-    """If enabled, will use the lovely-numpy library to format numpy arrays. False by default as it causes some issues with other libaries."""
-
-    def pretty_(
-        self,
-        *,
-        log_level: LogLevel | None = "INFO",
-        torch: bool = True,
-        numpy: bool = True,
-        rich: bool = True,
-        rich_tracebacks: bool = True,
-    ):
-        self.log_level = log_level
-        self.lovely_tensors = torch
-        self.lovely_numpy = numpy
-        self.rich = rich
-        self.rich_tracebacks = rich_tracebacks
 
 
 TPlugin = TypeVar(
@@ -1755,86 +1719,6 @@ class TrainerConfig(C.Config):
     """If enabled, will set the torch float32 matmul precision to the specified value. Useful for faster training on Ampere+ GPUs."""
 
 
-class SeedConfig(C.Config):
-    seed: int
-    """Seed for the random number generator."""
-
-    seed_workers: bool = False
-    """Whether to seed the workers of the dataloader."""
-
-
-Signal: TypeAlias = Literal[
-    "SIGHUP",
-    "SIGINT",
-    "SIGQUIT",
-    "SIGILL",
-    "SIGTRAP",
-    "SIGABRT",
-    "SIGBUS",
-    "SIGFPE",
-    "SIGKILL",
-    "SIGUSR1",
-    "SIGSEGV",
-    "SIGUSR2",
-    "SIGPIPE",
-    "SIGALRM",
-    "SIGTERM",
-    "SIGCHLD",
-    "SIGCONT",
-    "SIGSTOP",
-    "SIGTSTP",
-    "SIGTTIN",
-    "SIGTTOU",
-    "SIGURG",
-    "SIGXCPU",
-    "SIGXFSZ",
-    "SIGVTALRM",
-    "SIGPROF",
-    "SIGWINCH",
-    "SIGIO",
-    "SIGPWR",
-    "SIGSYS",
-    "SIGRTMIN",
-    "SIGRTMAX",
-]
-
-
-class SubmitConfig(C.Config):
-    auto_requeue_signals: list[Signal] = [
-        # "SIGUSR1",
-        # On SIGURG:
-        # Important note from https://amrex-astro.github.io/workflow/olcf-workflow.html:
-        # We can also ask the job manager to send a warning signal some amount of time before the allocation expires by passing -wa 'signal' and -wt '[hour:]minute' to bsub. We can then have bash create a dump_and_stop file when it receives the signal, which will tell Castro to output a checkpoint file and exit cleanly after it finishes the current timestep. An important detail that I couldn't find documented anywhere is that the job manager sends the signal to all the processes in the job, not just the submission script, and we have to use a signal that is ignored by default so Castro doesn't immediately crash upon receiving it. SIGCHLD, SIGURG, and SIGWINCH are the only signals that fit this requirement and of these, SIGURG is the least likely to be triggered by other events.
-        "SIGURG"
-    ]
-    """Signals that will trigger an automatic requeue of the job."""
-
-    def _resolved_auto_requeue_signals(self) -> list[signal.Signals]:
-        return [getattr(signal.Signals, sig) for sig in self.auto_requeue_signals]
-
-
-class RunnerConfig(C.Config):
-    python_logging: PythonLogging = PythonLogging()
-    """Python logging configuration options."""
-
-    seed: SeedConfig = SeedConfig(seed=0)
-    """Seed everything configuration options."""
-
-    submit: SubmitConfig = SubmitConfig()
-    """Submit (e.g., SLURM or LSF) configuration options."""
-
-    dump_run_information: bool = True
-    """
-    If enabled, will dump different bits of run information to the output directory before starting the run.
-    This includes:
-        - Run config
-        - Full set of environment variables
-    """
-
-    additional_env_vars: dict[str, str] = {}
-    """Additional environment variables to set when running the script."""
-
-
 class MetricConfig(C.Config):
     name: str
     """The name of the primary metric."""
@@ -1890,8 +1774,6 @@ class BaseConfig(C.Config):
     """Directory configuration options."""
     trainer: TrainerConfig = TrainerConfig()
     """PyTorch Lightning trainer configuration options. Check Lightning's `Trainer` documentation for more information."""
-    runner: RunnerConfig = RunnerConfig()
-    """`ll.Runner` configuration options."""
 
     primary_metric: PrimaryMetricConfig | None = None
     """Primary metric configuration options. This is used in the following ways:

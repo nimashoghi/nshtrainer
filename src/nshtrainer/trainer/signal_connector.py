@@ -25,14 +25,21 @@ _SIGNUM = int | signal.Signals
 _HANDLER: TypeAlias = Callable[[_SIGNUM, FrameType], Any] | int | signal.Handlers | None
 
 
+def _resolve_requeue_signals():
+    signals: list[signal.Signals] = []
+
+    if timeout_signal_name := os.environ.get("NSHRUNNER_TIMEOUT_SIGNAL"):
+        signals.append(signal.Signals[timeout_signal_name])
+
+    if preempt_signal_name := os.environ.get("NSHRUNNER_PREEMPT_SIGNAL"):
+        signals.append(signal.Signals[preempt_signal_name])
+
+    return signals
+
+
 class _SignalConnector(_LightningSignalConnector):
     def _auto_requeue_signals(self) -> list[signal.Signals]:
-        from ..model.base import BaseConfig
-
-        if not isinstance(config := self.trainer.lightning_module.hparams, BaseConfig):
-            return []
-
-        signals = config.runner.submit._resolved_auto_requeue_signals()
+        signals = _resolve_requeue_signals()
         signals_set = set(signals)
         valid_signals: set[signal.Signals] = signal.valid_signals()
         assert signals_set.issubset(
@@ -42,25 +49,29 @@ class _SignalConnector(_LightningSignalConnector):
 
     def _compose_and_register(
         self,
-        signum: _SIGNUM,
+        signum: signal.Signals,
         handlers: list[_HANDLER],
         replace_existing: bool = False,
     ):
         if self._is_on_windows():
-            log.info(f"Signal {signum} has no handlers or is not supported on Windows.")
+            log.info(
+                f"Signal {signum.name} has no handlers or is not supported on Windows."
+            )
             return
 
         if self._has_already_handler(signum):
             if not replace_existing:
                 log.info(
-                    f"Signal {signum} already has a handler. Adding ours to the existing one."
+                    f"Signal {signum.name} already has a handler. Adding ours to the existing one."
                 )
                 handlers.append(signal.getsignal(signum))
             else:
-                log.info(f"Replacing existing handler for signal {signum} with ours.")
+                log.info(
+                    f"Replacing existing handler for signal {signum.name} with ours."
+                )
 
         self._register_signal(signum, _HandlersCompose(handlers))
-        log.info(f"Registered {len(handlers)} handlers for signal {signum}.")
+        log.info(f"Registered {len(handlers)} handlers for signal {signum.name}.")
 
     @override
     def register_signal_handlers(self) -> None:
