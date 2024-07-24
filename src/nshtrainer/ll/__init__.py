@@ -1,6 +1,7 @@
 from . import _experimental as _experimental
 from . import actsave as actsave
 from . import callbacks as callbacks
+from . import data as data
 from . import lr_scheduler as lr_scheduler
 from . import model as model
 from . import nn as nn
