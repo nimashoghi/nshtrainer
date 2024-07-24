@@ -1,9 +1,9 @@
 import copy
 import functools
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Generic
 
-from nshrunner import RunInfo, RunList, TransformFn
+from nshrunner import RunInfo
 from nshrunner import Runner as _Runner
 from nshrunner.snapshot import SnapshotArgType
 from typing_extensions import TypeVar, TypeVarTuple, Unpack, override
@@ -46,11 +46,14 @@ class Runner(
 
     def fast_dev_run(
         self,
-        runs: RunList[TConfig, Unpack[TArguments]],
+        runs: Iterable[tuple[TConfig, Unpack[TArguments]]],
         n_batches: int = 1,
         *,
         env: Mapping[str, str] | None = None,
-        transforms: list[TransformFn[TConfig, Unpack[TArguments]]] | None = None,
+        transforms: list[
+            Callable[[TConfig, Unpack[TArguments]], tuple[TConfig, Unpack[TArguments]]]
+        ]
+        | None = None,
     ):
         transforms = transforms or []
         transforms.append(
@@ -64,11 +67,14 @@ class Runner(
 
     def fast_dev_run_generator(
         self,
-        runs: RunList[TConfig, Unpack[TArguments]],
+        runs: Iterable[tuple[TConfig, Unpack[TArguments]]],
         n_batches: int = 1,
         *,
         env: Mapping[str, str] | None = None,
-        transforms: list[TransformFn[TConfig, Unpack[TArguments]]] | None = None,
+        transforms: list[
+            Callable[[TConfig, Unpack[TArguments]], tuple[TConfig, Unpack[TArguments]]]
+        ]
+        | None = None,
     ):
         transforms = transforms or []
         transforms.append(
@@ -82,13 +88,16 @@ class Runner(
 
     def fast_dev_run_session(
         self,
-        runs: RunList[TConfig, Unpack[TArguments]],
+        runs: Iterable[tuple[TConfig, Unpack[TArguments]]],
         n_batches: int = 1,
         *,
         snapshot: SnapshotArgType,
         setup_commands: Sequence[str] | None = None,
         env: Mapping[str, str] | None = None,
-        transforms: list[TransformFn[TConfig, Unpack[TArguments]]] | None = None,
+        transforms: list[
+            Callable[[TConfig, Unpack[TArguments]], tuple[TConfig, Unpack[TArguments]]]
+        ]
+        | None = None,
         activate_venv: bool = True,
         session_name: str = "nshrunner",
         attach: bool = True,
