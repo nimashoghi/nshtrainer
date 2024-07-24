@@ -1498,18 +1498,19 @@ typing-extensions = "*"
 
 [[package]]
 name = "nshutils"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshutils-0.2.0-py3-none-any.whl", hash = "sha256:0a611ff0872b9e89f84d0d9ea849d6eb2c75177abbf3cf62c9df5e674fe9df20"},
-    {file = "nshutils-0.2.0.tar.gz", hash = "sha256:7ac17977bee467d87cd307231029e491f61f72265f0e8cb8a3d98a75c3861a28"},
+    {file = "nshutils-0.3.0-py3-none-any.whl", hash = "sha256:d1eb0aec540cb8eb71c70363c2e23832a69fb13d6f11e54aae0739d3e4049eba"},
+    {file = "nshutils-0.3.0.tar.gz", hash = "sha256:6e7a1ad715113049d518b2eb6cc891b3174c589b362de87ebc30fb416b4608f0"},
 ]
 
 [package.dependencies]
 beartype = ">=0.18.5,<0.19.0"
 jaxtyping = ">=0.2.33,<0.3.0"
+numpy = "*"
 pysnooper = ">=1.2.0,<2.0.0"
 typing-extensions = "*"
 
@@ -2868,4 +2869,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c961d75d0f05dd217d5195f655242261c21b244b1d6bd42945999829a4419449"
+content-hash = "73e228a6145e1d7e04c2ae8376aa3aab0ecece878f648529c779bd04e5474618"

@@ -3,9 +3,8 @@ from typing import TYPE_CHECKING, Literal, cast
 
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks.callback import Callback
+from nshutils.actsave import ActSave
 from typing_extensions import TypeAlias, override
-
-from ._saver import ActSave
 
 if TYPE_CHECKING:
     from ..model.config import BaseConfig

@@ -19,7 +19,7 @@ lovely-numpy = "^0.2.13"
 lovely-tensors = "^0.1.16"
 wrapt = "*"
 rich = "*"
-nshutils = "^0.2.0"
+nshutils = "^0.3.0"
 
 
 [tool.poetry.group.dev.dependencies]
