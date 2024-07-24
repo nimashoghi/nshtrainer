@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from typing_extensions import TypedDict, override
 
-from .nonlinearity import BaseNonlinearityConfig
+from .nonlinearity import BaseNonlinearityConfig, NonlinearityConfig
 
 
 @runtime_checkable
@@ -30,7 +30,7 @@ class MLPConfigDict(TypedDict):
     no_bias_scalar: bool
     """Whether to exclude bias terms when the output dimension is 1."""
 
-    nonlinearity: BaseNonlinearityConfig | None
+    nonlinearity: NonlinearityConfig | None
     """Activation function to use between layers."""
 
     ln: bool | Literal["pre", "post"]
@@ -50,7 +50,7 @@ class MLPConfig(C.Config):
     no_bias_scalar: bool = True
     """Whether to exclude bias terms when the output dimension is 1."""
 
-    nonlinearity: BaseNonlinearityConfig | None = None
+    nonlinearity: NonlinearityConfig | None = None
     """Activation function to use between layers."""
 
     ln: bool | Literal["pre", "post"] = False
