@@ -48,7 +48,4 @@ from .nn import TypedModuleDict as TypedModuleDict
 from .nn import TypedModuleList as TypedModuleList
 from .optimizer import OptimizerConfig as OptimizerConfig
 from .runner import Runner as Runner
-from .runner import runner as runner
 from .trainer import Trainer as Trainer
-from .util.singleton import Registry as Registry
-from .util.singleton import Singleton as Singleton
