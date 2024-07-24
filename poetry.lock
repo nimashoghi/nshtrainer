@@ -1448,32 +1448,32 @@ pydantic = "*"
 
 [[package]]
 name = "nshrunner"
-version = "0.7.0"
+version = "0.8.0"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshrunner-0.7.0-py3-none-any.whl", hash = "sha256:31c431d0a0b5328cfea623d813178e2823cf6380387f3252a19a59e5dd90bf88"},
-    {file = "nshrunner-0.7.0.tar.gz", hash = "sha256:ad940614fcbdcaa0d61cd30f38a952e6fd7f7d2cadd3979b065cea9b493b2dd2"},
+    {file = "nshrunner-0.8.0-py3-none-any.whl", hash = "sha256:333826098a1354d145ddc5c08f7999c929d6b6e77ff868bfc74c018c0ff163e3"},
+    {file = "nshrunner-0.8.0.tar.gz", hash = "sha256:f1c4681b2cc8d5b7901d2bb2ee71a8d55a2877c0bbb6c76d866389349d0200a1"},
 ]
 
 [package.dependencies]
 cloudpickle = "*"
 deepmerge = "*"
-nshconfig = ">=0.2.0,<0.3.0"
-nshutils = ">=0.5.0,<0.6.0"
+nshconfig = ">=0,<1"
+nshutils = ">=0,<1"
 tqdm = "*"
 typing-extensions = "*"
 
 [[package]]
 name = "nshutils"
-version = "0.5.0"
+version = "0.6.1"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshutils-0.5.0-py3-none-any.whl", hash = "sha256:88483eb763af2497e7a956272d1cf1bd2d7bf5dd24454d5b46fb7b43fb4d8edd"},
-    {file = "nshutils-0.5.0.tar.gz", hash = "sha256:630a7372f71fc09ec4fa2faa21f1d483a02839f5f7bf61e7dae5236659a3eeb1"},
+    {file = "nshutils-0.6.1-py3-none-any.whl", hash = "sha256:c2227897995e0dffa38408115ff41c999c2a58659dbc8989223fa5f703f2a54f"},
+    {file = "nshutils-0.6.1.tar.gz", hash = "sha256:86c7d96150dfc80b8962ddaafb56502f74b840b93038a65ae40315aeab9807d4"},
 ]
 
 [package.dependencies]
