@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
@@ -15,13 +15,11 @@ lightning = "*"
 pytorch-lightning = "*"
 torchmetrics = "*"
 numpy = "*"
-jaxtyping = "^0.2.33"
-beartype = "^0.18.5"
 lovely-numpy = "^0.2.13"
 lovely-tensors = "^0.1.16"
-pysnooper = "*"
 wrapt = "*"
 rich = "*"
+nshutils = "^0.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
