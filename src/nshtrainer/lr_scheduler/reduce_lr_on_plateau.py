@@ -38,7 +38,7 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
     threshold: float = 1.0e-4
     r"""Threshold for measuring the new optimum, to only focus on significant changes."""
 
-    threshold_mode: str = "rel"
+    threshold_mode: Literal["rel", "abs"] = "rel"
     r"""One of `rel`, `abs`. In `rel` mode, dynamic_threshold = best * (1 + threshold) in 'max' mode or best * (1 - threshold) in `min` mode. In `abs` mode, dynamic_threshold = best + threshold in `max` mode or best - threshold in `min` mode. Default: 'rel'."""
 
     @override

@@ -133,7 +133,7 @@ def _psutil():
     return psutil
 
 
-def _try_get(fn: Callable[[], T]) -> T | None:
+def _try_get(fn: Callable[[], T | None]) -> T | None:
     try:
         return fn()
     except Exception as e:

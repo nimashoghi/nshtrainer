@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "0.6.2"
+version = "0.8.0"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-nshrunner = "^0"
-nshconfig = "^0"
-nshutils = "^0"
+nshrunner = "*"
+nshconfig = "*"
+nshutils = "*"
 torch = "*"
 typing-extensions = "*"
 lightning = "*"
