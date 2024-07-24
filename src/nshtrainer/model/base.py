@@ -23,6 +23,7 @@ from .config import (
     EnvironmentLinuxEnvironmentConfig,
     EnvironmentLSFInformationConfig,
     EnvironmentSLURMInformationConfig,
+    EnvironmentSnapshotConfig,
 )
 from .modules.callback import CallbackModuleMixin
 from .modules.debug import DebugModuleMixin
@@ -264,6 +265,9 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
             uptime=_try_get(lambda: timedelta(seconds=_psutil().boot_time())),
             boot_time=_try_get(lambda: _psutil().boot_time()),
             load_avg=_try_get(lambda: os.getloadavg()),
+        )
+        hparams.environment.snapshot = (
+            EnvironmentSnapshotConfig.from_current_environment()
         )
 
     def pre_init_update_hparams_dict(self, hparams: MutableMapping[str, Any]):

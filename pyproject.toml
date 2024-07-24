@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-nshrunner = "^0.5.1"
+nshrunner = "^0.5.2"
 nshconfig = "^0.2.0"
 torch = "*"
 typing-extensions = "*"

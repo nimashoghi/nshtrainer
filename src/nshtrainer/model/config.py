@@ -347,8 +347,24 @@ class EnvironmentLinuxEnvironmentConfig(C.Config):
     load_avg: tuple[float, float, float] | None = None
 
 
+class EnvironmentSnapshotConfig(C.Config):
+    snapshot_dir: Path | None = None
+    modules: list[str] | None = None
+
+    @classmethod
+    def from_current_environment(cls):
+        draft = cls.draft()
+        if snapshot_dir := os.environ.get("NSHRUNNER_SNAPSHOT_DIR"):
+            draft.snapshot_dir = Path(snapshot_dir)
+        if modules := os.environ.get("NSHRUNNER_SNAPSHOT_MODULES"):
+            draft.modules = modules.split(",")
+        return draft.finalize()
+
+
 class EnvironmentConfig(C.Config):
     cwd: Path | None = None
+
+    snapshot: EnvironmentSnapshotConfig | None = None
 
     python_executable: Path | None = None
     python_path: list[Path] | None = None
