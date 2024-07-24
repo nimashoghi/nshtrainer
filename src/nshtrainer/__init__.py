@@ -6,8 +6,6 @@ from . import lr_scheduler as lr_scheduler
 from . import model as model
 from . import nn as nn
 from . import optimizer as optimizer
-from . import typecheck as typecheck
-from ._snoop import snoop as snoop
 from .actsave import ActLoad as ActLoad
 from .actsave import ActSave as ActSave
 from .data import dataset_transform as dataset_transform
