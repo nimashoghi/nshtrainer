@@ -3,6 +3,7 @@ import os
 import re
 import signal
 import subprocess
+import sys
 import threading
 from collections import defaultdict
 from collections.abc import Callable
@@ -245,3 +246,20 @@ class _SignalConnector(_LightningSignalConnector):
             os.chmod(exit_script_path, 0o755)
 
             log.info(f"Requeue script written to {exit_script_path}")
+
+            # Kill the current session to trigger the exit script
+            log.info("Killing current session to trigger exit script")
+            self._kill_current_session()
+
+    def _kill_current_session(self):
+        from lightning.pytorch.trainer.call import _interrupt
+
+        _interrupt(self.trainer, KeyboardInterrupt())
+        self.trainer._teardown()
+        if (launcher := self.trainer.strategy.launcher) is not None:
+            launcher.kill(_get_sigkill_signal())
+        exit(1)
+
+
+def _get_sigkill_signal() -> _SIGNUM:
+    return signal.SIGTERM if sys.platform == "win32" else signal.SIGKILL
