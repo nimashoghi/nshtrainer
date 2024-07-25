@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "0.8.5"
+version = "0.8.6"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
@@ -36,7 +36,6 @@ strictListInference = true
 strictDictionaryInference = true
 strictSetInference = true
 reportPrivateImportUsage = false
-ignore = ["./build/"]
 
 [tool.ruff.lint]
 ignore = ["F722", "F821", "E731", "E741"]

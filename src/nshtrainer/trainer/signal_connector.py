@@ -150,7 +150,7 @@ class _SignalConnector(_LightningSignalConnector):
         cmd = ["scontrol", "requeue", job_id]
 
         # requeue job
-        log.info(f"requeing job {job_id}...")
+        log.info(f"Requeuing job {job_id}...")
         try:
             result = subprocess.call(cmd)
         except FileNotFoundError:
@@ -202,18 +202,46 @@ class _SignalConnector(_LightningSignalConnector):
             exe = str((Path(bin_dir) / exe).resolve().absolute())
 
         log.info(f"Using LSF requeue executable: {exe}")
-        cmd = [exe, job_id]
 
-        # Requeue job
-        log.info(f"Requeuing job {job_id}...")
-        try:
-            result = subprocess.call(cmd)
-        except FileNotFoundError:
-            # Retry with shell context if subprocess call fails
-            result = subprocess.call(" ".join(cmd), shell=True)
+        # If NSHRUNNER_LSF_EXIT_SCRIPT_DIR exists, we should emit a bash script in that directory
+        # rather than calling the requeue command directly. This is because the requeue command
+        # is only available outside of the `jsrun` context, and the exit script is called within
+        # the `jsrun` context.
+        if not (exit_script_dir := os.getenv("NSHRUNNER_LSF_EXIT_SCRIPT_DIR")):
+            cmd = [exe, job_id]
 
-        # Print result text
-        if result == 0:
-            log.info(f"Requeued LSF job: {job_id}")
+            # Requeue job
+            log.info(f"Requeuing job {job_id}...")
+            try:
+                result = subprocess.call(cmd)
+            except FileNotFoundError:
+                # Retry with shell context if subprocess call fails
+                result = subprocess.call(" ".join(cmd), shell=True)
+
+            # Print result text
+            if result == 0:
+                log.info(f"Requeued LSF job: {job_id}")
+            else:
+                log.warning(
+                    f"Requeuing LSF job {job_id} failed with error code {result}"
+                )
         else:
-            log.warning(f"Requeuing LSF job {job_id} failed with error code {result}")
+            log.critical(
+                "Environment variable NSHRUNNER_LSF_EXIT_SCRIPT_DIR found.\n"
+                "Writing requeue script to exit script directory."
+            )
+            exit_script_dir = Path(exit_script_dir)
+            assert (
+                exit_script_dir.is_dir()
+            ), f"Exit script directory {exit_script_dir} does not exist"
+
+            exit_script_path = exit_script_dir / f"requeue_{job_id}.sh"
+            log.info(f"Writing requeue script to {exit_script_path}")
+
+            with exit_script_path.open("w") as f:
+                f.write(f"#!/bin/bash\n{exe} {job_id}\n")
+
+            # Make the script executable
+            os.chmod(exit_script_path, 0o755)
+
+            log.info(f"Requeue script written to {exit_script_path}")
