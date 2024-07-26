@@ -21,7 +21,6 @@ from .log import init_python_logging as init_python_logging
 from .log import lovely as lovely
 from .log import pretty as pretty
 from .lr_scheduler import LRSchedulerConfig as LRSchedulerConfig
-from .model import ActSaveConfig as ActSaveConfig
 from .model import Base as Base
 from .model import BaseConfig as BaseConfig
 from .model import BaseLoggerConfig as BaseLoggerConfig

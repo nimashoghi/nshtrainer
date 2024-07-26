@@ -624,6 +624,9 @@ class LoggingConfig(CallbackConfigBase):
     log_epoch: bool = True
     """If enabled, will log the fractional epoch number to the logger."""
 
+    actsave_logged_metrics: bool = False
+    """If enabled, will automatically save logged metrics using ActSave (if nshutils is installed)."""
+
     @property
     def wandb(self) -> WandbLoggerConfig | None:
         return next(
@@ -1505,32 +1508,6 @@ class EarlyStoppingConfig(CallbackConfigBase):
         ]
 
 
-class ActSaveConfig(CallbackConfigBase):
-    enabled: bool = True
-    """Enable activation saving."""
-
-    auto_save_logged_metrics: bool = False
-    """If enabled, will automatically save logged metrics (using `LightningModule.log`) as activations."""
-
-    save_dir: Path | None = None
-    """Directory to save activations to. If None, will use the activation directory set in `config.directory`."""
-
-    def __bool__(self):
-        return self.enabled
-
-    def resolve_save_dir(self, root_config: "BaseConfig"):
-        if self.save_dir is not None:
-            return self.save_dir
-
-        return root_config.directory.resolve_subdirectory(root_config.id, "activation")
-
-    @override
-    def construct_callbacks(self, root_config):
-        from ..actsave import ActSaveCallback
-
-        return [ActSaveCallback()]
-
-
 class SanityCheckingConfig(C.Config):
     reduce_lr_on_plateau: Literal["disable", "error", "warn"] = "error"
     """
@@ -1559,9 +1536,6 @@ class TrainerConfig(C.Config):
 
     sanity_checking: SanityCheckingConfig = SanityCheckingConfig()
     """Sanity checking configuration options."""
-
-    actsave: ActSaveConfig | None = ActSaveConfig(enabled=False)
-    """Activation saving configuration options."""
 
     early_stopping: EarlyStoppingConfig | None = None
     """Early stopping configuration options."""

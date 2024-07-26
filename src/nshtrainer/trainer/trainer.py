@@ -15,7 +15,6 @@ from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Unpack, assert_never, override
 
-from ..actsave import ActSave
 from ..callbacks.base import resolve_all_callbacks
 from ..model.config import (
     AcceleratorConfigProtocol,
@@ -302,28 +301,13 @@ class Trainer(LightningTrainer):
         ) and ckpt_loading.path:
             self.ckpt_path = ckpt_loading.path
 
-    @contextlib.contextmanager
-    def _actsave_context(self, model: LightningModule):
-        hparams = cast(BaseConfig, model.hparams)
-        if not (actsave_config := hparams.trainer.actsave):
-            yield
-            return
-
-        # Enter actsave context
-        with ActSave.enabled(actsave_config.resolve_save_dir(hparams)):
-            yield
-
     @override
     def _run(
         self, model: LightningModule, ckpt_path: str | Path | None = None
     ) -> _EVALUATE_OUTPUT | _PREDICT_OUTPUT | None:
-        """
-        Two things done here:
-            1. Lightning doesn't support gradient clipping with manual optimization.
-            We patch the `Trainer._run` method to throw if gradient clipping is enabled
-            and `model.automatic_optimization` is False.
-
-            2. We actually set up actsave here.
+        """Lightning doesn't support gradient clipping with manual optimization.
+        We patch the `Trainer._run` method to throw if gradient clipping is enabled
+        and `model.automatic_optimization` is False.
         """
 
         if not model.automatic_optimization and (
@@ -336,5 +320,4 @@ class Trainer(LightningTrainer):
                 "or disable automatic gradient clipping. "
             )
 
-        with self._actsave_context(model):
-            return super()._run(model, ckpt_path)
+        return super()._run(model, ckpt_path)

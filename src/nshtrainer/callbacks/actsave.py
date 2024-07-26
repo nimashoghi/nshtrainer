@@ -1,27 +1,86 @@
 import contextlib
-from typing import TYPE_CHECKING, Literal, cast
+from pathlib import Path
+from typing import Literal
 
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks.callback import Callback
-from nshutils.actsave import ActSave
 from typing_extensions import TypeAlias, override
 
-if TYPE_CHECKING:
-    from ..model.config import BaseConfig
+from .base import CallbackConfigBase
+
+try:
+    from nshutils import ActSave  # type: ignore
+except ImportError:
+    ActSave = None
 
 Stage: TypeAlias = Literal["train", "validation", "test", "predict"]
 
 
+class ActSaveConfig(CallbackConfigBase):
+    enabled: bool = True
+    """Enable activation saving."""
+
+    save_dir: Path | None = None
+    """Directory to save activations to. If None, will use the activation directory set in `config.directory`."""
+
+    def __bool__(self):
+        return self.enabled
+
+    @override
+    def construct_callbacks(self, root_config):
+        yield ActSaveCallback(
+            self,
+            self.save_dir
+            or root_config.directory.resolve_subdirectory(root_config.id, "activation"),
+        )
+
+
 class ActSaveCallback(Callback):
-    def __init__(self):
+    def __init__(self, config: ActSaveConfig, save_dir: Path):
         super().__init__()
 
+        self.config = config
+        self.save_dir = save_dir
+        self._enabled_context: contextlib._GeneratorContextManager | None = None
         self._active_contexts: dict[Stage, contextlib._GeneratorContextManager] = {}
 
-    def _on_start(self, stage: Stage, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast("BaseConfig", pl_module.hparams)
-        if not hparams.trainer.actsave:
+    @override
+    def setup(self, trainer: Trainer, pl_module: LightningModule, stage: str) -> None:
+        super().setup(trainer, pl_module, stage)
+
+        if not self.config:
             return
+
+        if ActSave is None:
+            raise ImportError(
+                "ActSave is not installed. Please install nshutils to use the ActSaveCallback."
+            )
+
+        context = ActSave.enabled(self.save_dir)
+        context.__enter__()
+        self._enabled_context = context
+
+    @override
+    def teardown(
+        self, trainer: Trainer, pl_module: LightningModule, stage: str
+    ) -> None:
+        super().teardown(trainer, pl_module, stage)
+
+        if not self.config:
+            return
+
+        if self._enabled_context is not None:
+            self._enabled_context.__exit__(None, None, None)
+            self._enabled_context = None
+
+    def _on_start(self, stage: Stage, trainer: Trainer, pl_module: LightningModule):
+        if not self.config:
+            return
+
+        if ActSave is None:
+            raise ImportError(
+                "ActSave is not installed. Please install nshutils to use the ActSaveCallback."
+            )
 
         # If we have an active context manager for this stage, exit it
         if active_contexts := self._active_contexts.get(stage):
@@ -33,12 +92,11 @@ class ActSaveCallback(Callback):
         self._active_contexts[stage] = context
 
     def _on_end(self, stage: Stage, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast("BaseConfig", pl_module.hparams)
-        if not hparams.trainer.actsave:
+        if not self.config:
             return
 
         # If we have an active context manager for this stage, exit it
-        if active_contexts := self._active_contexts.get(stage):
+        if (active_contexts := self._active_contexts.pop(stage, None)) is not None:
             active_contexts.__exit__(None, None, None)
 
     @override

@@ -1072,13 +1072,13 @@ typing-extensions = "*"
 
 [[package]]
 name = "nshutils"
-version = "0.7.0"
+version = "0.8.0"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshutils-0.7.0-py3-none-any.whl", hash = "sha256:8670e897d913505e06571fe28618154e313fd5d88ba7cd6a0e56074eae5b82fd"},
-    {file = "nshutils-0.7.0.tar.gz", hash = "sha256:2f6f3695c9b429e8c2af1dc4180da2375a8a53ab00215cf6c9374cbe10f5f5e1"},
+    {file = "nshutils-0.8.0-py3-none-any.whl", hash = "sha256:308727200162e8ba0644729bbc234c0cae838fdbf4f9138072848a829f2e3bff"},
+    {file = "nshutils-0.8.0.tar.gz", hash = "sha256:1caa9ce91e0a513daf6b0f1a1875d2510cafaf8de9ff61de9041ce0ca51bfecc"},
 ]
 
 [package.dependencies]
