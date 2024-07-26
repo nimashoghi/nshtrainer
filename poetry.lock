@@ -1053,13 +1053,13 @@ pydantic = "*"
 
 [[package]]
 name = "nshrunner"
-version = "0.10.2"
+version = "0.11.2"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshrunner-0.10.2-py3-none-any.whl", hash = "sha256:381c46e3ae488c0164023b4dfbe61d53881961ef6786f061b131c4659e1f0691"},
-    {file = "nshrunner-0.10.2.tar.gz", hash = "sha256:34f963f0418ac2072198b9966cfeb786e6a1e4a82167aacbb0ab1bdc7256ed4b"},
+    {file = "nshrunner-0.11.2-py3-none-any.whl", hash = "sha256:27d3e643b20e14fca574a646e1b0165f3b1617dfc05e25df8ef6ee933b6e8ae3"},
+    {file = "nshrunner-0.11.2.tar.gz", hash = "sha256:c4f6b002baf062145fd9fc832922cb3a5846e8f57597d8b034a777c5cbd8ff17"},
 ]
 
 [package.dependencies]

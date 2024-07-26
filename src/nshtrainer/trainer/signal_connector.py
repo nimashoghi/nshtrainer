@@ -11,6 +11,7 @@ from pathlib import Path
 from types import FrameType
 from typing import Any, TypeAlias
 
+import nshrunner as nr
 import torch.utils.data
 from lightning.fabric.plugins.environments.lsf import LSFEnvironment
 from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
@@ -27,20 +28,22 @@ _HANDLER: TypeAlias = Callable[[_SIGNUM, FrameType], Any] | int | signal.Handler
 
 
 def _resolve_requeue_signals():
+    if (session := nr.Session.from_current_session()) is None:
+        return None
+
     signals: list[signal.Signals] = []
-
-    if timeout_signal_name := os.environ.get("NSHRUNNER_TIMEOUT_SIGNAL"):
-        signals.append(signal.Signals[timeout_signal_name])
-
-    if preempt_signal_name := os.environ.get("NSHRUNNER_PREEMPT_SIGNAL"):
-        signals.append(signal.Signals[preempt_signal_name])
-
+    if session.submit_timeout_signal:
+        signals.append(session.submit_timeout_signal)
+    if session.submit_preempt_signal:
+        signals.append(session.submit_preempt_signal)
     return signals
 
 
 class _SignalConnector(_LightningSignalConnector):
-    def _auto_requeue_signals(self) -> list[signal.Signals]:
-        signals = _resolve_requeue_signals()
+    def _auto_requeue_signals(self) -> list[signal.Signals] | None:
+        if not (signals := _resolve_requeue_signals()):
+            return None
+
         signals_set = set(signals)
         valid_signals: set[signal.Signals] = signal.valid_signals()
         assert signals_set.issubset(
