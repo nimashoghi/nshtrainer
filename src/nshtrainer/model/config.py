@@ -62,7 +62,7 @@ class BaseProfilerConfig(C.Config, ABC):
     """
 
     @abstractmethod
-    def construct_profiler(self, root_config: "BaseConfig") -> Profiler: ...
+    def create_profiler(self, root_config: "BaseConfig") -> Profiler: ...
 
 
 class SimpleProfilerConfig(BaseProfilerConfig):
@@ -75,7 +75,7 @@ class SimpleProfilerConfig(BaseProfilerConfig):
     """
 
     @override
-    def construct_profiler(self, root_config):
+    def create_profiler(self, root_config):
         from lightning.pytorch.profilers.simple import SimpleProfiler
 
         if (dirpath := self.dirpath) is None:
@@ -104,7 +104,7 @@ class AdvancedProfilerConfig(BaseProfilerConfig):
     """
 
     @override
-    def construct_profiler(self, root_config):
+    def create_profiler(self, root_config):
         from lightning.pytorch.profilers.advanced import AdvancedProfiler
 
         if (dirpath := self.dirpath) is None:
@@ -172,7 +172,7 @@ class PyTorchProfilerConfig(BaseProfilerConfig):
     """Keyword arguments for the PyTorch profiler. This depends on your PyTorch version"""
 
     @override
-    def construct_profiler(self, root_config):
+    def create_profiler(self, root_config):
         from lightning.pytorch.profilers.pytorch import PyTorchProfiler
 
         if (dirpath := self.dirpath) is None:
@@ -398,7 +398,7 @@ class BaseLoggerConfig(C.Config, ABC):
     """Directory to save the logs to. If None, will use the default log directory for the trainer."""
 
     @abstractmethod
-    def construct_logger(self, root_config: "BaseConfig") -> Logger | None: ...
+    def create_logger(self, root_config: "BaseConfig") -> Logger | None: ...
 
     def disable_(self):
         self.enabled = False
@@ -466,7 +466,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     """Whether to run WandB in offline mode."""
 
     @override
-    def construct_logger(self, root_config):
+    def create_logger(self, root_config):
         if not self.enabled:
             return None
 
@@ -494,9 +494,9 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
         )
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         if self.watch:
-            yield from self.watch.construct_callbacks(root_config)
+            yield from self.watch.create_callbacks(root_config)
 
 
 class CSVLoggerConfig(BaseLoggerConfig):
@@ -515,7 +515,7 @@ class CSVLoggerConfig(BaseLoggerConfig):
     """How often to flush logs to disk."""
 
     @override
-    def construct_logger(self, root_config):
+    def create_logger(self, root_config):
         if not self.enabled:
             return None
 
@@ -581,7 +581,7 @@ class TensorboardLoggerConfig(BaseLoggerConfig):
     """A string to put at the beginning of metric keys."""
 
     @override
-    def construct_logger(self, root_config):
+    def create_logger(self, root_config):
         if not self.enabled:
             return None
 
@@ -653,7 +653,7 @@ class LoggingConfig(CallbackConfigBase):
             ),
         )
 
-    def construct_loggers(self, root_config: "BaseConfig"):
+    def create_loggers(self, root_config: "BaseConfig"):
         """
         Constructs and returns a list of loggers based on the provided root configuration.
 
@@ -674,13 +674,13 @@ class LoggingConfig(CallbackConfigBase):
         ):
             if not logger_config.enabled:
                 continue
-            if (logger := logger_config.construct_logger(root_config)) is None:
+            if (logger := logger_config.create_logger(root_config)) is None:
                 continue
             loggers.append(logger)
         return loggers
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         if self.log_lr:
             from lightning.pytorch.callbacks import LearningRateMonitor
 
@@ -699,7 +699,7 @@ class LoggingConfig(CallbackConfigBase):
             if not logger or not isinstance(logger, CallbackConfigBase):
                 continue
 
-            yield from logger.construct_callbacks(root_config)
+            yield from logger.create_callbacks(root_config)
 
 
 class GradientClippingConfig(C.Config):
@@ -726,7 +726,7 @@ class OptimizationConfig(CallbackConfigBase):
     """Gradient clipping configuration, or None to disable gradient clipping."""
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         from ..callbacks.norm_logging import NormLoggingConfig
 
         yield from NormLoggingConfig(
@@ -734,7 +734,7 @@ class OptimizationConfig(CallbackConfigBase):
             log_grad_norm_per_param=self.log_grad_norm_per_param,
             log_param_norm=self.log_param_norm,
             log_param_norm_per_param=self.log_param_norm_per_param,
-        ).construct_callbacks(root_config)
+        ).create_callbacks(root_config)
 
 
 TPlugin = TypeVar(
@@ -749,17 +749,17 @@ TPlugin = TypeVar(
 
 @runtime_checkable
 class PluginConfigProtocol(Protocol[TPlugin]):
-    def construct_plugin(self) -> TPlugin: ...
+    def create_plugin(self) -> TPlugin: ...
 
 
 @runtime_checkable
 class AcceleratorConfigProtocol(Protocol):
-    def construct_accelerator(self) -> Accelerator: ...
+    def create_accelerator(self) -> Accelerator: ...
 
 
 @runtime_checkable
 class StrategyConfigProtocol(Protocol):
-    def construct_strategy(self) -> Strategy: ...
+    def create_strategy(self) -> Strategy: ...
 
 
 AcceleratorLiteral: TypeAlias = Literal[
@@ -1035,7 +1035,7 @@ class ModelCheckpointCallbackConfig(CallbackConfigBase):
         return output_string
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         from lightning.pytorch.callbacks.model_checkpoint import ModelCheckpoint
 
         dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
@@ -1096,7 +1096,7 @@ class LatestEpochCheckpointCallbackConfig(CallbackConfigBase):
     """Whether to save only the model's weights or the entire model object."""
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         from ..callbacks.latest_epoch_checkpoint import LatestEpochCheckpoint
 
         dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
@@ -1120,7 +1120,7 @@ class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
     """Checkpoint filename. This must not include the extension. If `None`, `on_exception_{id}_{timestamp}` is used."""
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         from ..callbacks.on_exception_checkpoint import OnExceptionCheckpoint
 
         dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
@@ -1195,12 +1195,12 @@ class CheckpointSavingConfig(CallbackConfigBase):
         )
 
     @override
-    def construct_callbacks(self, root_config: "BaseConfig"):
+    def create_callbacks(self, root_config: "BaseConfig"):
         if not self.should_save_checkpoints(root_config):
             return
 
         for callback_config in self.checkpoint_callbacks:
-            yield from callback_config.construct_callbacks(root_config)
+            yield from callback_config.create_callbacks(root_config)
 
 
 class LightningTrainerKwargs(TypedDict, total=False):
@@ -1477,7 +1477,7 @@ class EarlyStoppingConfig(CallbackConfigBase):
     """
 
     @override
-    def construct_callbacks(self, root_config: "BaseConfig"):
+    def create_callbacks(self, root_config: "BaseConfig"):
         from ..callbacks.early_stopping import EarlyStopping
 
         monitor = self.monitor

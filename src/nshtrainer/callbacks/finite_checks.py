@@ -68,7 +68,7 @@ class FiniteChecksConfig(CallbackConfigBase):
     """Whether to check for None gradients"""
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         yield FiniteChecksCallback(
             nonfinite_grads=self.nonfinite_grads,
             none_grads=self.none_grads,

@@ -46,16 +46,16 @@ class CallbackConfigBase(C.Config, ABC):
         )
 
     @abstractmethod
-    def construct_callbacks(
+    def create_callbacks(
         self, root_config: "BaseConfig"
     ) -> Iterable[Callback | CallbackWithMetadata]: ...
 
 
 # region Config resolution helpers
-def _construct_callbacks_with_metadata(
+def _create_callbacks_with_metadata(
     config: CallbackConfigBase, root_config: "BaseConfig"
 ) -> Iterable[CallbackWithMetadata]:
-    for callback in config.construct_callbacks(root_config):
+    for callback in config.create_callbacks(root_config):
         if isinstance(callback, CallbackWithMetadata):
             yield callback
             continue
@@ -104,7 +104,7 @@ def resolve_all_callbacks(root_config: "BaseConfig"):
     callbacks = _process_and_filter_callbacks(
         callback
         for callback_config in callback_configs
-        for callback in _construct_callbacks_with_metadata(callback_config, root_config)
+        for callback in _create_callbacks_with_metadata(callback_config, root_config)
     )
     return callbacks
 

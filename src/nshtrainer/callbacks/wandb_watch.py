@@ -99,5 +99,5 @@ class WandbWatchConfig(CallbackConfigBase):
         return self.enabled
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         yield WandbWatchCallback(self)

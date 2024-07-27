@@ -374,7 +374,7 @@ class EMAConfig(CallbackConfigBase):
     """Offload weights to CPU."""
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         yield EMA(
             decay=self.decay,
             validate_original_weights=self.validate_original_weights,

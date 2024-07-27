@@ -52,5 +52,5 @@ class ThroughputMonitorConfig(CallbackConfigBase):
     """Number of batches to use for a rolling average."""
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         yield ThroughputMonitor(window_size=self.window_size)

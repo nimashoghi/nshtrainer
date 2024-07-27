@@ -167,12 +167,12 @@ class Trainer(LightningTrainer):
 
         if (accelerator := config.trainer.accelerator) is not None:
             if isinstance(accelerator, AcceleratorConfigProtocol):
-                accelerator = accelerator.construct_accelerator()
+                accelerator = accelerator.create_accelerator()
             _update_kwargs(accelerator=accelerator)
 
         if (strategy := config.trainer.strategy) is not None:
             if isinstance(strategy, StrategyConfigProtocol):
-                strategy = strategy.construct_strategy()
+                strategy = strategy.create_strategy()
             _update_kwargs(strategy=strategy)
 
         if (precision := config.trainer.precision) is not None:
@@ -219,7 +219,7 @@ class Trainer(LightningTrainer):
         if profiler := config.trainer.profiler:
             # If the profiler is an ProfilerConfig instance, then we instantiate it.
             if isinstance(profiler, BaseProfilerConfig):
-                profiler = profiler.construct_profiler(config)
+                profiler = profiler.create_profiler(config)
                 # Make sure that the profiler is an instance of `Profiler`.
                 if not isinstance(profiler, Profiler):
                     raise ValueError(f"{profiler=} is not an instance of `{Profiler}`.")
@@ -235,7 +235,7 @@ class Trainer(LightningTrainer):
         if plugin_configs := config.trainer.plugins:
             _update_kwargs(
                 plugins=[
-                    plugin_config.construct_plugin() for plugin_config in plugin_configs
+                    plugin_config.create_plugin() for plugin_config in plugin_configs
                 ]
             )
 
@@ -243,7 +243,7 @@ class Trainer(LightningTrainer):
             log.critical(f"Disabling logger because {config.trainer.logging.enabled=}.")
             kwargs["logger"] = False
         else:
-            _update_kwargs(logger=config.trainer.logging.construct_loggers(config))
+            _update_kwargs(logger=config.trainer.logging.create_loggers(config))
 
         if config.trainer.auto_determine_num_nodes:
             # When num_nodes is auto, we need to detect the number of nodes.

@@ -27,7 +27,7 @@ class ActSaveConfig(CallbackConfigBase):
         return self.enabled
 
     @override
-    def construct_callbacks(self, root_config):
+    def create_callbacks(self, root_config):
         yield ActSaveCallback(
             self,
             self.save_dir
