@@ -10,6 +10,7 @@ python = "^3.10"
 nshrunner = "*"
 nshconfig = "*"
 nshutils = "*"
+psutil = "*"
 torch = "*"
 typing-extensions = "*"
 lightning = "*"
@@ -17,7 +18,7 @@ pytorch-lightning = "*"
 torchmetrics = "*"
 numpy = "*"
 wrapt = "*"
-
+GitPython = "*"
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.372"

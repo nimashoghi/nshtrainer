@@ -5,13 +5,15 @@ import os
 import platform
 import socket
 import sys
-from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
+import git
 import nshconfig as C
-from typing_extensions import TypeVar
+import psutil
+import torch
+from typing_extensions import Self
 
 from ..util.slurm import parse_slurm_node_list
 
@@ -21,16 +23,6 @@ if TYPE_CHECKING:
 
 
 log = logging.getLogger(__name__)
-
-T = TypeVar("T", infer_variance=True)
-
-
-def _try_get(fn: Callable[[], T | None]) -> T | None:
-    try:
-        return fn()
-    except Exception as e:
-        log.warning(f"Failed to get value: {e}")
-        return None
 
 
 class EnvironmentClassInformationConfig(C.Config):
@@ -272,12 +264,6 @@ class EnvironmentLSFInformationConfig(C.Config):
             return None
 
 
-def _psutil():
-    import psutil
-
-    return psutil
-
-
 class EnvironmentLinuxEnvironmentConfig(C.Config):
     """Configuration for Linux environment information."""
 
@@ -337,18 +323,18 @@ class EnvironmentLinuxEnvironmentConfig(C.Config):
     @classmethod
     def from_current_environment(cls):
         return cls(
-            user=_try_get(lambda: getpass.getuser()),
-            hostname=_try_get(lambda: platform.node()),
-            system=_try_get(lambda: platform.system()),
-            release=_try_get(lambda: platform.release()),
-            version=_try_get(lambda: platform.version()),
-            machine=_try_get(lambda: platform.machine()),
-            processor=_try_get(lambda: platform.processor()),
-            cpu_count=_try_get(lambda: os.cpu_count()),
-            memory=_try_get(lambda: _psutil().virtual_memory().total),
-            uptime=_try_get(lambda: timedelta(seconds=_psutil().boot_time())),
-            boot_time=_try_get(lambda: _psutil().boot_time()),
-            load_avg=_try_get(lambda: os.getloadavg()),
+            user=getpass.getuser(),
+            hostname=platform.node(),
+            system=platform.system(),
+            release=platform.release(),
+            version=platform.version(),
+            machine=platform.machine(),
+            processor=platform.processor(),
+            cpu_count=os.cpu_count(),
+            memory=psutil.virtual_memory().total,
+            uptime=timedelta(seconds=psutil.boot_time()),
+            boot_time=psutil.boot_time(),
+            load_avg=os.getloadavg(),
         )
 
 
@@ -375,6 +361,295 @@ class EnvironmentSnapshotConfig(C.Config):
         return draft.finalize()
 
 
+class EnvironmentPackageConfig(C.Config):
+    """Configuration for Python package information."""
+
+    name: str | None
+    """The name of the package."""
+
+    version: str | None
+    """The version of the package."""
+
+    path: Path | None
+    """The installation path of the package."""
+
+    summary: str | None
+    """A brief summary of the package."""
+
+    author: str | None
+    """The author of the package."""
+
+    license: str | None
+    """The license of the package."""
+
+    requires: list[str] | None
+    """List of package dependencies."""
+
+    @classmethod
+    def empty(cls):
+        return cls(
+            name=None,
+            version=None,
+            path=None,
+            summary=None,
+            author=None,
+            license=None,
+            requires=None,
+        )
+
+    @classmethod
+    def from_current_environment(cls):
+        # Add Python package information
+        python_packages: dict[str, Self] = {}
+        try:
+            import pkg_resources
+
+            for package in pkg_resources.working_set:
+                python_packages[package.key] = cls(
+                    name=package.project_name,
+                    version=package.version,
+                    path=Path(package.location) if package.location else None,
+                    summary=package.summary,
+                    author=package.author,
+                    license=package.license,
+                    requires=[str(req) for req in package.requires()],
+                )
+        except ImportError:
+            log.warning("pkg_resources not available, skipping package information")
+
+        return python_packages
+
+
+class EnvironmentGPUConfig(C.Config):
+    """Configuration for individual GPU information."""
+
+    name: str | None
+    """Name of the GPU."""
+
+    total_memory: int | None
+    """Total memory of the GPU in bytes."""
+
+    major: int | None
+    """Major version of CUDA capability."""
+
+    minor: int | None
+    """Minor version of CUDA capability."""
+
+    multi_processor_count: int | None
+    """Number of multiprocessors on the GPU."""
+
+    @classmethod
+    def empty(cls):
+        return cls(
+            name=None,
+            total_memory=None,
+            major=None,
+            minor=None,
+            multi_processor_count=None,
+        )
+
+
+class EnvironmentCUDAConfig(C.Config):
+    """Configuration for CUDA environment information."""
+
+    is_available: bool | None
+    """Whether CUDA is available."""
+
+    version: str | None
+    """CUDA version."""
+
+    cudnn_version: int | None
+    """cuDNN version."""
+
+    @classmethod
+    def empty(cls):
+        return cls(is_available=None, version=None, cudnn_version=None)
+
+
+class EnvironmentHardwareConfig(C.Config):
+    """Configuration for hardware information."""
+
+    cpu_count_physical: int | None
+    """Number of physical CPU cores."""
+
+    cpu_count_logical: int | None
+    """Number of logical CPU cores."""
+
+    cpu_frequency_current: float | None
+    """Current CPU frequency in MHz."""
+
+    cpu_frequency_min: float | None
+    """Minimum CPU frequency in MHz."""
+
+    cpu_frequency_max: float | None
+    """Maximum CPU frequency in MHz."""
+
+    ram_total: int | None
+    """Total RAM in bytes."""
+
+    ram_available: int | None
+    """Available RAM in bytes."""
+
+    disk_total: int | None
+    """Total disk space in bytes."""
+
+    disk_used: int | None
+    """Used disk space in bytes."""
+
+    disk_free: int | None
+    """Free disk space in bytes."""
+
+    gpu_count: int | None
+    """Number of GPUs available."""
+
+    gpus: list[EnvironmentGPUConfig] | None
+    """List of GPU configurations."""
+
+    cuda: EnvironmentCUDAConfig | None
+    """CUDA environment configuration."""
+
+    @classmethod
+    def empty(cls):
+        return cls(
+            cpu_count_physical=None,
+            cpu_count_logical=None,
+            cpu_frequency_current=None,
+            cpu_frequency_min=None,
+            cpu_frequency_max=None,
+            ram_total=None,
+            ram_available=None,
+            disk_total=None,
+            disk_used=None,
+            disk_free=None,
+            gpu_count=None,
+            gpus=None,
+            cuda=None,
+        )
+
+    @classmethod
+    def from_current_environment(cls):
+        draft = cls.draft()
+
+        # CPU information
+        draft.cpu_count_physical = psutil.cpu_count(logical=False)
+        draft.cpu_count_logical = psutil.cpu_count(logical=True)
+        cpu_freq = psutil.cpu_freq()
+        if cpu_freq:
+            draft.cpu_frequency_current = cpu_freq.current
+            draft.cpu_frequency_min = cpu_freq.min
+            draft.cpu_frequency_max = cpu_freq.max
+
+        # RAM information
+        ram = psutil.virtual_memory()
+        draft.ram_total = ram.total
+        draft.ram_available = ram.available
+
+        # Disk information
+        disk = psutil.disk_usage("/")
+        draft.disk_total = disk.total
+        draft.disk_used = disk.used
+        draft.disk_free = disk.free
+
+        # GPU and CUDA information
+        draft.cuda = EnvironmentCUDAConfig(
+            is_available=torch.cuda.is_available(),
+            version=cast(Any, torch).version.cuda,
+            cudnn_version=torch.backends.cudnn.version()
+            if torch.backends.cudnn.is_available()
+            else None,
+        )
+
+        if draft.cuda.is_available:
+            draft.gpu_count = torch.cuda.device_count()
+            draft.gpus = []
+            for i in range(draft.gpu_count):
+                gpu_props = torch.cuda.get_device_properties(i)
+                gpu_config = EnvironmentGPUConfig(
+                    name=gpu_props.name,
+                    total_memory=gpu_props.total_memory,
+                    major=gpu_props.major,
+                    minor=gpu_props.minor,
+                    multi_processor_count=gpu_props.multi_processor_count,
+                )
+                draft.gpus.append(gpu_config)
+
+        return draft.finalize()
+
+
+class GitRepositoryConfig(C.Config):
+    """Configuration for Git repository information."""
+
+    is_git_repo: bool | None
+    """Whether the current directory is a Git repository."""
+
+    branch: str | None
+    """The current Git branch."""
+
+    commit_hash: str | None
+    """The current commit hash."""
+
+    commit_message: str | None
+    """The current commit message."""
+
+    author: str | None
+    """The author of the current commit."""
+
+    commit_date: str | None
+    """The date of the current commit."""
+
+    remote_url: str | None
+    """The URL of the remote repository."""
+
+    is_dirty: bool | None
+    """Whether there are uncommitted changes."""
+
+    @classmethod
+    def empty(cls):
+        return cls(
+            is_git_repo=None,
+            branch=None,
+            commit_hash=None,
+            commit_message=None,
+            author=None,
+            commit_date=None,
+            remote_url=None,
+            is_dirty=None,
+        )
+
+    @classmethod
+    def from_current_directory(cls):
+        draft = cls.draft()
+        try:
+            repo = git.Repo(os.getcwd(), search_parent_directories=True)
+            draft.is_git_repo = True
+            draft.branch = repo.active_branch.name
+            commit = repo.head.commit
+            draft.commit_hash = commit.hexsha
+
+            # Handle both str and bytes for commit message
+            if isinstance(commit.message, str):
+                draft.commit_message = commit.message.strip()
+            elif isinstance(commit.message, bytes):
+                draft.commit_message = commit.message.decode(
+                    "utf-8", errors="replace"
+                ).strip()
+            else:
+                draft.commit_message = str(commit.message).strip()
+
+            draft.author = f"{commit.author.name} <{commit.author.email}>"
+            draft.commit_date = commit.committed_datetime.isoformat()
+            if repo.remotes:
+                draft.remote_url = repo.remotes.origin.url
+            draft.is_dirty = repo.is_dirty()
+        except git.InvalidGitRepositoryError:
+            draft.is_git_repo = False
+        except Exception as e:
+            log.warning(f"Failed to get Git repository information: {e}")
+            draft.is_git_repo = None
+
+        return draft.finalize()
+
+
 class EnvironmentConfig(C.Config):
     """Configuration for the overall environment."""
 
@@ -393,17 +668,20 @@ class EnvironmentConfig(C.Config):
     python_version: str | None
     """The Python version."""
 
+    python_packages: dict[str, EnvironmentPackageConfig] | None
+    """A mapping of package names to their configurations."""
+
     config: EnvironmentClassInformationConfig | None
     """The configuration class information."""
 
     model: EnvironmentClassInformationConfig | None
-    """The model class information."""
-
-    data: EnvironmentClassInformationConfig | None
-    """The data class information."""
+    """The Lightning module class information."""
 
     linux: EnvironmentLinuxEnvironmentConfig | None
     """The Linux environment information."""
+
+    hardware: EnvironmentHardwareConfig | None
+    """Hardware configuration information."""
 
     slurm: EnvironmentSLURMInformationConfig | None
     """The SLURM environment information."""
@@ -429,6 +707,9 @@ class EnvironmentConfig(C.Config):
     seed_workers: bool | None
     """Whether to seed workers."""
 
+    git: GitRepositoryConfig | None
+    """Git repository information."""
+
     @classmethod
     def empty(cls):
         return cls(
@@ -437,10 +718,11 @@ class EnvironmentConfig(C.Config):
             python_executable=None,
             python_path=None,
             python_version=None,
+            python_packages=None,
             config=None,
             model=None,
-            data=None,
             linux=None,
+            hardware=None,
             slurm=None,
             lsf=None,
             base_dir=None,
@@ -449,21 +731,25 @@ class EnvironmentConfig(C.Config):
             stdio_dir=None,
             seed=None,
             seed_workers=None,
+            git=None,
         )
 
     @classmethod
     def from_current_environment(
         cls,
-        model: "LightningModuleBase",
         root_config: "BaseConfig",
+        model: "LightningModuleBase",
     ):
         draft = cls.draft()
         draft.cwd = Path(os.getcwd())
         draft.python_executable = Path(sys.executable)
         draft.python_path = [Path(path) for path in sys.path]
         draft.python_version = sys.version
+        draft.python_packages = EnvironmentPackageConfig.from_current_environment()
         draft.config = EnvironmentClassInformationConfig.from_instance(root_config)
         draft.model = EnvironmentClassInformationConfig.from_instance(model)
+        draft.linux = EnvironmentLinuxEnvironmentConfig.from_current_environment()
+        draft.hardware = EnvironmentHardwareConfig.from_current_environment()
         draft.slurm = EnvironmentSLURMInformationConfig.from_current_environment()
         draft.lsf = EnvironmentLSFInformationConfig.from_current_environment()
         draft.base_dir = root_config.directory.resolve_run_root_directory(
@@ -486,6 +772,6 @@ class EnvironmentConfig(C.Config):
             if (seed_everything := os.environ.get("PL_SEED_WORKERS"))
             else None
         )
-        draft.linux = EnvironmentLinuxEnvironmentConfig.from_current_environment()
         draft.snapshot = EnvironmentSnapshotConfig.from_current_environment()
+        draft.git = GitRepositoryConfig.from_current_directory()
         return draft.finalize()

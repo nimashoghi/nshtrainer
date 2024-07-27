@@ -6,7 +6,7 @@ from typing import IO, TYPE_CHECKING, Any, Generic, cast
 
 import torch
 from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
-from lightning.pytorch import LightningDataModule, LightningModule, Trainer
+from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from typing_extensions import Self, TypeVar, override
@@ -190,12 +190,11 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
 
             hparams = self.pre_init_update_hparams_dict(hparams)
             hparams = self.config_cls().model_validate(hparams)
-        hparams.environment = EnvironmentConfig.from_current_environment(self, hparams)
+        hparams.environment = EnvironmentConfig.from_current_environment(hparams, self)
         hparams = self.pre_init_update_hparams(hparams)
         super().__init__(hparams)
 
         self.save_hyperparameters(hparams)
-
         self.register_callback(lambda: DebugFlagCallback())
 
     def zero_loss(self):
@@ -206,17 +205,6 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
         loss = sum((0.0 * v).sum() for v in self.parameters() if v.requires_grad)
         loss = cast(torch.Tensor, loss)
         return loss
-
-    @property
-    def datamodule(self):
-        datamodule = getattr(self.trainer, "datamodule", None)
-        if (datamodule := getattr(self.trainer, "datamodule", None)) is None:
-            return None
-        if not isinstance(datamodule, LightningDataModule):
-            raise TypeError(
-                f"datamodule must be a LightningDataModule: {type(datamodule)}"
-            )
-        return datamodule
 
     if TYPE_CHECKING:
 
