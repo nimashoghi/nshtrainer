@@ -5,6 +5,7 @@ from typing import Generic
 
 from nshrunner import RunInfo
 from nshrunner import Runner as _Runner
+from nshrunner._submit import screen
 from nshrunner.snapshot import SnapshotArgType
 from typing_extensions import TypeVar, TypeVarTuple, Unpack, override
 
@@ -89,6 +90,7 @@ class Runner(
     def fast_dev_run_session(
         self,
         runs: Iterable[tuple[TConfig, Unpack[TArguments]]],
+        options: screen.ScreenJobKwargs = {},
         n_batches: int = 1,
         *,
         snapshot: SnapshotArgType,
@@ -99,10 +101,7 @@ class Runner(
         ]
         | None = None,
         activate_venv: bool = True,
-        session_name: str = "nshrunner",
-        attach: bool = True,
         print_command: bool = True,
-        pause_before_exit: bool = False,
     ):
         transforms = transforms or []
         transforms.append(
@@ -110,13 +109,11 @@ class Runner(
         )
         return self.session(
             runs,
+            options,
             snapshot=snapshot,
             setup_commands=setup_commands,
             env=env,
             transforms=transforms,
             activate_venv=activate_venv,
-            session_name=session_name,
-            attach=attach,
             print_command=print_command,
-            pause_before_exit=pause_before_exit,
         )
