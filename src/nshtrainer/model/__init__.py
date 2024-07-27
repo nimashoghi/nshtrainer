@@ -1,5 +1,16 @@
 from typing_extensions import TypeAlias
 
+from ._environment import (
+    EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
+)
+from ._environment import EnvironmentConfig as EnvironmentConfig
+from ._environment import (
+    EnvironmentLinuxEnvironmentConfig as EnvironmentLinuxEnvironmentConfig,
+)
+from ._environment import (
+    EnvironmentSLURMInformationConfig as EnvironmentSLURMInformationConfig,
+)
+from ._environment import EnvironmentSnapshotConfig as EnvironmentSnapshotConfig
 from .base import Base as Base
 from .base import LightningModuleBase as LightningModuleBase
 from .config import BaseConfig as BaseConfig
@@ -9,16 +20,6 @@ from .config import CheckpointLoadingConfig as CheckpointLoadingConfig
 from .config import CheckpointSavingConfig as CheckpointSavingConfig
 from .config import DirectoryConfig as DirectoryConfig
 from .config import EarlyStoppingConfig as EarlyStoppingConfig
-from .config import (
-    EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
-)
-from .config import EnvironmentConfig as EnvironmentConfig
-from .config import (
-    EnvironmentLinuxEnvironmentConfig as EnvironmentLinuxEnvironmentConfig,
-)
-from .config import (
-    EnvironmentSLURMInformationConfig as EnvironmentSLURMInformationConfig,
-)
 from .config import GradientClippingConfig as GradientClippingConfig
 from .config import (
     LatestEpochCheckpointCallbackConfig as LatestEpochCheckpointCallbackConfig,

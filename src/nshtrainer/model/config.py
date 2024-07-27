@@ -1,7 +1,5 @@
 import copy
 import os
-import re
-import socket
 import string
 import time
 import warnings
@@ -45,7 +43,7 @@ from ..callbacks import (
 )
 from ..callbacks.base import CallbackConfigBase
 from ..metrics import MetricConfig
-from ..util.slurm import parse_slurm_node_list
+from ._environment import EnvironmentConfig
 
 log = getLogger(__name__)
 
@@ -207,190 +205,6 @@ ProfilerConfig: TypeAlias = Annotated[
     SimpleProfilerConfig | AdvancedProfilerConfig | PyTorchProfilerConfig,
     C.Field(discriminator="kind"),
 ]
-
-
-class EnvironmentClassInformationConfig(C.Config):
-    name: str
-    module: str
-    full_name: str
-
-    file_path: Path
-    source_file_path: Path | None = None
-
-
-class EnvironmentSLURMInformationConfig(C.Config):
-    hostname: str
-    hostnames: list[str]
-    job_id: str
-    raw_job_id: str
-    array_job_id: str | None
-    array_task_id: str | None
-    num_tasks: int
-    num_nodes: int
-    node: str | int | None
-    global_rank: int
-    local_rank: int
-
-    @classmethod
-    def from_current_environment(cls):
-        try:
-            from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
-
-            if not SLURMEnvironment.detect():
-                return None
-
-            hostname = socket.gethostname()
-            hostnames = [hostname]
-            if node_list := os.environ.get("SLURM_JOB_NODELIST", ""):
-                hostnames = parse_slurm_node_list(node_list)
-
-            raw_job_id = os.environ["SLURM_JOB_ID"]
-            job_id = raw_job_id
-            array_job_id = os.environ.get("SLURM_ARRAY_JOB_ID")
-            array_task_id = os.environ.get("SLURM_ARRAY_TASK_ID")
-            if array_job_id and array_task_id:
-                job_id = f"{array_job_id}_{array_task_id}"
-
-            num_tasks = int(os.environ["SLURM_NTASKS"])
-            num_nodes = int(os.environ["SLURM_JOB_NUM_NODES"])
-
-            node_id = os.environ.get("SLURM_NODEID")
-
-            global_rank = int(os.environ["SLURM_PROCID"])
-            local_rank = int(os.environ["SLURM_LOCALID"])
-
-            return cls(
-                hostname=hostname,
-                hostnames=hostnames,
-                job_id=job_id,
-                raw_job_id=raw_job_id,
-                array_job_id=array_job_id,
-                array_task_id=array_task_id,
-                num_tasks=num_tasks,
-                num_nodes=num_nodes,
-                node=node_id,
-                global_rank=global_rank,
-                local_rank=local_rank,
-            )
-        except (ImportError, RuntimeError, ValueError, KeyError):
-            return None
-
-
-class EnvironmentLSFInformationConfig(C.Config):
-    hostname: str
-    hostnames: list[str]
-    job_id: str
-    array_job_id: str | None
-    array_task_id: str | None
-    num_tasks: int
-    num_nodes: int
-    node: str | int | None
-    global_rank: int
-    local_rank: int
-
-    @classmethod
-    def from_current_environment(cls):
-        try:
-            import os
-            import socket
-
-            hostname = socket.gethostname()
-            hostnames = [hostname]
-            if node_list := os.environ.get("LSB_HOSTS", ""):
-                hostnames = node_list.split()
-
-            job_id = os.environ["LSB_JOBID"]
-            array_job_id = os.environ.get("LSB_JOBINDEX")
-            array_task_id = os.environ.get("LSB_JOBINDEX")
-
-            num_tasks = int(os.environ.get("LSB_DJOB_NUMPROC", 1))
-            num_nodes = len(set(hostnames))
-
-            node_id = (
-                os.environ.get("LSB_HOSTS", "").split().index(hostname)
-                if "LSB_HOSTS" in os.environ
-                else None
-            )
-
-            # LSF doesn't have direct equivalents for global_rank and local_rank
-            # You might need to calculate these based on your specific setup
-            global_rank = int(os.environ.get("PMI_RANK", 0))
-            local_rank = int(os.environ.get("LSB_RANK", 0))
-
-            return cls(
-                hostname=hostname,
-                hostnames=hostnames,
-                job_id=job_id,
-                array_job_id=array_job_id,
-                array_task_id=array_task_id,
-                num_tasks=num_tasks,
-                num_nodes=num_nodes,
-                node=node_id,
-                global_rank=global_rank,
-                local_rank=local_rank,
-            )
-        except (ImportError, RuntimeError, ValueError, KeyError):
-            return None
-
-
-class EnvironmentLinuxEnvironmentConfig(C.Config):
-    """
-    Information about the Linux environment (e.g., current user, hostname, etc.)
-    """
-
-    user: str | None = None
-    hostname: str | None = None
-    system: str | None = None
-    release: str | None = None
-    version: str | None = None
-    machine: str | None = None
-    processor: str | None = None
-    cpu_count: int | None = None
-    memory: int | None = None
-    uptime: timedelta | None = None
-    boot_time: float | None = None
-    load_avg: tuple[float, float, float] | None = None
-
-
-class EnvironmentSnapshotConfig(C.Config):
-    snapshot_dir: Path | None = None
-    modules: list[str] | None = None
-
-    @classmethod
-    def from_current_environment(cls):
-        draft = cls.draft()
-        if snapshot_dir := os.environ.get("NSHRUNNER_SNAPSHOT_DIR"):
-            draft.snapshot_dir = Path(snapshot_dir)
-        if modules := os.environ.get("NSHRUNNER_SNAPSHOT_MODULES"):
-            draft.modules = modules.split(",")
-        return draft.finalize()
-
-
-class EnvironmentConfig(C.Config):
-    cwd: Path | None = None
-
-    snapshot: EnvironmentSnapshotConfig | None = None
-
-    python_executable: Path | None = None
-    python_path: list[Path] | None = None
-    python_version: str | None = None
-
-    config: EnvironmentClassInformationConfig | None = None
-    model: EnvironmentClassInformationConfig | None = None
-    data: EnvironmentClassInformationConfig | None = None
-
-    linux: EnvironmentLinuxEnvironmentConfig | None = None
-
-    slurm: EnvironmentSLURMInformationConfig | None = None
-    lsf: EnvironmentLSFInformationConfig | None = None
-
-    base_dir: Path | None = None
-    log_dir: Path | None = None
-    checkpoint_dir: Path | None = None
-    stdio_dir: Path | None = None
-
-    seed: int | None = None
-    seed_workers: bool | None = None
 
 
 class BaseLoggerConfig(C.Config, ABC):
@@ -1509,8 +1323,6 @@ class TrainerConfig(C.Config):
     automatic selection based on the chosen accelerator. Default: ``"auto"``.
     """
 
-    auto_wrap_trainer: bool = True
-    """If enabled, will automatically wrap the `run` function with a `Trainer.context()` context manager. Should be `True` most of the time."""
     auto_set_default_root_dir: bool = True
     """If enabled, will automatically set the default root dir to [cwd/lightning_logs/<id>/]. There is basically no reason to disable this."""
     supports_shared_parameters: bool = True
@@ -1553,7 +1365,9 @@ class BaseConfig(C.Config):
 
     debug: bool = False
     """Whether to run in debug mode. This will enable debug logging and enable debug code paths."""
-    environment: Annotated[EnvironmentConfig, C.Field(repr=False)] = EnvironmentConfig()
+    environment: Annotated[EnvironmentConfig, C.Field(repr=False)] = (
+        EnvironmentConfig.empty()
+    )
     """A snapshot of the current environment information (e.g. python version, slurm info, etc.). This is automatically populated by the run script."""
 
     directory: DirectoryConfig = DirectoryConfig()
@@ -1641,7 +1455,7 @@ class BaseConfig(C.Config):
             self.directory = DirectoryConfig()
 
         if environment:
-            self.environment = EnvironmentConfig()
+            self.environment = EnvironmentConfig.empty()
 
         if meta:
             self.meta = {}

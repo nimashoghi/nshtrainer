@@ -1,13 +1,7 @@
-import getpass
 import inspect
-import os
-import platform
-import sys
 from abc import ABC, abstractmethod
-from collections.abc import Callable, MutableMapping
-from datetime import timedelta
+from collections.abc import MutableMapping
 from logging import getLogger
-from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, Generic, cast
 
 import torch
@@ -17,14 +11,8 @@ from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from typing_extensions import Self, TypeVar, override
 
-from .config import (
-    BaseConfig,
-    EnvironmentClassInformationConfig,
-    EnvironmentLinuxEnvironmentConfig,
-    EnvironmentLSFInformationConfig,
-    EnvironmentSLURMInformationConfig,
-    EnvironmentSnapshotConfig,
-)
+from ._environment import EnvironmentConfig
+from .config import BaseConfig
 from .modules.callback import CallbackModuleMixin
 from .modules.debug import DebugModuleMixin
 from .modules.distributed import DistributedMixin
@@ -100,39 +88,6 @@ class DebugFlagCallback(Callback):
         if not self._debug:
             log.critical("Sanity check routine complete, disabling debug flag.")
         hparams.debug = self._debug
-
-
-def _cls_info(cls: type):
-    name = cls.__name__
-    module = cls.__module__
-    full_name = f"{cls.__module__}.{cls.__qualname__}"
-
-    file_path = inspect.getfile(cls)
-    source_file_path = inspect.getsourcefile(cls)
-    return EnvironmentClassInformationConfig(
-        name=name,
-        module=module,
-        full_name=full_name,
-        file_path=Path(file_path),
-        source_file_path=Path(source_file_path) if source_file_path else None,
-    )
-
-
-T = TypeVar("T")
-
-
-def _psutil():
-    import psutil
-
-    return psutil
-
-
-def _try_get(fn: Callable[[], T | None]) -> T | None:
-    try:
-        return fn()
-    except Exception as e:
-        log.warning(f"Failed to get value: {e}")
-        return None
 
 
 class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -212,58 +167,6 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
             **kwargs,
         )
 
-    @classmethod
-    def _update_environment(cls, hparams: THparams):
-        hparams.environment.cwd = Path(os.getcwd())
-        hparams.environment.python_executable = Path(sys.executable)
-        hparams.environment.python_path = [Path(path) for path in sys.path]
-        hparams.environment.python_version = sys.version
-        hparams.environment.config = _cls_info(cls.config_cls())
-        hparams.environment.model = _cls_info(cls)
-        hparams.environment.slurm = (
-            EnvironmentSLURMInformationConfig.from_current_environment()
-        )
-        hparams.environment.lsf = (
-            EnvironmentLSFInformationConfig.from_current_environment()
-        )
-        hparams.environment.base_dir = hparams.directory.resolve_run_root_directory(
-            hparams.id
-        )
-        hparams.environment.log_dir = hparams.directory.resolve_subdirectory(
-            hparams.id, "log"
-        )
-        hparams.environment.checkpoint_dir = hparams.directory.resolve_subdirectory(
-            hparams.id, "checkpoint"
-        )
-        hparams.environment.stdio_dir = hparams.directory.resolve_subdirectory(
-            hparams.id, "stdio"
-        )
-        hparams.environment.seed = (
-            int(seed_str) if (seed_str := os.environ.get("PL_GLOBAL_SEED")) else None
-        )
-        hparams.environment.seed_workers = (
-            bool(int(seed_everything))
-            if (seed_everything := os.environ.get("PL_SEED_WORKERS"))
-            else None
-        )
-        hparams.environment.linux = EnvironmentLinuxEnvironmentConfig(
-            user=_try_get(lambda: getpass.getuser()),
-            hostname=_try_get(lambda: platform.node()),
-            system=_try_get(lambda: platform.system()),
-            release=_try_get(lambda: platform.release()),
-            version=_try_get(lambda: platform.version()),
-            machine=_try_get(lambda: platform.machine()),
-            processor=_try_get(lambda: platform.processor()),
-            cpu_count=_try_get(lambda: os.cpu_count()),
-            memory=_try_get(lambda: _psutil().virtual_memory().total),
-            uptime=_try_get(lambda: timedelta(seconds=_psutil().boot_time())),
-            boot_time=_try_get(lambda: _psutil().boot_time()),
-            load_avg=_try_get(lambda: os.getloadavg()),
-        )
-        hparams.environment.snapshot = (
-            EnvironmentSnapshotConfig.from_current_environment()
-        )
-
     def pre_init_update_hparams_dict(self, hparams: MutableMapping[str, Any]):
         """
         Override this method to update the hparams dictionary before it is used to create the hparams object.
@@ -287,7 +190,7 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
 
             hparams = self.pre_init_update_hparams_dict(hparams)
             hparams = self.config_cls().model_validate(hparams)
-        self._update_environment(hparams)
+        hparams.environment = EnvironmentConfig.from_current_environment(self, hparams)
         hparams = self.pre_init_update_hparams(hparams)
         super().__init__(hparams)
 
