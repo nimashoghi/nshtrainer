@@ -281,7 +281,7 @@ class Trainer(LightningTrainer):
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
-        self._ll_config = config
+        self._nshtrainer_config = config
         kwargs = self._update_kwargs(config, kwargs)
         log.critical(f"LightningTrainer.__init__ with {kwargs=}.")
 
@@ -297,7 +297,7 @@ class Trainer(LightningTrainer):
 
         # Checkpoint loading
         if (
-            ckpt_loading := self._ll_config.trainer.checkpoint_loading
+            ckpt_loading := self._nshtrainer_config.trainer.checkpoint_loading
         ) and ckpt_loading.path:
             self.ckpt_path = ckpt_loading.path
 

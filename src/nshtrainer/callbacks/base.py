@@ -99,7 +99,9 @@ def _process_and_filter_callbacks(
 
 def resolve_all_callbacks(root_config: "BaseConfig"):
     callback_configs = [
-        config for config in root_config.ll_all_callback_configs() if config is not None
+        config
+        for config in root_config._nshtrainer_all_callback_configs()
+        if config is not None
     ]
     callbacks = _process_and_filter_callbacks(
         callback
