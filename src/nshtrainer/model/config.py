@@ -36,9 +36,15 @@ from lightning.pytorch.strategies.strategy import Strategy
 from pydantic import DirectoryPath
 from typing_extensions import Self, TypedDict, TypeVar, override
 
-from ..callbacks import CallbackConfig
+from ..callbacks import (
+    CallbackConfig,
+    LatestEpochCheckpointCallbackConfig,
+    ModelCheckpointCallbackConfig,
+    OnExceptionCheckpointCallbackConfig,
+    WandbWatchConfig,
+)
 from ..callbacks.base import CallbackConfigBase
-from ..callbacks.wandb_watch import WandbWatchConfig
+from ..metrics import MetricConfig
 from ..util.slurm import parse_slurm_node_list
 
 log = getLogger(__name__)
@@ -930,208 +936,6 @@ class ReproducibilityConfig(C.Config):
     """
 
 
-class ModelCheckpointCallbackConfig(CallbackConfigBase):
-    """Arguments for the ModelCheckpoint callback."""
-
-    kind: Literal["model_checkpoint"] = "model_checkpoint"
-
-    dirpath: str | Path | None = None
-    """
-    Directory path to save the model file. If `None`, we save to the checkpoint directory set in `config.directory`.
-    """
-
-    filename: str | None = None
-    """
-    Checkpoint filename.
-        If None, a default template is used (see :attr:`ModelCheckpoint.CHECKPOINT_JOIN_CHAR`).
-    """
-
-    monitor: str | None = None
-    """
-    Quantity to monitor for saving checkpoints.
-        If None, no metric is monitored and checkpoints are saved at the end of every epoch.
-    """
-
-    verbose: bool = False
-    """Verbosity mode. If True, print additional information about checkpoints."""
-
-    save_last: Literal[True, False, "link"] | None = "link"
-    """
-    Whether to save the last checkpoint.
-        If True, saves a copy of the last checkpoint separately.
-        If "link", creates a symbolic link to the last checkpoint.
-    """
-
-    save_top_k: int = 1
-    """
-    Number of best models to save.
-        If -1, all models are saved.
-        If 0, no models are saved.
-    """
-
-    save_weights_only: bool = False
-    """Whether to save only the model's weights or the entire model object."""
-
-    mode: str = "min"
-    """
-    One of "min" or "max".
-        If "min", training will stop when the metric monitored has stopped decreasing.
-        If "max", training will stop when the metric monitored has stopped increasing.
-    """
-
-    auto_insert_metric_name: bool = True
-    """Whether to automatically insert the metric name in the checkpoint filename."""
-
-    every_n_train_steps: int | None = None
-    """
-    Number of training steps between checkpoints.
-        If None or 0, no checkpoints are saved during training.
-    """
-
-    train_time_interval: timedelta | None = None
-    """
-    Time interval between checkpoints during training.
-        If None, no checkpoints are saved during training based on time.
-    """
-
-    every_n_epochs: int | None = None
-    """
-    Number of epochs between checkpoints.
-        If None or 0, no checkpoints are saved at the end of epochs.
-    """
-
-    save_on_train_epoch_end: bool | None = None
-    """
-    Whether to run checkpointing at the end of the training epoch.
-        If False, checkpointing runs at the end of the validation.
-    """
-
-    enable_version_counter: bool = True
-    """Whether to append a version to the existing file name."""
-
-    auto_append_metric: bool = True
-    """If enabled, this will automatically add "-{monitor}" to the filename."""
-
-    @staticmethod
-    def _convert_string(input_string: str):
-        # Find all variables enclosed in curly braces
-        variables = re.findall(r"\{(.*?)\}", input_string)
-
-        # Replace each variable with its corresponding key-value pair
-        output_string = input_string
-        for variable in variables:
-            # If the name is something like {variable:format}, we shouldn't process the format.
-            key_name = variable
-            if ":" in variable:
-                key_name, _ = variable.split(":", 1)
-                continue
-
-            # Replace '/' with '_' in the key name
-            key_name = key_name.replace("/", "_")
-            output_string = output_string.replace(
-                f"{{{variable}}}", f"{key_name}={{{variable}}}"
-            )
-
-        return output_string
-
-    @override
-    def create_callbacks(self, root_config):
-        from lightning.pytorch.callbacks.model_checkpoint import ModelCheckpoint
-
-        dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
-            root_config.id, "checkpoint"
-        )
-
-        # If `monitor` is not provided, we can use `config.primary_metric` if it is set.
-        monitor = self.monitor
-        mode = self.mode
-        if (
-            monitor is None
-            and (primary_metric := root_config.primary_metric) is not None
-        ):
-            monitor = primary_metric.validation_monitor
-            mode = primary_metric.mode
-
-        filename = self.filename
-        if self.auto_append_metric:
-            if not filename:
-                filename = "{epoch}-{step}"
-            filename = f"{filename}-{{{monitor}}}"
-
-        if self.auto_insert_metric_name and filename:
-            new_filename = self._convert_string(filename)
-            log.critical(
-                f"Updated ModelCheckpoint filename: {filename} -> {new_filename}"
-            )
-            filename = new_filename
-
-        yield ModelCheckpoint(
-            dirpath=dirpath,
-            filename=filename,
-            monitor=monitor,
-            mode=mode,
-            verbose=self.verbose,
-            save_last=self.save_last,
-            save_top_k=self.save_top_k,
-            save_weights_only=self.save_weights_only,
-            auto_insert_metric_name=False,
-            every_n_train_steps=self.every_n_train_steps,
-            train_time_interval=self.train_time_interval,
-            every_n_epochs=self.every_n_epochs,
-            save_on_train_epoch_end=self.save_on_train_epoch_end,
-            enable_version_counter=self.enable_version_counter,
-        )
-
-
-class LatestEpochCheckpointCallbackConfig(CallbackConfigBase):
-    kind: Literal["latest_epoch_checkpoint"] = "latest_epoch_checkpoint"
-
-    dirpath: str | Path | None = None
-    """Directory path to save the checkpoint file."""
-
-    filename: str | None = None
-    """Checkpoint filename. This must not include the extension. If `None`, `latest_epoch_{id}_{timestamp}` is used."""
-
-    save_weights_only: bool = False
-    """Whether to save only the model's weights or the entire model object."""
-
-    @override
-    def create_callbacks(self, root_config):
-        from ..callbacks.latest_epoch_checkpoint import LatestEpochCheckpoint
-
-        dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
-            root_config.id, "checkpoint"
-        )
-
-        yield LatestEpochCheckpoint(
-            dirpath=dirpath,
-            filename=self.filename,
-            save_weights_only=self.save_weights_only,
-        )
-
-
-class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
-    kind: Literal["on_exception_checkpoint"] = "on_exception_checkpoint"
-
-    dirpath: str | Path | None = None
-    """Directory path to save the checkpoint file."""
-
-    filename: str | None = None
-    """Checkpoint filename. This must not include the extension. If `None`, `on_exception_{id}_{timestamp}` is used."""
-
-    @override
-    def create_callbacks(self, root_config):
-        from ..callbacks.on_exception_checkpoint import OnExceptionCheckpoint
-
-        dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
-            root_config.id, "checkpoint"
-        )
-
-        if not (filename := self.filename):
-            filename = f"on_exception_{root_config.id}"
-        yield OnExceptionCheckpoint(dirpath=dirpath, filename=filename)
-
-
 CheckpointCallbackConfig: TypeAlias = Annotated[
     ModelCheckpointCallbackConfig
     | LatestEpochCheckpointCallbackConfig
@@ -1728,35 +1532,6 @@ class TrainerConfig(C.Config):
 
     set_float32_matmul_precision: Literal["medium", "high", "highest"] | None = None
     """If enabled, will set the torch float32 matmul precision to the specified value. Useful for faster training on Ampere+ GPUs."""
-
-
-class MetricConfig(C.Config):
-    name: str
-    """The name of the primary metric."""
-
-    mode: Literal["min", "max"]
-    """
-    The mode of the primary metric:
-    - "min" for metrics that should be minimized (e.g., loss)
-    - "max" for metrics that should be maximized (e.g., accuracy)
-    """
-
-    @property
-    def validation_monitor(self) -> str:
-        return f"val/{self.name}"
-
-    def __post_init__(self):
-        for split in ("train", "val", "test", "predict"):
-            if self.name.startswith(f"{split}/"):
-                raise ValueError(
-                    f"Primary metric name should not start with '{split}/'. "
-                    f"Just use '{self.name[len(split) + 1:]}' instead. "
-                    "The split name is automatically added depending on the context."
-                )
-
-    @classmethod
-    def loss(cls, mode: Literal["min", "max"] = "min"):
-        return cls(name="loss", mode=mode)
 
 
 PrimaryMetricConfig: TypeAlias = MetricConfig

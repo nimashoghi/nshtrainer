@@ -1,16 +1,53 @@
 import datetime
 import logging
 import os
-from typing import Any
+from pathlib import Path
+from typing import Any, Literal
 
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import OnExceptionCheckpoint as _OnExceptionCheckpoint
 from typing_extensions import override
 
+from .base import CallbackConfigBase
+
 log = logging.getLogger(__name__)
 
 
+class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
+    kind: Literal["on_exception_checkpoint"] = "on_exception_checkpoint"
+
+    dirpath: str | Path | None = None
+    """Directory path to save the checkpoint file."""
+
+    filename: str | None = None
+    """Checkpoint filename. This must not include the extension. If `None`, `on_exception_{id}_{timestamp}` is used."""
+
+    @override
+    def create_callbacks(self, root_config):
+        from ..callbacks.on_exception_checkpoint import OnExceptionCheckpoint
+
+        dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
+            root_config.id, "checkpoint"
+        )
+
+        if not (filename := self.filename):
+            filename = f"on_exception_{root_config.id}"
+        yield OnExceptionCheckpoint(self, dirpath=Path(dirpath), filename=filename)
+
+
 class OnExceptionCheckpoint(_OnExceptionCheckpoint):
+    @override
+    def __init__(
+        self,
+        config: OnExceptionCheckpointCallbackConfig,
+        dirpath: Path,
+        filename: str,
+    ):
+        self.config = config
+        del config
+
+        super().__init__(dirpath, filename)
+
     @property
     @override
     def ckpt_path(self) -> str:
@@ -38,7 +75,3 @@ class OnExceptionCheckpoint(_OnExceptionCheckpoint):
             checkpoint, self.ckpt_path, storage_options=None
         )
         # self.strategy.barrier("Trainer.save_checkpoint") # <-- This is disabled
-
-    @override
-    def teardown(self, trainer: Trainer, *_: Any, **__: Any) -> None:
-        trainer.strategy.remove_checkpoint(self.ckpt_path)
