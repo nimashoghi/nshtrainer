@@ -3,7 +3,7 @@ import logging
 import os
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import torch
 from lightning.fabric.plugins.environments.lsf import LSFEnvironment
@@ -11,7 +11,9 @@ from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
 from lightning.pytorch import LightningModule
 from lightning.pytorch import Trainer as LightningTrainer
+from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.profilers import Profiler
+from lightning.pytorch.trainer.states import TrainerFn
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Unpack, assert_never, override
 
@@ -23,6 +25,8 @@ from ..model.config import (
     LightningTrainerKwargs,
     StrategyConfigProtocol,
 )
+from ._checkpoint_metadata import _generate_checkpoint_metadata
+from ._runtime_callback import RuntimeTrackerCallback, Stage
 from .signal_connector import _SignalConnector
 
 log = logging.getLogger(__name__)
@@ -274,6 +278,9 @@ class Trainer(LightningTrainer):
 
         return kwargs
 
+    if TYPE_CHECKING:
+        callbacks: list[Callback]
+
     @override
     def __init__(
         self,
@@ -281,11 +288,13 @@ class Trainer(LightningTrainer):
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
-        self._nshtrainer_config = config
         kwargs = self._update_kwargs(config, kwargs)
         log.critical(f"LightningTrainer.__init__ with {kwargs=}.")
 
         super().__init__(**kwargs)
+
+        # Add our own start time callback to measure the start time.
+        self.callbacks.append(RuntimeTrackerCallback())
 
         # Replace the signal connector with our own.
         self._signal_connector = _SignalConnector(self)
@@ -296,10 +305,84 @@ class Trainer(LightningTrainer):
         log.critical(f"LightningTrainer log directory: {self.log_dir}.")
 
         # Checkpoint loading
-        if (
-            ckpt_loading := self._nshtrainer_config.trainer.checkpoint_loading
-        ) and ckpt_loading.path:
+        if (ckpt_loading := config.trainer.checkpoint_loading) and ckpt_loading.path:
             self.ckpt_path = ckpt_loading.path
+
+    def __runtime_tracker(self):
+        return next(
+            (
+                callback
+                for callback in self.callbacks
+                if isinstance(callback, RuntimeTrackerCallback)
+            ),
+            None,
+        )
+
+    def __current_stage(self) -> Stage:
+        match self.state.fn:
+            case None:
+                raise ValueError(
+                    "Trainer state function is not set. "
+                    "You must call `fit`, `validate`, `test`, or `predict`, "
+                    "or explicitly provide a stage."
+                )
+            case TrainerFn.FITTING:
+                return "train"
+            case TrainerFn.VALIDATING:
+                return "validate"
+            case TrainerFn.TESTING:
+                return "test"
+            case TrainerFn.PREDICTING:
+                return "predict"
+            case _:
+                assert_never(self.state.fn)
+
+    def start_time(self, stage: Stage | None = None):
+        """Return the start time of the run"""
+        if (tracker := self.__runtime_tracker()) is None:
+            raise ValueError(
+                "RuntimeTrackerCallback is not set. Cannot get start time."
+            )
+        if stage is None:
+            stage = self.__current_stage()
+
+        return tracker.start_time(stage)
+
+    def end_time(self, stage: Stage | None = None):
+        """Return the end time of the run"""
+        if (tracker := self.__runtime_tracker()) is None:
+            raise ValueError(
+                "RuntimeTrackerCallback is not set. Cannot get start time."
+            )
+        if stage is None:
+            stage = self.__current_stage()
+
+        return tracker.end_time(stage)
+
+    def time_elapsed(self, stage: Stage | None = None):
+        """Return the time elapsed for the run"""
+        if (tracker := self.__runtime_tracker()) is None:
+            raise ValueError(
+                "RuntimeTrackerCallback is not set. Cannot get start time."
+            )
+        if stage is None:
+            stage = self.__current_stage()
+
+        return tracker.time_elapsed(stage)
+
+    @property
+    def _base_module(self):
+        if self.lightning_module is None:
+            raise ValueError("LightningModule is not set.")
+
+        from ..model.base import LightningModuleBase
+
+        if not isinstance(self.lightning_module, LightningModuleBase):
+            raise ValueError(
+                f"LightningModule is not an instance of {LightningModuleBase}."
+            )
+
+        return self.lightning_module
 
     @override
     def _run(
@@ -321,3 +404,25 @@ class Trainer(LightningTrainer):
             )
 
         return super()._run(model, ckpt_path)
+
+    @override
+    def save_checkpoint(
+        self,
+        filepath: str | Path,
+        weights_only: bool = False,
+        storage_options: Any | None = None,
+    ):
+        filepath = Path(filepath)
+        ret_val = super().save_checkpoint(filepath, weights_only, storage_options)
+
+        # Save the checkpoint metadata
+        lm = self._base_module
+        if lm.config.trainer.save_checkpoint_metadata and self.is_global_zero:
+            # Generate the metadata
+            metadata = _generate_checkpoint_metadata(self, lm, filepath)
+
+            # Write the metadata to disk
+            metadata_path = filepath.with_suffix(".metadata.json")
+            metadata_path.write_text(metadata.model_dump_json(indent=4))
+
+        return ret_val
