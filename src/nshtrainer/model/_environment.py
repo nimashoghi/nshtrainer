@@ -28,19 +28,19 @@ log = logging.getLogger(__name__)
 class EnvironmentClassInformationConfig(C.Config):
     """Configuration for class information in the environment."""
 
-    name: str | None
+    name: str | None = None
     """The name of the class."""
 
-    module: str | None
+    module: str | None = None
     """The module where the class is defined."""
 
-    full_name: str | None
+    full_name: str | None = None
     """The fully qualified name of the class."""
 
-    file_path: Path | None
+    file_path: Path | None = None
     """The file path where the class is defined."""
 
-    source_file_path: Path | None
+    source_file_path: Path | None = None
     """The source file path of the class, if available."""
 
     @classmethod
@@ -77,37 +77,37 @@ class EnvironmentClassInformationConfig(C.Config):
 class EnvironmentSLURMInformationConfig(C.Config):
     """Configuration for SLURM environment information."""
 
-    hostname: str | None
+    hostname: str | None = None
     """The hostname of the current node."""
 
-    hostnames: list[str] | None
+    hostnames: list[str] | None = None
     """List of hostnames for all nodes in the job."""
 
-    job_id: str | None
+    job_id: str | None = None
     """The SLURM job ID."""
 
-    raw_job_id: str | None
+    raw_job_id: str | None = None
     """The raw SLURM job ID."""
 
-    array_job_id: str | None
+    array_job_id: str | None = None
     """The SLURM array job ID, if applicable."""
 
-    array_task_id: str | None
+    array_task_id: str | None = None
     """The SLURM array task ID, if applicable."""
 
-    num_tasks: int | None
+    num_tasks: int | None = None
     """The number of tasks in the SLURM job."""
 
-    num_nodes: int | None
+    num_nodes: int | None = None
     """The number of nodes in the SLURM job."""
 
-    node: str | int | None
+    node: str | int | None = None
     """The node ID or name."""
 
-    global_rank: int | None
+    global_rank: int | None = None
     """The global rank of the current process."""
 
-    local_rank: int | None
+    local_rank: int | None = None
     """The local rank of the current process within its node."""
 
     @classmethod
@@ -174,34 +174,34 @@ class EnvironmentSLURMInformationConfig(C.Config):
 class EnvironmentLSFInformationConfig(C.Config):
     """Configuration for LSF environment information."""
 
-    hostname: str | None
+    hostname: str | None = None
     """The hostname of the current node."""
 
-    hostnames: list[str] | None
+    hostnames: list[str] | None = None
     """List of hostnames for all nodes in the job."""
 
-    job_id: str | None
+    job_id: str | None = None
     """The LSF job ID."""
 
-    array_job_id: str | None
+    array_job_id: str | None = None
     """The LSF array job ID, if applicable."""
 
-    array_task_id: str | None
+    array_task_id: str | None = None
     """The LSF array task ID, if applicable."""
 
-    num_tasks: int | None
+    num_tasks: int | None = None
     """The number of tasks in the LSF job."""
 
-    num_nodes: int | None
+    num_nodes: int | None = None
     """The number of nodes in the LSF job."""
 
-    node: str | int | None
+    node: str | int | None = None
     """The node ID or name."""
 
-    global_rank: int | None
+    global_rank: int | None = None
     """The global rank of the current process."""
 
-    local_rank: int | None
+    local_rank: int | None = None
     """The local rank of the current process within its node."""
 
     @classmethod
@@ -267,40 +267,40 @@ class EnvironmentLSFInformationConfig(C.Config):
 class EnvironmentLinuxEnvironmentConfig(C.Config):
     """Configuration for Linux environment information."""
 
-    user: str | None
+    user: str | None = None
     """The current user."""
 
-    hostname: str | None
+    hostname: str | None = None
     """The hostname of the machine."""
 
-    system: str | None
+    system: str | None = None
     """The operating system name."""
 
-    release: str | None
+    release: str | None = None
     """The operating system release."""
 
-    version: str | None
+    version: str | None = None
     """The operating system version."""
 
-    machine: str | None
+    machine: str | None = None
     """The machine type."""
 
-    processor: str | None
+    processor: str | None = None
     """The processor type."""
 
-    cpu_count: int | None
+    cpu_count: int | None = None
     """The number of CPUs."""
 
-    memory: int | None
+    memory: int | None = None
     """The total system memory in bytes."""
 
-    uptime: timedelta | None
+    uptime: timedelta | None = None
     """The system uptime."""
 
-    boot_time: float | None
+    boot_time: float | None = None
     """The system boot time as a timestamp."""
 
-    load_avg: tuple[float, float, float] | None
+    load_avg: tuple[float, float, float] | None = None
     """The system load average (1, 5, and 15 minutes)."""
 
     @classmethod
@@ -341,10 +341,10 @@ class EnvironmentLinuxEnvironmentConfig(C.Config):
 class EnvironmentSnapshotConfig(C.Config):
     """Configuration for environment snapshot information."""
 
-    snapshot_dir: Path | None
+    snapshot_dir: Path | None = None
     """The directory where the snapshot is stored."""
 
-    modules: list[str] | None
+    modules: list[str] | None = None
     """List of modules included in the snapshot."""
 
     @classmethod
@@ -364,25 +364,25 @@ class EnvironmentSnapshotConfig(C.Config):
 class EnvironmentPackageConfig(C.Config):
     """Configuration for Python package information."""
 
-    name: str | None
+    name: str | None = None
     """The name of the package."""
 
-    version: str | None
+    version: str | None = None
     """The version of the package."""
 
-    path: Path | None
+    path: Path | None = None
     """The installation path of the package."""
 
-    summary: str | None
+    summary: str | None = None
     """A brief summary of the package."""
 
-    author: str | None
+    author: str | None = None
     """The author of the package."""
 
-    license: str | None
+    license: str | None = None
     """The license of the package."""
 
-    requires: list[str] | None
+    requires: list[str] | None = None
     """List of package dependencies."""
 
     @classmethod
@@ -423,19 +423,19 @@ class EnvironmentPackageConfig(C.Config):
 class EnvironmentGPUConfig(C.Config):
     """Configuration for individual GPU information."""
 
-    name: str | None
+    name: str | None = None
     """Name of the GPU."""
 
-    total_memory: int | None
+    total_memory: int | None = None
     """Total memory of the GPU in bytes."""
 
-    major: int | None
+    major: int | None = None
     """Major version of CUDA capability."""
 
-    minor: int | None
+    minor: int | None = None
     """Minor version of CUDA capability."""
 
-    multi_processor_count: int | None
+    multi_processor_count: int | None = None
     """Number of multiprocessors on the GPU."""
 
     @classmethod
@@ -452,13 +452,13 @@ class EnvironmentGPUConfig(C.Config):
 class EnvironmentCUDAConfig(C.Config):
     """Configuration for CUDA environment information."""
 
-    is_available: bool | None
+    is_available: bool | None = None
     """Whether CUDA is available."""
 
-    version: str | None
+    version: str | None = None
     """CUDA version."""
 
-    cudnn_version: int | None
+    cudnn_version: int | None = None
     """cuDNN version."""
 
     @classmethod
@@ -469,43 +469,43 @@ class EnvironmentCUDAConfig(C.Config):
 class EnvironmentHardwareConfig(C.Config):
     """Configuration for hardware information."""
 
-    cpu_count_physical: int | None
+    cpu_count_physical: int | None = None
     """Number of physical CPU cores."""
 
-    cpu_count_logical: int | None
+    cpu_count_logical: int | None = None
     """Number of logical CPU cores."""
 
-    cpu_frequency_current: float | None
+    cpu_frequency_current: float | None = None
     """Current CPU frequency in MHz."""
 
-    cpu_frequency_min: float | None
+    cpu_frequency_min: float | None = None
     """Minimum CPU frequency in MHz."""
 
-    cpu_frequency_max: float | None
+    cpu_frequency_max: float | None = None
     """Maximum CPU frequency in MHz."""
 
-    ram_total: int | None
+    ram_total: int | None = None
     """Total RAM in bytes."""
 
-    ram_available: int | None
+    ram_available: int | None = None
     """Available RAM in bytes."""
 
-    disk_total: int | None
+    disk_total: int | None = None
     """Total disk space in bytes."""
 
-    disk_used: int | None
+    disk_used: int | None = None
     """Used disk space in bytes."""
 
-    disk_free: int | None
+    disk_free: int | None = None
     """Free disk space in bytes."""
 
-    gpu_count: int | None
+    gpu_count: int | None = None
     """Number of GPUs available."""
 
-    gpus: list[EnvironmentGPUConfig] | None
+    gpus: list[EnvironmentGPUConfig] | None = None
     """List of GPU configurations."""
 
-    cuda: EnvironmentCUDAConfig | None
+    cuda: EnvironmentCUDAConfig | None = None
     """CUDA environment configuration."""
 
     @classmethod
@@ -579,28 +579,28 @@ class EnvironmentHardwareConfig(C.Config):
 class GitRepositoryConfig(C.Config):
     """Configuration for Git repository information."""
 
-    is_git_repo: bool | None
+    is_git_repo: bool | None = None
     """Whether the current directory is a Git repository."""
 
-    branch: str | None
+    branch: str | None = None
     """The current Git branch."""
 
-    commit_hash: str | None
+    commit_hash: str | None = None
     """The current commit hash."""
 
-    commit_message: str | None
+    commit_message: str | None = None
     """The current commit message."""
 
-    author: str | None
+    author: str | None = None
     """The author of the current commit."""
 
-    commit_date: str | None
+    commit_date: str | None = None
     """The date of the current commit."""
 
-    remote_url: str | None
+    remote_url: str | None = None
     """The URL of the remote repository."""
 
-    is_dirty: bool | None
+    is_dirty: bool | None = None
     """Whether there are uncommitted changes."""
 
     @classmethod
@@ -653,61 +653,61 @@ class GitRepositoryConfig(C.Config):
 class EnvironmentConfig(C.Config):
     """Configuration for the overall environment."""
 
-    cwd: Path | None
+    cwd: Path | None = None
     """The current working directory."""
 
-    snapshot: EnvironmentSnapshotConfig | None
+    snapshot: EnvironmentSnapshotConfig | None = None
     """The environment snapshot configuration."""
 
-    python_executable: Path | None
+    python_executable: Path | None = None
     """The path to the Python executable."""
 
-    python_path: list[Path] | None
+    python_path: list[Path] | None = None
     """The Python path."""
 
-    python_version: str | None
+    python_version: str | None = None
     """The Python version."""
 
-    python_packages: dict[str, EnvironmentPackageConfig] | None
+    python_packages: dict[str, EnvironmentPackageConfig] | None = None
     """A mapping of package names to their configurations."""
 
-    config: EnvironmentClassInformationConfig | None
+    config: EnvironmentClassInformationConfig | None = None
     """The configuration class information."""
 
-    model: EnvironmentClassInformationConfig | None
+    model: EnvironmentClassInformationConfig | None = None
     """The Lightning module class information."""
 
-    linux: EnvironmentLinuxEnvironmentConfig | None
+    linux: EnvironmentLinuxEnvironmentConfig | None = None
     """The Linux environment information."""
 
-    hardware: EnvironmentHardwareConfig | None
+    hardware: EnvironmentHardwareConfig | None = None
     """Hardware configuration information."""
 
-    slurm: EnvironmentSLURMInformationConfig | None
+    slurm: EnvironmentSLURMInformationConfig | None = None
     """The SLURM environment information."""
 
-    lsf: EnvironmentLSFInformationConfig | None
+    lsf: EnvironmentLSFInformationConfig | None = None
     """The LSF environment information."""
 
-    base_dir: Path | None
+    base_dir: Path | None = None
     """The base directory for the run."""
 
-    log_dir: Path | None
+    log_dir: Path | None = None
     """The directory for logs."""
 
-    checkpoint_dir: Path | None
+    checkpoint_dir: Path | None = None
     """The directory for checkpoints."""
 
-    stdio_dir: Path | None
+    stdio_dir: Path | None = None
     """The directory for standard input/output files."""
 
-    seed: int | None
+    seed: int | None = None
     """The global random seed."""
 
-    seed_workers: bool | None
+    seed_workers: bool | None = None
     """Whether to seed workers."""
 
-    git: GitRepositoryConfig | None
+    git: GitRepositoryConfig | None = None
     """Git repository information."""
 
     @classmethod
