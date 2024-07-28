@@ -25,7 +25,7 @@ from ..model.config import (
     LightningTrainerKwargs,
     StrategyConfigProtocol,
 )
-from ._checkpoint_metadata import _generate_checkpoint_metadata
+from ._checkpoint_metadata import _write_checkpoint_metadata
 from ._runtime_callback import RuntimeTrackerCallback, Stage
 from .signal_connector import _SignalConnector
 
@@ -304,10 +304,6 @@ class Trainer(LightningTrainer):
             log_dir = str(Path(log_dir).resolve())
         log.critical(f"LightningTrainer log directory: {self.log_dir}.")
 
-        # Checkpoint loading
-        if (ckpt_loading := config.trainer.checkpoint_loading) and ckpt_loading.path:
-            self.ckpt_path = ckpt_loading.path
-
     def __runtime_tracker(self):
         return next(
             (
@@ -418,11 +414,7 @@ class Trainer(LightningTrainer):
         # Save the checkpoint metadata
         lm = self._base_module
         if lm.config.trainer.save_checkpoint_metadata and self.is_global_zero:
-            # Generate the metadata
-            metadata = _generate_checkpoint_metadata(self, lm, filepath)
-
-            # Write the metadata to disk
-            metadata_path = filepath.with_suffix(".metadata.json")
-            metadata_path.write_text(metadata.model_dump_json(indent=4))
+            # Generate the metadata and write to disk
+            _write_checkpoint_metadata(self, lm, filepath)
 
         return ret_val

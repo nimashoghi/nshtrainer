@@ -1,3 +1,4 @@
+import builtins
 from typing import Literal
 
 import nshconfig as C
@@ -30,3 +31,7 @@ class MetricConfig(C.Config):
     @classmethod
     def loss(cls, mode: Literal["min", "max"] = "min"):
         return cls(name="loss", mode=mode)
+
+    @property
+    def best(self):
+        return builtins.min if self.mode == "min" else builtins.max

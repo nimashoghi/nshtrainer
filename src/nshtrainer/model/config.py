@@ -43,6 +43,7 @@ from ..callbacks import (
 )
 from ..callbacks.base import CallbackConfigBase
 from ..metrics import MetricConfig
+from ..trainer._checkpoint_resolver import CheckpointLoadingConfig
 from ._environment import EnvironmentConfig
 
 log = getLogger(__name__)
@@ -292,12 +293,10 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
 
         from lightning.pytorch.loggers.wandb import WandbLogger
 
-        save_dir = root_config.directory.resolve_log_directory_for_logger(
+        save_dir = root_config.directory._resolve_log_directory_for_logger(
             root_config.id,
             self,
         )
-        save_dir = save_dir / "wandb"
-        save_dir.mkdir(parents=True, exist_ok=True)
         return WandbLogger(
             save_dir=save_dir,
             project=self.project or _project_name(root_config),
@@ -341,12 +340,10 @@ class CSVLoggerConfig(BaseLoggerConfig):
 
         from lightning.pytorch.loggers.csv_logs import CSVLogger
 
-        save_dir = root_config.directory.resolve_log_directory_for_logger(
+        save_dir = root_config.directory._resolve_log_directory_for_logger(
             root_config.id,
             self,
         )
-        save_dir = save_dir / "csv"
-        save_dir.mkdir(parents=True, exist_ok=True)
         return CSVLogger(
             save_dir=save_dir,
             name=root_config.run_name,
@@ -407,12 +404,10 @@ class TensorboardLoggerConfig(BaseLoggerConfig):
 
         from lightning.pytorch.loggers.tensorboard import TensorBoardLogger
 
-        save_dir = root_config.directory.resolve_log_directory_for_logger(
+        save_dir = root_config.directory._resolve_log_directory_for_logger(
             root_config.id,
             self,
         )
-        save_dir = save_dir / "tensorboard"
-        save_dir.mkdir(parents=True, exist_ok=True)
         return TensorBoardLogger(
             save_dir=save_dir,
             name=root_config.run_name,
@@ -616,18 +611,6 @@ StrategyLiteral: TypeAlias = Literal[
 ]
 
 
-class CheckpointLoadingConfig(C.Config):
-    path: Literal["best", "last", "hpc"] | str | Path | None = None
-    """
-    Checkpoint path to use when loading a checkpoint.
-
-    - "best" will load the best checkpoint.
-    - "last" will load the last checkpoint.
-    - "hpc" will load the SLURM pre-empted checkpoint.
-    - Any other string or Path will load the checkpoint from the specified path.
-    """
-
-
 def _create_symlink_to_nshrunner(base_dir: Path):
     # Resolve the current nshrunner session directory
     if not (session_dir := os.environ.get("NSHRUNNER_SESSION_DIR")):
@@ -726,7 +709,7 @@ class DirectoryConfig(C.Config):
         dir.mkdir(exist_ok=True)
         return dir
 
-    def resolve_log_directory_for_logger(
+    def _resolve_log_directory_for_logger(
         self,
         run_id: str,
         logger: LoggerConfig,
@@ -734,9 +717,10 @@ class DirectoryConfig(C.Config):
         if (log_dir := logger.log_dir) is not None:
             return log_dir
 
-        # Save to nshtrainer/{id}/log/{logger kind}/{id}/
+        # Save to nshtrainer/{id}/log/{logger kind}
         log_dir = self.resolve_subdirectory(run_id, "log")
         log_dir = log_dir / logger.kind
+        log_dir.mkdir(exist_ok=True)
 
         return log_dir
 
@@ -1137,7 +1121,7 @@ class SanityCheckingConfig(C.Config):
 
 
 class TrainerConfig(C.Config):
-    checkpoint_loading: CheckpointLoadingConfig = CheckpointLoadingConfig()
+    checkpoint_loading: CheckpointLoadingConfig | Literal["auto"] = "auto"
     """Checkpoint loading configuration options."""
 
     checkpoint_saving: CheckpointSavingConfig = CheckpointSavingConfig()
@@ -1327,6 +1311,8 @@ class TrainerConfig(C.Config):
     """If enabled, will automatically set the default root dir to [cwd/lightning_logs/<id>/]. There is basically no reason to disable this."""
     supports_shared_parameters: bool = True
     """If enabled, the model supports scaling the gradients of shared parameters that are registered using `LightningModuleBase.register_shared_parameters(...)`"""
+    save_checkpoint_metadata: bool = True
+    """If enabled, will save additional metadata whenever a checkpoint is saved."""
 
     lightning_kwargs: LightningTrainerKwargs = LightningTrainerKwargs()
     """

@@ -1,16 +1,45 @@
+import contextlib
 import datetime
 import logging
 import os
 from pathlib import Path
 from typing import Any, Literal
 
-from lightning.pytorch import Trainer
+from lightning.pytorch import Trainer as LightningTrainer
 from lightning.pytorch.callbacks import OnExceptionCheckpoint as _OnExceptionCheckpoint
 from typing_extensions import override
 
 from .base import CallbackConfigBase
 
 log = logging.getLogger(__name__)
+
+
+@contextlib.contextmanager
+def _monkey_patch_disable_barrier(trainer: LightningTrainer):
+    """
+    Monkey-patch the strategy instance to make the barrier operation a no-op.
+
+    We do this because `save_checkpoint` calls `barrier`. This is okay in most
+    cases, but when we want to save a checkpoint in the case of an exception,
+    `barrier` causes a deadlock. So we monkey-patch the strategy instance to
+    make the barrier operation a no-op.
+    """
+
+    # We monkey-patch the barrier method to do nothing.
+    original_barrier = trainer.strategy.barrier
+
+    def new_barrier(*args, **kwargs):
+        log.warning("Monkey-patched no-op barrier.")
+        pass
+
+    trainer.strategy.barrier = new_barrier
+    log.warning("Monkey-patched barrier to no-op.")
+
+    try:
+        yield
+    finally:
+        trainer.strategy.barrier = original_barrier
+        log.warning("Reverted monkey-patched barrier.")
 
 
 class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
@@ -59,19 +88,11 @@ class OnExceptionCheckpoint(_OnExceptionCheckpoint):
         return f"{ckpt_path}_{timestamp}{ext}"
 
     @override
-    def on_exception(self, trainer: Trainer, *_: Any, **__: Any) -> None:
-        # We override this to checkpoint the model manually,
-        # without calling the dist barrier.
-
-        # trainer.save_checkpoint(self.ckpt_path)
-
-        if trainer.model is None:
-            raise AttributeError(
-                "Saving a checkpoint is only possible if a model is attached to the Trainer. Did you call"
-                " `Trainer.save_checkpoint()` before calling `Trainer.{fit,validate,test,predict}`?"
-            )
-        checkpoint = trainer._checkpoint_connector.dump_checkpoint(weights_only=False)
-        trainer.strategy.save_checkpoint(
-            checkpoint, self.ckpt_path, storage_options=None
-        )
-        # self.strategy.barrier("Trainer.save_checkpoint") # <-- This is disabled
+    def on_exception(self, trainer: LightningTrainer, *args: Any, **kwargs: Any):
+        # Monkey-patch the strategy instance to make the barrier operation a no-op.
+        # We do this because `save_checkpoint` calls `barrier`. This is okay in most
+        # cases, but when we want to save a checkpoint in the case of an exception,
+        # `barrier` causes a deadlock. So we monkey-patch the strategy instance to
+        # make the barrier operation a no-op.
+        with _monkey_patch_disable_barrier(trainer):
+            return super().on_exception(trainer, *args, **kwargs)
