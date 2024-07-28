@@ -34,6 +34,7 @@ from lightning.pytorch.strategies.strategy import Strategy
 from pydantic import DirectoryPath
 from typing_extensions import Self, TypedDict, TypeVar, override
 
+from .._checkpoint.loader import CheckpointLoadingConfig
 from ..callbacks import (
     CallbackConfig,
     LatestEpochCheckpointCallbackConfig,
@@ -43,7 +44,6 @@ from ..callbacks import (
 )
 from ..callbacks.base import CallbackConfigBase
 from ..metrics import MetricConfig
-from ..trainer._checkpoint_resolver import CheckpointLoadingConfig
 from ._environment import EnvironmentConfig
 
 log = getLogger(__name__)

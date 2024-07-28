@@ -8,7 +8,7 @@ from lightning.pytorch.trainer.connectors.checkpoint_connector import (
 from lightning.pytorch.trainer.states import TrainerFn
 from typing_extensions import override
 
-from ._checkpoint_resolver import CheckpointLoadingConfig, _resolve_checkpoint
+from .._checkpoint.loader import CheckpointLoadingConfig, _resolve_checkpoint
 
 if TYPE_CHECKING:
     from ..model.config import BaseConfig

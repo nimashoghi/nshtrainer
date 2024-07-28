@@ -17,6 +17,7 @@ from lightning.pytorch.trainer.states import TrainerFn
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Unpack, assert_never, override
 
+from .._checkpoint.metadata import _write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
 from ..model.config import (
     AcceleratorConfigProtocol,
@@ -25,7 +26,6 @@ from ..model.config import (
     LightningTrainerKwargs,
     StrategyConfigProtocol,
 )
-from ._checkpoint_metadata import _write_checkpoint_metadata
 from ._runtime_callback import RuntimeTrackerCallback, Stage
 from .signal_connector import _SignalConnector
 

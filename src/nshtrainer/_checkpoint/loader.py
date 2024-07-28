@@ -10,7 +10,7 @@ from lightning.pytorch.trainer.states import TrainerFn
 from typing_extensions import assert_never
 
 from ..metrics._config import MetricConfig
-from ._checkpoint_metadata import METADATA_PATH_SUFFIX, CheckpointMetadata
+from .metadata import METADATA_PATH_SUFFIX, CheckpointMetadata
 
 if TYPE_CHECKING:
     from ..model.config import BaseConfig

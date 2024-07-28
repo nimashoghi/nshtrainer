@@ -12,7 +12,7 @@ from ..model._environment import EnvironmentConfig
 
 if TYPE_CHECKING:
     from ..model import BaseConfig, LightningModuleBase
-    from .trainer import Trainer
+    from ..trainer.trainer import Trainer
 
 log = logging.getLogger(__name__)
 
