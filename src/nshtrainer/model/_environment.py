@@ -409,9 +409,9 @@ class EnvironmentPackageConfig(C.Config):
                     name=package.project_name,
                     version=package.version,
                     path=Path(package.location) if package.location else None,
-                    summary=package.summary,
-                    author=package.author,
-                    license=package.license,
+                    summary=getattr(package, "summary", None),
+                    author=getattr(package, "author", None),
+                    license=getattr(package, "license", None),
                     requires=[str(req) for req in package.requires()],
                 )
         except ImportError:
