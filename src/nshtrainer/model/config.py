@@ -71,7 +71,7 @@ class BaseProfilerConfig(C.Config, ABC):
 
 
 class SimpleProfilerConfig(BaseProfilerConfig):
-    kind: Literal["simple"] = "simple"
+    name: Literal["simple"] = "simple"
 
     extended: bool = True
     """
@@ -99,7 +99,7 @@ class SimpleProfilerConfig(BaseProfilerConfig):
 
 
 class AdvancedProfilerConfig(BaseProfilerConfig):
-    kind: Literal["advanced"] = "advanced"
+    name: Literal["advanced"] = "advanced"
 
     line_count_restriction: float = 1.0
     """
@@ -128,7 +128,7 @@ class AdvancedProfilerConfig(BaseProfilerConfig):
 
 
 class PyTorchProfilerConfig(BaseProfilerConfig):
-    kind: Literal["pytorch"] = "pytorch"
+    name: Literal["pytorch"] = "pytorch"
 
     group_by_input_shapes: bool = False
     """Include operator input shapes and group calls by shape."""
@@ -204,7 +204,7 @@ class PyTorchProfilerConfig(BaseProfilerConfig):
 
 ProfilerConfig: TypeAlias = Annotated[
     SimpleProfilerConfig | AdvancedProfilerConfig | PyTorchProfilerConfig,
-    C.Field(discriminator="kind"),
+    C.Field(discriminator="name"),
 ]
 
 
@@ -260,7 +260,7 @@ def _wandb_available():
 
 
 class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
-    kind: Literal["wandb"] = "wandb"
+    name: Literal["wandb"] = "wandb"
 
     enabled: bool = C.Field(default_factory=lambda: _wandb_available())
     """Enable WandB logging."""
@@ -319,7 +319,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
 
 
 class CSVLoggerConfig(BaseLoggerConfig):
-    kind: Literal["csv"] = "csv"
+    name: Literal["csv"] = "csv"
 
     enabled: bool = True
     """Enable CSV logging."""
@@ -373,7 +373,7 @@ def _tensorboard_available():
 
 
 class TensorboardLoggerConfig(BaseLoggerConfig):
-    kind: Literal["tensorboard"] = "tensorboard"
+    name: Literal["tensorboard"] = "tensorboard"
 
     enabled: bool = C.Field(default_factory=lambda: _tensorboard_available())
     """Enable TensorBoard logging."""
@@ -419,7 +419,7 @@ class TensorboardLoggerConfig(BaseLoggerConfig):
 
 LoggerConfig: TypeAlias = Annotated[
     WandbLoggerConfig | CSVLoggerConfig | TensorboardLoggerConfig,
-    C.Field(discriminator="kind"),
+    C.Field(discriminator="name"),
 ]
 
 
@@ -717,9 +717,9 @@ class DirectoryConfig(C.Config):
         if (log_dir := logger.log_dir) is not None:
             return log_dir
 
-        # Save to nshtrainer/{id}/log/{logger kind}
+        # Save to nshtrainer/{id}/log/{logger name}
         log_dir = self.resolve_subdirectory(run_id, "log")
-        log_dir = log_dir / logger.kind
+        log_dir = log_dir / logger.name
         log_dir.mkdir(exist_ok=True)
 
         return log_dir
@@ -738,7 +738,7 @@ CheckpointCallbackConfig: TypeAlias = Annotated[
     ModelCheckpointCallbackConfig
     | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig,
-    C.Field(discriminator="kind"),
+    C.Field(discriminator="name"),
 ]
 
 

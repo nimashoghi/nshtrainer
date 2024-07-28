@@ -43,7 +43,7 @@ def _convert_string(input_string: str):
 class ModelCheckpointCallbackConfig(CallbackConfigBase):
     """Arguments for the ModelCheckpoint callback."""
 
-    kind: Literal["model_checkpoint"] = "model_checkpoint"
+    name: Literal["model_checkpoint"] = "model_checkpoint"
 
     dirpath: str | Path | None = None
     """

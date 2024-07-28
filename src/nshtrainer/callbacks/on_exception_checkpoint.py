@@ -43,7 +43,7 @@ def _monkey_patch_disable_barrier(trainer: LightningTrainer):
 
 
 class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
-    kind: Literal["on_exception_checkpoint"] = "on_exception_checkpoint"
+    name: Literal["on_exception_checkpoint"] = "on_exception_checkpoint"
 
     dirpath: str | Path | None = None
     """Directory path to save the checkpoint file."""

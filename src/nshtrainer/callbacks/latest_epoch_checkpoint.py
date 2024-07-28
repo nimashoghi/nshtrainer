@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class LatestEpochCheckpointCallbackConfig(CallbackConfigBase):
-    kind: Literal["latest_epoch_checkpoint"] = "latest_epoch_checkpoint"
+    name: Literal["latest_epoch_checkpoint"] = "latest_epoch_checkpoint"
 
     dirpath: str | Path | None = None
     """Directory path to save the checkpoint file."""
