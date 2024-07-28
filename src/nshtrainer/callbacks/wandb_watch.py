@@ -81,7 +81,7 @@ class WandbWatchCallback(Callback):
 
 
 class WandbWatchConfig(CallbackConfigBase):
-    name: Literal["finite_checks"] = "finite_checks"
+    name: Literal["wandb_watch"] = "wandb_watch"
 
     enabled: bool = True
     """Enable watching the model for wandb."""
