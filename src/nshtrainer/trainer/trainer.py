@@ -304,6 +304,10 @@ class Trainer(LightningTrainer):
             log_dir = str(Path(log_dir).resolve())
         log.critical(f"LightningTrainer log directory: {self.log_dir}.")
 
+        # Set the checkpoint
+        if (ckpt_path := config.trainer.ckpt_path) is not None:
+            self.ckpt_path = str(Path(ckpt_path).resolve().absolute())
+
     def __runtime_tracker(self):
         return next(
             (

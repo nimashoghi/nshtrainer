@@ -1121,6 +1121,9 @@ class SanityCheckingConfig(C.Config):
 
 
 class TrainerConfig(C.Config):
+    ckpt_path: str | Path | None = None
+    """Path to a checkpoint to load and resume training from."""
+
     checkpoint_loading: CheckpointLoadingConfig | Literal["auto"] = "auto"
     """Checkpoint loading configuration options."""
 
