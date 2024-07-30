@@ -286,6 +286,10 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     offline: bool = False
     """Whether to run WandB in offline mode."""
 
+    def offline_(self):
+        self.offline = True
+        return self
+
     @override
     def create_logger(self, root_config):
         if not self.enabled:
