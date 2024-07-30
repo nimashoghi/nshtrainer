@@ -43,10 +43,6 @@ class LatestEpochCheckpoint(Checkpoint):
         self.config = config
         self.dirpath = dirpath
 
-        # Also, we hold a reference to the last checkpoint path
-        # to be able to remove it when a new checkpoint is saved.
-        self._last_ckpt_path: Path | None = None
-
     def _ckpt_path(self, trainer: Trainer):
         return self.dirpath / self.config.filename.format(
             epoch=trainer.current_epoch, step=trainer.global_step
@@ -54,20 +50,17 @@ class LatestEpochCheckpoint(Checkpoint):
 
     @override
     def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
-        # Remove the last checkpoint if it exists
-        if self._last_ckpt_path is not None:
-            trainer.strategy.remove_checkpoint(self._last_ckpt_path)
-
         # Save the new checkpoint
         filepath = self._ckpt_path(trainer)
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
-        self._last_ckpt_path = filepath
 
         # Create the latest symlink
-        if (symlink_filename := self.config.latest_symlink_filename) is not None:
+        if (
+            trainer.is_global_zero
+            and (symlink_filename := self.config.latest_symlink_filename) is not None
+        ):
             symlink_path = self.dirpath / symlink_filename
-            if symlink_path.exists():
-                symlink_path.unlink()
+            symlink_path.unlink(missing_ok=True)
             symlink_path.symlink_to(filepath.name)
             log.info(f"Created latest symlink: {symlink_path}")
 
