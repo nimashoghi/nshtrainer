@@ -1,8 +1,8 @@
-from logging import getLogger
-from typing import Literal, Protocol, runtime_checkable
+import importlib.util
+import logging
+from typing import Any, Literal, Protocol, runtime_checkable
 
 import torch
-import torchmetrics
 from lightning.pytorch import Callback, LightningModule, Trainer
 from torch.optim import Optimizer
 from typing_extensions import override
@@ -10,23 +10,29 @@ from typing_extensions import override
 from .base import CallbackConfigBase
 from .norm_logging import compute_norm
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 @runtime_checkable
 class HasGradSkippedSteps(Protocol):
-    grad_skipped_steps: torchmetrics.SumMetric
+    grad_skipped_steps: Any
 
 
 class GradientSkipping(Callback):
     def __init__(self, config: "GradientSkippingConfig"):
-        super().__init__()
+        if importlib.util.find_spec("torchmetrics") is not None:
+            raise ImportError(
+                "To use the GradientSkipping callback, please install torchmetrics: pip install torchmetrics"
+            )
 
+        super().__init__()
         self.config = config
 
     @override
     def setup(self, trainer: Trainer, pl_module: LightningModule, stage: str) -> None:
         if not isinstance(pl_module, HasGradSkippedSteps):
+            import torchmetrics  # type: ignore
+
             pl_module.grad_skipped_steps = torchmetrics.SumMetric()
 
     @override
@@ -47,12 +53,7 @@ class GradientSkipping(Callback):
         ):
             return
 
-        norm = compute_norm(
-            pl_module,
-            optimizer,
-            self.config.norm_type,
-            grad=True,
-        )
+        norm = compute_norm(pl_module, optimizer, self.config.norm_type, grad=True)
 
         # If the norm is NaN/Inf, we don't want to skip the step
         # beacuse AMP checks for NaN/Inf grads to adjust the loss scale.

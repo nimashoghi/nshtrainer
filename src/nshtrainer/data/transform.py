@@ -22,7 +22,13 @@ def transform(
         deepcopy: Whether to deep copy each item before applying the transform.
     """
 
-    import wrapt
+    try:
+        import wrapt
+    except ImportError:
+        raise ImportError(
+            "wrapt is not installed. wrapt is required for the transform function."
+            "Please install it using 'pip install wrapt'"
+        )
 
     class _TransformedDataset(wrapt.ObjectProxy):
         def __getitem__(self, idx):
@@ -52,7 +58,13 @@ def transform_with_index(
         deepcopy: Whether to deep copy each item before applying the transform.
     """
 
-    import wrapt
+    try:
+        import wrapt
+    except ImportError:
+        raise ImportError(
+            "wrapt is not installed. wrapt is required for the transform function."
+            "Please install it using 'pip install wrapt'"
+        )
 
     class _TransformedWithIndexDataset(wrapt.ObjectProxy):
         def __getitem__(self, idx: int):

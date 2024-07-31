@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "0.10.8"
+version = "0.10.9"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
@@ -11,14 +11,14 @@ nshrunner = "*"
 nshconfig = "*"
 nshutils = "*"
 psutil = "*"
+numpy = "*"
 torch = "*"
 typing-extensions = "*"
 lightning = "*"
 pytorch-lightning = "*"
-torchmetrics = "*"
-numpy = "*"
-wrapt = "*"
-GitPython = "*"
+torchmetrics = { version = "*", optional = true }
+wrapt = { version = "*", optional = true }
+GitPython = { version = "*", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.372"

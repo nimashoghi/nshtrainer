@@ -9,7 +9,6 @@ from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-import git
 import nshconfig as C
 import psutil
 import torch
@@ -618,6 +617,11 @@ class GitRepositoryConfig(C.Config):
 
     @classmethod
     def from_current_directory(cls):
+        try:
+            import git
+        except ImportError:
+            return cls()
+
         draft = cls.draft()
         try:
             repo = git.Repo(os.getcwd(), search_parent_directories=True)
