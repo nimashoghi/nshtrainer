@@ -1,4 +1,4 @@
-from logging import getLogger
+import logging
 from typing import Literal, Protocol, cast, runtime_checkable
 
 import torch.nn as nn
@@ -9,7 +9,7 @@ from typing_extensions import override
 
 from .base import CallbackConfigBase
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 @runtime_checkable

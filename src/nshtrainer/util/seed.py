@@ -1,8 +1,8 @@
-from logging import getLogger
+import logging
 
 import lightning.fabric.utilities.seed as LS
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def seed_everything(seed: int | None, *, workers: bool = False):

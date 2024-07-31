@@ -1,7 +1,7 @@
 import inspect
+import logging
 from abc import ABC, abstractmethod
 from collections.abc import MutableMapping
-from logging import getLogger
 from typing import IO, TYPE_CHECKING, Any, Generic, cast
 
 import torch
@@ -21,7 +21,7 @@ from .modules.profiler import ProfilerMixin
 from .modules.rlp_sanity_checks import RLPSanityCheckModuleMixin
 from .modules.shared_parameters import SharedParametersModuleMixin
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 THparams = TypeVar("THparams", bound=BaseConfig, infer_variance=True)
 

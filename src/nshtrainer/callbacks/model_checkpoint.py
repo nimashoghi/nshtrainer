@@ -1,6 +1,6 @@
+import logging
 import re
 from datetime import timedelta
-from logging import getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
@@ -15,7 +15,7 @@ from .base import CallbackConfigBase
 if TYPE_CHECKING:
     from ..model.config import BaseConfig
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def _convert_string(input_string: str):

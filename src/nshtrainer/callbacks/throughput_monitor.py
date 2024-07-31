@@ -1,4 +1,4 @@
-from logging import getLogger
+import logging
 from typing import Any, Literal, Protocol, TypedDict, cast, runtime_checkable
 
 from typing_extensions import NotRequired, override
@@ -6,7 +6,7 @@ from typing_extensions import NotRequired, override
 from ._throughput_monitor_callback import ThroughputMonitor as _ThroughputMonitor
 from .base import CallbackConfigBase
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ThroughputMonitorBatchStats(TypedDict):

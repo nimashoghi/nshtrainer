@@ -1,4 +1,4 @@
-from logging import getLogger
+import logging
 from typing import Literal
 
 import torch
@@ -7,7 +7,7 @@ from typing_extensions import override
 
 from .base import CallbackConfigBase
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def finite_checks(

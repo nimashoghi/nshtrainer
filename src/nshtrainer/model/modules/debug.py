@@ -1,9 +1,9 @@
-from logging import getLogger
+import logging
 
 import torch
 import torch.distributed
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class DebugModuleMixin:

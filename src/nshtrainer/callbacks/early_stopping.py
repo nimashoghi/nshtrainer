@@ -1,5 +1,5 @@
+import logging
 import math
-from logging import getLogger
 
 from lightning.fabric.utilities.rank_zero import _get_rank
 from lightning.pytorch import Trainer
@@ -7,7 +7,7 @@ from lightning.pytorch.callbacks import EarlyStopping as _EarlyStopping
 from lightning.pytorch.utilities.rank_zero import rank_prefixed_message
 from typing_extensions import override
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class EarlyStopping(_EarlyStopping):

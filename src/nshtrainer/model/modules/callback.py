@@ -1,6 +1,6 @@
+import logging
 from collections import abc
 from collections.abc import Callable, Iterable
-from logging import getLogger
 from typing import Any, TypeAlias, cast, final
 
 from lightning.pytorch import Callback, LightningModule
@@ -9,7 +9,7 @@ from typing_extensions import override
 
 from ...util.typing_utils import mixin_base_type
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 CallbackFn: TypeAlias = Callable[[], Callback | Iterable[Callback] | None]
 

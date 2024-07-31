@@ -1,5 +1,5 @@
+import logging
 from collections.abc import Sequence
-from logging import getLogger
 from typing import cast
 
 import torch.nn as nn
@@ -10,7 +10,7 @@ from ...util.typing_utils import mixin_base_type
 from ..config import BaseConfig
 from .callback import CallbackRegistrarModuleMixin
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def _parameters_to_names(parameters: Sequence[nn.Parameter], model: nn.Module):

@@ -1,4 +1,5 @@
 import copy
+import logging
 import os
 import string
 import time
@@ -6,7 +7,6 @@ import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from datetime import timedelta
-from logging import getLogger
 from pathlib import Path
 from typing import (
     Annotated,
@@ -46,7 +46,7 @@ from ..callbacks.base import CallbackConfigBase
 from ..metrics import MetricConfig
 from ._environment import EnvironmentConfig
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class IdSeedWarning(Warning):

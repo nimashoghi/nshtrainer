@@ -1,5 +1,5 @@
+import logging
 from collections.abc import Mapping
-from logging import getLogger
 from typing import cast
 
 import torch
@@ -14,7 +14,7 @@ from ...util.typing_utils import mixin_base_type
 from ..config import BaseConfig
 from .callback import CallbackModuleMixin
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def _on_train_start_callback(trainer: Trainer, pl_module: LightningModule):

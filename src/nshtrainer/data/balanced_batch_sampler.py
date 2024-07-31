@@ -1,6 +1,6 @@
 import heapq
+import logging
 from functools import cached_property
-from logging import getLogger
 from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
@@ -10,7 +10,7 @@ from lightning_fabric.utilities.distributed import _DatasetSamplerWrapper
 from torch.utils.data import BatchSampler, Dataset, DistributedSampler
 from typing_extensions import override
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def _all_gather(tensor: torch.Tensor, device: torch.device | None = None):
