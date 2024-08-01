@@ -288,7 +288,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     offline: bool = False
     """Whether to run WandB in offline mode."""
 
-    use_wandb_core: bool = False
+    use_wandb_core: bool = True
     """Whether to use the new `wandb-core` backend for WandB.
     `wandb-core` is a new backend for WandB that is faster and more efficient than the old backend.
     """
@@ -315,7 +315,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
                 if pkg_resources.parse_version(
                     wandb.__version__
                 ) < pkg_resources.parse_version("0.17.5"):
-                    raise ValueError(
+                    log.warning(
                         "The version of WandB installed does not support the `wandb-core` backend "
                         f"(expected version >= 0.17.5, found version {wandb.__version__}). "
                         "Please either upgrade to a newer version of WandB or disable the `use_wandb_core` option."
