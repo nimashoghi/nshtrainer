@@ -64,7 +64,7 @@ class LatestEpochCheckpoint(Checkpoint):
         filename = self.config.filename.format(
             epoch=trainer.current_epoch, step=trainer.global_step
         )
-        filename = f"{self.PREFIX}{filename}.{self.EXTENSION}"
+        filename = f"{self.PREFIX}{filename}{self.EXTENSION}"
         return self.dirpath / filename
 
     def _remove_checkpoints(self, trainer: Trainer, ckpt_paths: list[Path]):
@@ -95,7 +95,9 @@ class LatestEpochCheckpoint(Checkpoint):
 
     def _save_new_checkpoint(self, trainer: Trainer):
         # Remove old checkpoints
-        self._remove_old_checkpoints(trainer)
+        if trainer.is_global_zero:
+            self._remove_old_checkpoints(trainer)
+        trainer.strategy.barrier()
 
         # Save the new checkpoint
         filepath = self._ckpt_path(trainer)

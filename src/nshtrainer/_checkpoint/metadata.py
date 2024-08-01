@@ -105,10 +105,8 @@ def _write_checkpoint_metadata(
 
 
 def _remove_checkpoint_metadata(checkpoint_path: Path):
-    for path in (
-        checkpoint_path.with_suffix(METADATA_PATH_SUFFIX),
-        checkpoint_path.with_suffix(HPARAMS_PATH_SUFFIX),
-    ):
+    for suffix in (METADATA_PATH_SUFFIX, HPARAMS_PATH_SUFFIX):
+        path = checkpoint_path.with_suffix(suffix)
         try:
             path.unlink(missing_ok=True)
         except Exception as e:
@@ -122,11 +120,9 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
     _remove_checkpoint_metadata(linked_checkpoint_path)
 
     # Link the metadata files to the new checkpoint
-    for path in (
-        checkpoint_path.with_suffix(METADATA_PATH_SUFFIX),
-        checkpoint_path.with_suffix(HPARAMS_PATH_SUFFIX),
-    ):
-        linked_path = linked_checkpoint_path.with_suffix(path.suffix)
+    for suffix in (METADATA_PATH_SUFFIX, HPARAMS_PATH_SUFFIX):
+        path = checkpoint_path.with_suffix(suffix)
+        linked_path = linked_checkpoint_path.with_suffix(suffix)
         try:
             try:
                 linked_path.symlink_to(path)
