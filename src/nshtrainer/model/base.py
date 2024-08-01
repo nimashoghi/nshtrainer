@@ -11,7 +11,7 @@ from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from typing_extensions import Self, TypeVar, override
 
-from ._environment import EnvironmentConfig
+from ..util._environment_info import EnvironmentConfig
 from .config import BaseConfig
 from .modules.callback import CallbackModuleMixin
 from .modules.debug import DebugModuleMixin

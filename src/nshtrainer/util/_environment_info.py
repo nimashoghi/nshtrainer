@@ -14,11 +14,11 @@ import psutil
 import torch
 from typing_extensions import Self
 
-from ..util.slurm import parse_slurm_node_list
+from .slurm import parse_slurm_node_list
 
 if TYPE_CHECKING:
-    from .base import LightningModuleBase
-    from .config import BaseConfig
+    from ..model.base import LightningModuleBase
+    from ..model.config import BaseConfig
 
 
 log = logging.getLogger(__name__)

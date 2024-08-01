@@ -10,7 +10,7 @@ import nshconfig as C
 import numpy as np
 import torch
 
-from ..model._environment import EnvironmentConfig
+from ..util._environment_info import EnvironmentConfig
 
 if TYPE_CHECKING:
     from ..model import BaseConfig, LightningModuleBase

@@ -44,7 +44,7 @@ from ..callbacks import (
 )
 from ..callbacks.base import CallbackConfigBase
 from ..metrics import MetricConfig
-from ._environment import EnvironmentConfig
+from ..util._environment_info import EnvironmentConfig
 
 log = logging.getLogger(__name__)
 
