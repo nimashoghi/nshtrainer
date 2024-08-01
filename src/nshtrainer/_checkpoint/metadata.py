@@ -92,7 +92,7 @@ def _write_checkpoint_metadata(
     except Exception as e:
         log.warning(f"Failed to write metadata to {checkpoint_path}: {e}")
     else:
-        log.info(f"Checkpoint metadata written to {checkpoint_path}")
+        log.debug(f"Checkpoint metadata written to {checkpoint_path}")
 
     # Write the hparams to the checkpoint directory
     try:
@@ -101,7 +101,7 @@ def _write_checkpoint_metadata(
     except Exception as e:
         log.warning(f"Failed to write hparams to {checkpoint_path}: {e}")
     else:
-        log.info(f"Checkpoint metadata written to {checkpoint_path}")
+        log.debug(f"Checkpoint metadata written to {checkpoint_path}")
 
 
 def _remove_checkpoint_metadata(checkpoint_path: Path):
@@ -112,7 +112,7 @@ def _remove_checkpoint_metadata(checkpoint_path: Path):
         except Exception as e:
             log.warning(f"Failed to remove {path}: {e}")
         else:
-            log.info(f"Removed {path}")
+            log.debug(f"Removed {path}")
 
 
 def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Path):
@@ -133,7 +133,7 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
         except Exception as e:
             log.warning(f"Failed to link {path} to {linked_path}: {e}")
         else:
-            log.info(f"Linked {path} to {linked_path}")
+            log.debug(f"Linked {path} to {linked_path}")
 
 
 def _checkpoint_sort_key_fn(key: Callable[[CheckpointMetadata, Path], Any]):
