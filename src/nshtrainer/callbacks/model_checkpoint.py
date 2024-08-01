@@ -4,11 +4,13 @@ from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks.model_checkpoint import (
     ModelCheckpoint as _ModelCheckpoint,
 )
 from typing_extensions import override
 
+from .._checkpoint.saver import _link_checkpoint, _remove_checkpoint
 from ..metrics import MetricConfig
 from .base import CallbackConfigBase
 
@@ -158,6 +160,8 @@ class ModelCheckpointCallbackConfig(CallbackConfigBase):
 
 
 class ModelCheckpoint(_ModelCheckpoint):
+    CHECKPOINT_NAME_LAST = "best"
+
     @override
     def __init__(
         self,
@@ -185,3 +189,17 @@ class ModelCheckpoint(_ModelCheckpoint):
             save_on_train_epoch_end=self.config.save_on_train_epoch_end,
             enable_version_counter=self.config.enable_version_counter,
         )
+
+    @override
+    def _link_checkpoint(self, trainer: Trainer, filepath: str, linkpath: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+        return _link_checkpoint(
+            trainer,
+            filepath,
+            linkpath,
+            barrier=True,
+            metadata=True,
+        )
+
+    @override
+    def _remove_checkpoint(self, trainer: Trainer, filepath: str):
+        return _remove_checkpoint(trainer, filepath, remove_metadata=True)

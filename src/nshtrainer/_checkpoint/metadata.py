@@ -1,6 +1,8 @@
 import copy
 import datetime
 import logging
+import shutil
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -100,3 +102,74 @@ def _write_checkpoint_metadata(
         log.warning(f"Failed to write hparams to {checkpoint_path}: {e}")
     else:
         log.info(f"Checkpoint metadata written to {checkpoint_path}")
+
+
+def _remove_checkpoint_metadata(checkpoint_path: Path):
+    for path in (
+        checkpoint_path.with_suffix(METADATA_PATH_SUFFIX),
+        checkpoint_path.with_suffix(HPARAMS_PATH_SUFFIX),
+    ):
+        try:
+            path.unlink(missing_ok=True)
+        except Exception as e:
+            log.warning(f"Failed to remove {path}: {e}")
+        else:
+            log.info(f"Removed {path}")
+
+
+def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Path):
+    # First, remove any existing metadata files
+    _remove_checkpoint_metadata(linked_checkpoint_path)
+
+    # Link the metadata files to the new checkpoint
+    for path in (
+        checkpoint_path.with_suffix(METADATA_PATH_SUFFIX),
+        checkpoint_path.with_suffix(HPARAMS_PATH_SUFFIX),
+    ):
+        linked_path = linked_checkpoint_path.with_suffix(path.suffix)
+        try:
+            try:
+                linked_path.symlink_to(path)
+            except OSError:
+                # on Windows, special permissions are required to create symbolic links as a regular user
+                # fall back to copying the file
+                shutil.copy(path, linked_path)
+        except Exception as e:
+            log.warning(f"Failed to link {path} to {linked_path}: {e}")
+        else:
+            log.info(f"Linked {path} to {linked_path}")
+
+
+def _checkpoint_sort_key_fn(key: Callable[[CheckpointMetadata, Path], Any]):
+    def sort_key_fn(checkpoint_path: Path):
+        if not (p := checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)).exists():
+            raise FileNotFoundError(f"Metadata file not found: {p}")
+
+        nonlocal key
+        return key(CheckpointMetadata.from_file(p), p)
+
+    return sort_key_fn
+
+
+def _sort_ckpts_by_metadata(
+    checkpoint_paths: list[Path],
+    key: Callable[[CheckpointMetadata, Path], Any],
+    fallback_key: Callable[[Path], Any],
+):
+    # First, let's make sure all the metadata files exist.
+    # If not, use the fallback function to sort the checkpoints.
+    no_metadata_paths: list[Path] = []
+    for path in checkpoint_paths:
+        if (path.with_suffix(METADATA_PATH_SUFFIX)).exists():
+            continue
+
+        no_metadata_paths.append(path)
+
+    if no_metadata_paths:
+        log.warning(
+            f"Metadata file not found on {len(no_metadata_paths)} checkpoints: {no_metadata_paths}\n"
+            "Falling back to sorting by last modified time."
+        )
+        return sorted(checkpoint_paths, key=fallback_key)
+
+    return sorted(checkpoint_paths, key=_checkpoint_sort_key_fn(key))
