@@ -9,15 +9,11 @@ import torchmetrics
 from lightning.pytorch import LightningDataModule, LightningModule
 from lightning.pytorch.utilities.types import _METRIC
 from lightning_utilities.core.rank_zero import rank_zero_warn
+from nshutils import ActSave
 from typing_extensions import override
 
 from ...util.typing_utils import mixin_base_type
 from ..config import BaseConfig
-
-try:
-    from nshutils import ActSave  # type: ignore
-except ImportError:
-    ActSave = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -160,10 +156,6 @@ class LoggerLightningModuleMixin(LoggerModuleMixin, mixin_base_type(LightningMod
     def _logger_actsave(self, name: str, value: _METRIC) -> None:
         hparams = cast(BaseConfig, self.hparams)
         if not hparams.trainer.logging.actsave_logged_metrics:
-            return
-
-        if ActSave is None:
-            rank_zero_warn("ActSave is not available, skipping logging of metrics")
             return
 
         ActSave.save(

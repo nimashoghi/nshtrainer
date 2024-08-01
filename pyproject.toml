@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "0.10.19"
+version = "0.11.0"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
@@ -19,6 +19,8 @@ pytorch-lightning = "*"
 torchmetrics = { version = "*", optional = true }
 wrapt = { version = "*", optional = true }
 GitPython = { version = "*", optional = true }
+wandb = { version = "*", optional = true }
+tensorboard = { version = "*", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.372"
@@ -40,3 +42,6 @@ reportPrivateImportUsage = false
 
 [tool.ruff.lint]
 ignore = ["F722", "F821", "E731", "E741"]
+
+[tool.poetry.extras]
+extra = ["torchmetrics", "wrapt", "GitPython", "wandb", "tensorboard"]
