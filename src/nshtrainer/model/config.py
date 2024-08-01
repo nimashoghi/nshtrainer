@@ -315,9 +315,10 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
                 if pkg_resources.parse_version(
                     wandb.__version__
                 ) < pkg_resources.parse_version("0.17.5"):
-                    log.warning(
-                        "The version of WandB installed does not support the `wandb-core` backend. "
-                        "Unable to use the `wandb-core` backend for WandB."
+                    raise ValueError(
+                        "The version of WandB installed does not support the `wandb-core` backend "
+                        f"(expected version >= 0.17.5, found version {wandb.__version__}). "
+                        "Please either upgrade to a newer version of WandB or disable the `use_wandb_core` option."
                     )
                 else:
                     wandb.require("core")
