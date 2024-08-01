@@ -12,13 +12,36 @@ from .base import CallbackConfigBase
 log = logging.getLogger(__name__)
 
 
+class WandbWatchConfig(CallbackConfigBase):
+    name: Literal["wandb_watch"] = "wandb_watch"
+
+    enabled: bool = True
+    """Enable watching the model for wandb."""
+
+    log: str | None = None
+    """Log type for wandb."""
+
+    log_graph: bool = True
+    """Whether to log the graph for wandb."""
+
+    log_freq: int = 100
+    """Log frequency for wandb."""
+
+    def __bool__(self):
+        return self.enabled
+
+    @override
+    def create_callbacks(self, root_config):
+        yield WandbWatchCallback(self)
+
+
 @runtime_checkable
 class _HasWandbLogModuleProtocol(Protocol):
     def wandb_log_module(self) -> nn.Module | None: ...
 
 
 class WandbWatchCallback(Callback):
-    def __init__(self, config: "WandbWatchConfig"):
+    def __init__(self, config: WandbWatchConfig):
         super().__init__()
 
         self.config = config
@@ -78,26 +101,3 @@ class WandbWatchCallback(Callback):
             log_graph=self.config.log_graph,
         )
         setattr(pl_module, "_model_watched", True)
-
-
-class WandbWatchConfig(CallbackConfigBase):
-    name: Literal["wandb_watch"] = "wandb_watch"
-
-    enabled: bool = True
-    """Enable watching the model for wandb."""
-
-    log: str | None = None
-    """Log type for wandb."""
-
-    log_graph: bool = True
-    """Whether to log the graph for wandb."""
-
-    log_freq: int = 100
-    """Log frequency for wandb."""
-
-    def __bool__(self):
-        return self.enabled
-
-    @override
-    def create_callbacks(self, root_config):
-        yield WandbWatchCallback(self)

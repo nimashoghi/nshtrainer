@@ -20,6 +20,7 @@ from typing import (
 
 import nshconfig as C
 import numpy as np
+import pkg_resources
 import torch
 from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
@@ -213,7 +214,7 @@ class BaseLoggerConfig(C.Config, ABC):
     """Enable this logger."""
 
     priority: int = 0
-    """Priority of the logger. Higher values are logged first."""
+    """Priority of the logger. Higher priority loggers are created first."""
 
     log_dir: DirectoryPath | None = None
     """Directory to save the logs to. If None, will use the default log directory for the trainer."""
@@ -266,7 +267,8 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     """Enable WandB logging."""
 
     priority: int = 2
-    """Priority of the logger. Higher values are logged first."""
+    """Priority of the logger. Higher priority loggers are created first,
+    and the highest priority logger is the "main" logger for PyTorch Lightning."""
 
     project: str | None = None
     """WandB project name to use for the logger. If None, will use the root config's project name."""
@@ -286,14 +288,42 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     offline: bool = False
     """Whether to run WandB in offline mode."""
 
-    def offline_(self):
-        self.offline = True
+    use_wandb_core: bool = False
+    """Whether to use the new `wandb-core` backend for WandB.
+    `wandb-core` is a new backend for WandB that is faster and more efficient than the old backend.
+    """
+
+    def offline_(self, value: bool = True):
+        self.offline = value
+        return self
+
+    def core_(self, value: bool = True):
+        self.use_wandb_core = value
         return self
 
     @override
     def create_logger(self, root_config):
         if not self.enabled:
             return None
+
+        # If `wandb-core` is enabled, we should use the new backend.
+        if self.use_wandb_core:
+            try:
+                import wandb  # type: ignore
+
+                # The minimum version that supports the new backend is 0.17.5
+                if pkg_resources.parse_version(
+                    wandb.__version__
+                ) < pkg_resources.parse_version("0.17.5"):
+                    log.warning(
+                        "The version of WandB installed does not support the `wandb-core` backend. "
+                        "Unable to use the `wandb-core` backend for WandB."
+                    )
+                else:
+                    wandb.require("core")
+                    log.critical("Using the `wandb-core` backend for WandB.")
+            except ImportError:
+                pass
 
         from lightning.pytorch.loggers.wandb import WandbLogger
 
@@ -329,7 +359,7 @@ class CSVLoggerConfig(BaseLoggerConfig):
     """Enable CSV logging."""
 
     priority: int = 0
-    """Priority of the logger. Higher values are logged first."""
+    """Priority of the logger. Higher priority loggers are created first."""
 
     prefix: str = ""
     """A string to put at the beginning of metric keys."""
@@ -383,7 +413,7 @@ class TensorboardLoggerConfig(BaseLoggerConfig):
     """Enable TensorBoard logging."""
 
     priority: int = 2
-    """Priority of the logger. Higher values are logged first."""
+    """Priority of the logger. Higher priority loggers are created first."""
 
     log_graph: bool = False
     """
