@@ -202,4 +202,4 @@ class ModelCheckpoint(_ModelCheckpoint):
 
     @override
     def _remove_checkpoint(self, trainer: Trainer, filepath: str):
-        return _remove_checkpoint(trainer, filepath, remove_metadata=True)
+        return _remove_checkpoint(trainer, filepath, metadata=True, barrier=False)

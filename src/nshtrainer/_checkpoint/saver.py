@@ -36,7 +36,8 @@ def _link_checkpoint(
             # fall back to copying the file
             shutil.copy(filepath, linkpath)
 
-        _link_checkpoint_metadata(filepath, linkpath)
+        if metadata:
+            _link_checkpoint_metadata(filepath, linkpath)
     if barrier:
         trainer.strategy.barrier()
 
@@ -44,9 +45,17 @@ def _link_checkpoint(
 def _remove_checkpoint(
     trainer: Trainer,
     filepath: str | Path | os.PathLike,
-    remove_metadata: bool = True,
+    *,
+    metadata: bool,
+    barrier: bool,
 ):
     if not isinstance(filepath, Path):
         filepath = Path(filepath)
-    trainer.strategy.remove_checkpoint(filepath)
-    _remove_checkpoint_metadata(filepath)
+
+    if trainer.is_global_zero:
+        trainer.strategy.remove_checkpoint(filepath)
+        if metadata:
+            _remove_checkpoint_metadata(filepath)
+
+    if barrier:
+        trainer.strategy.barrier()

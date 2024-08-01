@@ -69,7 +69,7 @@ class LatestEpochCheckpoint(Checkpoint):
 
     def _remove_checkpoints(self, trainer: Trainer, ckpt_paths: list[Path]):
         for ckpt_path in ckpt_paths:
-            _remove_checkpoint(trainer, ckpt_path, remove_metadata=True)
+            _remove_checkpoint(trainer, ckpt_path, metadata=True, barrier=False)
 
     def _remove_old_checkpoints(self, trainer: Trainer):
         if (latest_k := self.config.latest_k) == "all":
