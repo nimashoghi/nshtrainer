@@ -10,7 +10,8 @@ from lightning.pytorch.callbacks.model_checkpoint import (
 )
 from typing_extensions import override
 
-from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
+from ..._checkpoint.saver import _link_checkpoint
+from ..._checkpoint.saver import _remove_checkpoint as _ckpt_saver_remove_checkpoint
 from ...metrics import MetricConfig
 from ..base import CallbackConfigBase
 
@@ -74,10 +75,10 @@ class ModelCheckpointCallbackConfig(CallbackConfigBase):
         If "link", creates a symbolic link to the last checkpoint.
     """
 
-    save_top_k: int = 1
+    save_top_k: int | Literal["all"] = 1
     """
     Number of best models to save.
-        If -1, all models are saved.
+        If "all" or -1, all models are saved.
         If 0, no models are saved.
     """
 
@@ -158,6 +159,11 @@ class ModelCheckpointCallbackConfig(CallbackConfigBase):
             metric=metric,
         )
 
+    def _save_top_k_model_ckpt_input(self):
+        if self.save_top_k == "all":
+            return -1
+        return self.save_top_k
+
 
 class ModelCheckpoint(_ModelCheckpoint):
     CHECKPOINT_NAME_LAST = "best"
@@ -180,7 +186,7 @@ class ModelCheckpoint(_ModelCheckpoint):
             mode=metric.mode,
             verbose=self.config.verbose,
             save_last=self.config.save_last,
-            save_top_k=self.config.save_top_k,
+            save_top_k=self.config._save_top_k_model_ckpt_input(),
             save_weights_only=self.config.save_weights_only,
             auto_insert_metric_name=False,
             every_n_train_steps=self.config.every_n_train_steps,
@@ -202,4 +208,9 @@ class ModelCheckpoint(_ModelCheckpoint):
 
     @override
     def _remove_checkpoint(self, trainer: Trainer, filepath: str):
-        return _remove_checkpoint(trainer, filepath, metadata=True, barrier=False)
+        return _ckpt_saver_remove_checkpoint(
+            trainer,
+            filepath,
+            metadata=True,
+            barrier=False,
+        )

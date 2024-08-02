@@ -133,6 +133,68 @@ class CheckpointLoadingConfig(C.Config):
         ckpt: Literal["best", "last"] | str | Path | None,
         trainer_mode: TrainerFn,
     ):
+        """
+        Automatically create a CheckpointLoadingConfig based on the provided checkpoint option and trainer mode.
+
+        This method provides a convenient way to generate a checkpoint loading configuration
+        tailored to different training and evaluation scenarios.
+
+        Parameters:
+        -----------
+        ckpt : Literal["best", "last"] | str | Path | None
+            Specifies the checkpoint loading preference:
+            - "best": Use the best checkpoint based on the primary metric.
+            - "last": Use the most recent checkpoint.
+            - str or Path: Path to a specific checkpoint file.
+            - None: Defaults to "last" for training, raises an error for evaluation.
+
+        trainer_mode : TrainerFn
+            The mode in which the trainer is operating. This affects how the configuration is created.
+            - TrainerFn.FITTING: Used for training scenarios.
+            - TrainerFn.VALIDATING, TrainerFn.TESTING, TrainerFn.PREDICTING: Used for evaluation scenarios.
+
+        Returns:
+        --------
+        CheckpointLoadingConfig
+            A configuration object for checkpoint loading based on the given parameters.
+
+        Behavior:
+        ---------
+        1. For training (TrainerFn.FITTING):
+        - Includes HPC pre-emption checkpoints.
+        - If ckpt is None, defaults to "last".
+        - For "best" or "last", creates a single-strategy configuration that loads the best or last checkpoint.
+        - For a specific path, creates a two-strategy configuration:
+            a) Tries to load the checkpoint as the last checkpoint.
+            b) Falls back to loading it as a user-provided path.
+
+        2. For evaluation (VALIDATING, TESTING, PREDICTING):
+        - Does not include HPC pre-emption checkpoints.
+        - Requires ckpt to be specified (raises ValueError if None).
+        - Creates a single-strategy configuration based on the ckpt value.
+
+        Raises:
+        -------
+        ValueError
+            If ckpt is None during evaluation modes.
+
+        Examples:
+        ---------
+        # Training mode, use last checkpoint
+        config = CheckpointLoadingConfig.auto("last", TrainerFn.FITTING)
+
+        # Evaluation mode, use best checkpoint
+        config = CheckpointLoadingConfig.auto("best", TrainerFn.TESTING)
+
+        # Training mode, use specific checkpoint
+        config = CheckpointLoadingConfig.auto("/path/to/checkpoint.ckpt", TrainerFn.FITTING)
+
+        Notes:
+        ------
+        - The method internally calls _auto_train or _auto_eval based on the trainer_mode.
+        - The resulting configuration always includes strategies as a sequence, even if there's only one strategy.
+        """
+        # Implementation remains the same...
         match trainer_mode:
             case TrainerFn.FITTING:
                 return cls._auto_train(ckpt)

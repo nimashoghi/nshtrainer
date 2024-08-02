@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from lightning.pytorch.trainer.connectors.checkpoint_connector import (
-    _CheckpointConnector,
+    _CheckpointConnector as _LightningCheckpointConnector,
 )
 from lightning.pytorch.trainer.states import TrainerFn
 from typing_extensions import override
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class CheckpointConnector(_CheckpointConnector):
+class _CheckpointConnector(_LightningCheckpointConnector):
     def __resolve_auto_ckpt_path(
         self,
         ckpt_path: str | Path | None,

@@ -26,6 +26,7 @@ from ..model.config import (
     StrategyConfigProtocol,
 )
 from ._runtime_callback import RuntimeTrackerCallback, Stage
+from .checkpoint_connector import _CheckpointConnector
 from .signal_connector import _SignalConnector
 
 log = logging.getLogger(__name__)
@@ -296,6 +297,9 @@ class Trainer(LightningTrainer):
 
         # Replace the signal connector with our own.
         self._signal_connector = _SignalConnector(self)
+
+        # Replace the checkpoint connector with our own.
+        self._checkpoint_connector = _CheckpointConnector(self)
 
         # Print out the log dir, so that we can easily find it in the logs.
         if log_dir := self.log_dir:
