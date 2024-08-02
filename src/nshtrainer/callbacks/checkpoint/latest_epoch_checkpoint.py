@@ -75,6 +75,10 @@ class LatestEpochCheckpoint(Checkpoint):
         if (latest_k := self.config.latest_k) == "all":
             return
 
+        # NOTE: We add 1 to the latest_k here because
+        # we're about to save a new checkpoint.
+        latest_k += 1
+
         # Get all configs, ignoring the latest symlink
         ckpt_paths = list(self.dirpath.glob(f"{self.PREFIX}*{self.EXTENSION}"))
         # Ignore the latest symlink
