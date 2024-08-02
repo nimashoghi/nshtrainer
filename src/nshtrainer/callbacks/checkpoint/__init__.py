@@ -1,3 +1,7 @@
+from .best_checkpoint import BestCheckpoint as BestCheckpoint
+from .best_checkpoint import (
+    BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
+)
 from .latest_epoch_checkpoint import LatestEpochCheckpoint as LatestEpochCheckpoint
 from .latest_epoch_checkpoint import (
     LatestEpochCheckpointCallbackConfig as LatestEpochCheckpointCallbackConfig,

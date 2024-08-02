@@ -37,6 +37,7 @@ from typing_extensions import Self, TypedDict, TypeVar, override
 
 from .._checkpoint.loader import CheckpointLoadingConfig
 from ..callbacks import (
+    BestCheckpointCallbackConfig,
     CallbackConfig,
     LatestEpochCheckpointCallbackConfig,
     ModelCheckpointCallbackConfig,
@@ -771,6 +772,7 @@ class ReproducibilityConfig(C.Config):
 
 CheckpointCallbackConfig: TypeAlias = Annotated[
     ModelCheckpointCallbackConfig
+    | BestCheckpointCallbackConfig
     | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig,
     C.Field(discriminator="name"),
@@ -782,7 +784,8 @@ class CheckpointSavingConfig(CallbackConfigBase):
     """Enable checkpoint saving."""
 
     checkpoint_callbacks: Sequence[CheckpointCallbackConfig] = [
-        ModelCheckpointCallbackConfig(),
+        # ModelCheckpointCallbackConfig(),
+        BestCheckpointCallbackConfig(),
         LatestEpochCheckpointCallbackConfig(),
         OnExceptionCheckpointCallbackConfig(),
     ]

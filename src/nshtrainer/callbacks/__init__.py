@@ -4,6 +4,8 @@ import nshconfig as C
 
 from . import checkpoint as checkpoint
 from .base import CallbackConfigBase as CallbackConfigBase
+from .checkpoint import BestCheckpoint as BestCheckpoint
+from .checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from .checkpoint import LatestEpochCheckpoint as LatestEpochCheckpoint
 from .checkpoint import (
     LatestEpochCheckpointCallbackConfig as LatestEpochCheckpointCallbackConfig,
@@ -43,6 +45,7 @@ CallbackConfig = Annotated[
     | NormLoggingConfig
     | GradientSkippingConfig
     | EMAConfig
+    | BestCheckpointCallbackConfig
     | ModelCheckpointCallbackConfig
     | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig

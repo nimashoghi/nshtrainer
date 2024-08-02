@@ -86,15 +86,15 @@ class LatestEpochCheckpoint(Checkpoint):
             ckpt_paths = [p for p in ckpt_paths if p.name != latest_symlink_filename]
 
         # Sort by epoch, then step, then last modified
-        ckpt_paths = _sort_ckpts_by_metadata(
+        metadata_and_ckpt_paths = _sort_ckpts_by_metadata(
             ckpt_paths,
             key=lambda meta, p: (meta.epoch, meta.global_step, p.stat().st_mtime),
-            fallback_key=lambda p: p.stat().st_mtime,
-            # ^ Called if metadata is not found on all checkpoints
+            reverse=True,
         )
 
         # Remove all but the latest k checkpoints
-        self._remove_checkpoints(trainer, ckpt_paths[:-latest_k])
+        ckpts_to_remove = metadata_and_ckpt_paths[latest_k:]
+        self._remove_checkpoints(trainer, [p for _, p in ckpts_to_remove])
 
     def _save_new_checkpoint(self, trainer: Trainer):
         # Remove old checkpoints

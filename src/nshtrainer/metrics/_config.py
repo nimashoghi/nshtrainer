@@ -3,6 +3,8 @@ from typing import Literal
 
 import nshconfig as C
 
+from ..util._useful_types import SupportsRichComparisonT
+
 
 class MetricConfig(C.Config):
     name: str
@@ -35,3 +37,6 @@ class MetricConfig(C.Config):
     @property
     def best(self):
         return builtins.min if self.mode == "min" else builtins.max
+
+    def is_better(self, a: SupportsRichComparisonT, b: SupportsRichComparisonT) -> bool:
+        return self.best(a, b) == a

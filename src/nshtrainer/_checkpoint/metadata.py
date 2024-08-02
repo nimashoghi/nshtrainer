@@ -43,6 +43,16 @@ class CheckpointMetadata(C.Config):
     def from_file(cls, path: Path):
         return cls.model_validate_json(path.read_text())
 
+    @classmethod
+    def from_ckpt_path(cls, checkpoint_path: Path):
+        if not (
+            metadata_path := checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+        ).exists():
+            raise FileNotFoundError(
+                f"Metadata file not found for checkpoint: {checkpoint_path}"
+            )
+        return cls.from_file(metadata_path)
+
 
 def _generate_checkpoint_metadata(
     config: "BaseConfig", trainer: "Trainer", checkpoint_path: Path
@@ -136,36 +146,13 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
             log.debug(f"Linked {path} to {linked_path}")
 
 
-def _checkpoint_sort_key_fn(key: Callable[[CheckpointMetadata, Path], Any]):
-    def sort_key_fn(checkpoint_path: Path):
-        if not (p := checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)).exists():
-            raise FileNotFoundError(f"Metadata file not found: {p}")
-
-        nonlocal key
-        return key(CheckpointMetadata.from_file(p), p)
-
-    return sort_key_fn
-
-
 def _sort_ckpts_by_metadata(
     checkpoint_paths: list[Path],
     key: Callable[[CheckpointMetadata, Path], Any],
-    fallback_key: Callable[[Path], Any],
+    reverse: bool = False,
 ):
-    # First, let's make sure all the metadata files exist.
-    # If not, use the fallback function to sort the checkpoints.
-    no_metadata_paths: list[Path] = []
-    for path in checkpoint_paths:
-        if (path.with_suffix(METADATA_PATH_SUFFIX)).exists():
-            continue
-
-        no_metadata_paths.append(path)
-
-    if no_metadata_paths:
-        log.warning(
-            f"Metadata file not found on {len(no_metadata_paths)} checkpoints: {no_metadata_paths}\n"
-            "Falling back to sorting by last modified time."
-        )
-        return sorted(checkpoint_paths, key=fallback_key)
-
-    return sorted(checkpoint_paths, key=_checkpoint_sort_key_fn(key))
+    return sorted(
+        [(CheckpointMetadata.from_ckpt_path(path), path) for path in checkpoint_paths],
+        key=lambda args_tuple: key(*args_tuple),
+        reverse=reverse,
+    )
