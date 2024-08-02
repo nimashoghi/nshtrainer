@@ -10,12 +10,12 @@ from lightning.pytorch.callbacks.model_checkpoint import (
 )
 from typing_extensions import override
 
-from .._checkpoint.saver import _link_checkpoint, _remove_checkpoint
-from ..metrics import MetricConfig
-from .base import CallbackConfigBase
+from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
+from ...metrics import MetricConfig
+from ..base import CallbackConfigBase
 
 if TYPE_CHECKING:
-    from ..model.config import BaseConfig
+    from ...model.config import BaseConfig
 
 log = logging.getLogger(__name__)
 

@@ -9,7 +9,7 @@ from lightning.pytorch import Trainer as LightningTrainer
 from lightning.pytorch.callbacks import OnExceptionCheckpoint as _OnExceptionCheckpoint
 from typing_extensions import override
 
-from .base import CallbackConfigBase
+from ..base import CallbackConfigBase
 
 log = logging.getLogger(__name__)
 
@@ -53,8 +53,6 @@ class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
-        from ..callbacks.on_exception_checkpoint import OnExceptionCheckpoint
-
         dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
             root_config.id, "checkpoint"
         )

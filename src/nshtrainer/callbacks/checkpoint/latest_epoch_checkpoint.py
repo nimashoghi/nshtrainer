@@ -6,9 +6,9 @@ from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Checkpoint
 from typing_extensions import override
 
-from .._checkpoint.metadata import _sort_ckpts_by_metadata
-from .._checkpoint.saver import _link_checkpoint, _remove_checkpoint
-from .base import CallbackConfigBase
+from ..._checkpoint.metadata import _sort_ckpts_by_metadata
+from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
+from ..base import CallbackConfigBase
 
 log = logging.getLogger(__name__)
 
