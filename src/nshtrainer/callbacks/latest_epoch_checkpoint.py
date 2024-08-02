@@ -90,8 +90,7 @@ class LatestEpochCheckpoint(Checkpoint):
         )
 
         # Remove all but the latest k checkpoints
-        ckpts_to_remove = ckpt_paths[:-latest_k]
-        self._remove_checkpoints(trainer, ckpts_to_remove)
+        self._remove_checkpoints(trainer, ckpt_paths[:-latest_k])
 
     def _save_new_checkpoint(self, trainer: Trainer):
         # Remove old checkpoints
@@ -113,4 +112,4 @@ class LatestEpochCheckpoint(Checkpoint):
                 barrier=True,
                 metadata=True,
             )
-            log.info(f"Created latest symlink: {symlink_path}")
+            log.debug(f"Created latest symlink: {symlink_path}")
