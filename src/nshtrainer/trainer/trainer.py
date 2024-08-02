@@ -1,4 +1,3 @@
-import contextlib
 import logging
 import os
 from collections.abc import Sequence
@@ -58,12 +57,9 @@ def _is_bf16_supported_no_emulation():
 
 class Trainer(LightningTrainer):
     @classmethod
-    @contextlib.contextmanager
-    def context(cls, config: BaseConfig):
+    def _pre_init(cls, config: BaseConfig):
         if (precision := config.trainer.set_float32_matmul_precision) is not None:
             torch.set_float32_matmul_precision(precision)
-
-        yield
 
     @classmethod
     def _update_kwargs(
@@ -288,6 +284,8 @@ class Trainer(LightningTrainer):
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
+        self._pre_init(config)
+
         kwargs = self._update_kwargs(config, kwargs)
         log.critical(f"LightningTrainer.__init__ with {kwargs=}.")
 
