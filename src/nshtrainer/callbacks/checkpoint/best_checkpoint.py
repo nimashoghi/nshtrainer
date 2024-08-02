@@ -72,6 +72,8 @@ class BestCheckpoint(Checkpoint):
         self.metric = metric
         self.dirpath = dirpath
 
+        self._last_global_step_saved = 0  # no need to save when no steps were taken
+
     @override
     def on_validation_end(self, trainer: Trainer, pl_module: LightningModule):
         self._save_best_checkpoint(trainer)
@@ -106,7 +108,32 @@ class BestCheckpoint(Checkpoint):
             reverse=(self.metric.mode == "min"),
         )
 
+    def _create_symlink(self, trainer: Trainer, best_ckpt_path: Path):
+        # Resolve the symlink filename
+        if (symlink_filename := self._best_symlink_filename()) is None:
+            return
+
+        # If the symlink already exists and points to the best checkpoint,
+        # then we don't need to create a new symlink.
+        symlink_path = self.dirpath / symlink_filename
+        if symlink_path.exists() and symlink_path.resolve() == best_ckpt_path:
+            return
+
+        _link_checkpoint(
+            trainer,
+            best_ckpt_path,
+            symlink_path,
+            metadata=True,
+            barrier=False,
+        )
+        log.debug(f"Created best symlink: {symlink_path}")
+
     def _save_best_checkpoint(self, trainer: Trainer):
+        # Skip saving the checkpoint if we're not in the fitting state
+        if self._should_skip_saving_checkpoint(trainer):
+            return
+
+        # Get the current metric value
         if (current := self._get_metric_value(trainer.callback_metrics)) is None:
             log.warning(
                 f"Can't save best model, {self.metric.validation_monitor} not found in metrics"
@@ -130,6 +157,7 @@ class BestCheckpoint(Checkpoint):
         # Save the current model
         filepath = self._ckpt_path(trainer)
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
+        log.debug(f"Saved best checkpoint: {filepath}")
 
         # Remove worst checkpoint if we've reached save_top_k
         # NOTE: We add 1 to save_top_k here because we have just saved a new checkpoint
@@ -143,13 +171,26 @@ class BestCheckpoint(Checkpoint):
             )
 
         # Create symlink to best model
-        if (symlink_filename := self._best_symlink_filename()) is not None:
-            symlink_path = self.dirpath / symlink_filename
-            _link_checkpoint(
-                trainer,
-                filepath,
-                symlink_path,
-                barrier=True,
-                metadata=True,
-            )
-            log.debug(f"Created best symlink: {symlink_path}")
+        if sorted_ckpts:
+            _, best_ckpt_path = sorted_ckpts[0]
+            self._create_symlink(trainer, best_ckpt_path)
+
+        # Update the last global step saved
+        self._last_global_step_saved = trainer.global_step
+
+        # Barrier to ensure all processes have saved the checkpoint before continuing
+        trainer.strategy.barrier()
+
+    def _should_skip_saving_checkpoint(self, trainer: Trainer) -> bool:
+        from lightning.pytorch.trainer.states import TrainerFn
+
+        return (
+            bool(
+                getattr(trainer, "fast_dev_run", False)
+            )  # disable checkpointing with fast_dev_run
+            or trainer.state.fn
+            != TrainerFn.FITTING  # don't save anything during non-fit
+            or trainer.sanity_checking  # don't save anything during sanity check
+            or self._last_global_step_saved
+            == trainer.global_step  # already saved at the last step
+        )

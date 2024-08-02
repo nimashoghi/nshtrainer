@@ -51,6 +51,8 @@ class LatestEpochCheckpoint(Checkpoint):
         self.config = config
         self.dirpath = dirpath
 
+        self._last_global_step_saved = 0
+
     @override
     def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
         self._save_new_checkpoint(trainer)
@@ -97,6 +99,9 @@ class LatestEpochCheckpoint(Checkpoint):
         self._remove_checkpoints(trainer, [p for _, p in ckpts_to_remove])
 
     def _save_new_checkpoint(self, trainer: Trainer):
+        if self._should_skip_saving_checkpoint(trainer):
+            return
+
         # Remove old checkpoints
         if trainer.is_global_zero:
             self._remove_old_checkpoints(trainer)
@@ -117,3 +122,20 @@ class LatestEpochCheckpoint(Checkpoint):
                 metadata=True,
             )
             log.debug(f"Created latest symlink: {symlink_path}")
+
+        # Set the last global step saved
+        self._last_global_step_saved = trainer.global_step
+
+    def _should_skip_saving_checkpoint(self, trainer: Trainer) -> bool:
+        from lightning.pytorch.trainer.states import TrainerFn
+
+        return (
+            bool(
+                getattr(trainer, "fast_dev_run", False)
+            )  # disable checkpointing with fast_dev_run
+            or trainer.state.fn
+            != TrainerFn.FITTING  # don't save anything during non-fit
+            or trainer.sanity_checking  # don't save anything during sanity check
+            or self._last_global_step_saved
+            == trainer.global_step  # already saved at the last step
+        )
