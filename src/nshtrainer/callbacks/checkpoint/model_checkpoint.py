@@ -198,19 +198,10 @@ class ModelCheckpoint(_ModelCheckpoint):
 
     @override
     def _link_checkpoint(self, trainer: Trainer, filepath: str, linkpath: str):  # pyright: ignore[reportIncompatibleMethodOverride]
-        return _link_checkpoint(
-            trainer,
-            filepath,
-            linkpath,
-            barrier=True,
-            metadata=True,
-        )
+        if trainer.is_global_zero:
+            _link_checkpoint(filepath, linkpath, metadata=True)
+        trainer.strategy.barrier()
 
     @override
     def _remove_checkpoint(self, trainer: Trainer, filepath: str):
-        return _ckpt_saver_remove_checkpoint(
-            trainer,
-            filepath,
-            metadata=True,
-            barrier=False,
-        )
+        _ckpt_saver_remove_checkpoint(trainer, filepath, metadata=True)

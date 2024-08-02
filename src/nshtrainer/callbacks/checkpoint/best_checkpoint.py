@@ -90,10 +90,6 @@ class BestCheckpoint(Checkpoint):
         filename = f"{self.PREFIX}{filename}{self.EXTENSION}"
         return self.dirpath / filename
 
-    def _remove_checkpoints(self, trainer: Trainer, ckpt_paths: list[Path]):
-        for ckpt_path in ckpt_paths:
-            _remove_checkpoint(trainer, ckpt_path, metadata=True, barrier=False)
-
     def _get_metric_value(self, metrics: dict[str, Any]):
         return metrics.get(
             self.metric.validation_monitor,
@@ -101,11 +97,16 @@ class BestCheckpoint(Checkpoint):
         )
 
     def _sorted_ckpts(self):
+        """
+        Get sorted checkpoints by the metric value.
+
+        Sort order: best -> worst
+        """
         ckpt_paths = list(self.dirpath.glob(f"{self.PREFIX}*{self.EXTENSION}"))
         return _sort_ckpts_by_metadata(
             ckpt_paths,
             key=lambda meta, _: self._get_metric_value(meta.metrics),
-            reverse=(self.metric.mode == "min"),
+            reverse=(self.metric.mode == "max"),
         )
 
     def _create_symlink(self, trainer: Trainer, best_ckpt_path: Path):
@@ -119,13 +120,7 @@ class BestCheckpoint(Checkpoint):
         if symlink_path.exists() and symlink_path.resolve() == best_ckpt_path:
             return
 
-        _link_checkpoint(
-            trainer,
-            best_ckpt_path,
-            symlink_path,
-            metadata=True,
-            barrier=False,
-        )
+        _link_checkpoint(best_ckpt_path, symlink_path, metadata=True)
         log.debug(f"Created best symlink: {symlink_path}")
 
     def _save_best_checkpoint(self, trainer: Trainer):
@@ -159,21 +154,22 @@ class BestCheckpoint(Checkpoint):
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
         log.debug(f"Saved best checkpoint: {filepath}")
 
-        # Remove worst checkpoint if we've reached save_top_k
-        # NOTE: We add 1 to save_top_k here because we have just saved a new checkpoint
-        if len(sorted_ckpts) + 1 > self.config._save_top_k_value:
+        if trainer.is_global_zero:
             # Get the sorted checkpoints again because now we have added a new checkpoint.
             # We could optimize this by adding the new checkpoint to the sorted list,
             # and then sorting it in place, but this is simpler.
             sorted_ckpts = self._sorted_ckpts()
-            self._remove_checkpoints(
-                trainer, [p for _, p in sorted_ckpts[self.config.save_top_k :]]
-            )
 
-        # Create symlink to best model
-        if sorted_ckpts:
-            _, best_ckpt_path = sorted_ckpts[0]
-            self._create_symlink(trainer, best_ckpt_path)
+            # Remove worst checkpoint if we've reached save_top_k
+            if (topk := self.config.save_top_k) != "all" and len(sorted_ckpts) > topk:
+                # NOTE: Sort order is best -> worst. Let's get the worst checkpoints.
+                for _, ckpt_path in sorted_ckpts[topk:]:
+                    _remove_checkpoint(trainer, ckpt_path, metadata=True)
+
+            # Create symlink to best model
+            if sorted_ckpts:
+                _, best_ckpt_path = sorted_ckpts[0]
+                self._create_symlink(trainer, best_ckpt_path)
 
         # Update the last global step saved
         self._last_global_step_saved = trainer.global_step
