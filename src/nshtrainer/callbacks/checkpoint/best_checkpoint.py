@@ -20,7 +20,7 @@ class BestCheckpointCallbackConfig(CallbackConfigBase):
     dirpath: str | Path | None = None
     """Directory path to save the checkpoint file."""
 
-    filename: str = "epoch{epoch:02d}_step{step:04d}"
+    filename: str = "epoch{epoch:03d}_step{step:07d}_{metric_name}{metric}"
     """Checkpoint filename. This must not include the extension."""
 
     save_weights_only: bool = False
@@ -37,10 +37,12 @@ class BestCheckpointCallbackConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
-        dirpath = Path(
+        checkpoint_folder = Path(
             self.dirpath
             or root_config.directory.resolve_subdirectory(root_config.id, "checkpoint")
         )
+        dirpath = checkpoint_folder / "best"
+        dirpath.mkdir(parents=True, exist_ok=True)
 
         # Resolve metric
         if (metric := self.metric) is None and (
@@ -50,7 +52,7 @@ class BestCheckpointCallbackConfig(CallbackConfigBase):
                 "No metric provided and no primary metric found in the root config"
             )
 
-        yield BestCheckpoint(self, metric, dirpath)
+        yield BestCheckpoint(self, metric, dirpath, checkpoint_folder)
 
     @property
     def _save_top_k_value(self):
@@ -66,11 +68,13 @@ class BestCheckpoint(Checkpoint):
         config: BestCheckpointCallbackConfig,
         metric: MetricConfig,
         dirpath: Path,
+        symlink_dirpath: Path | None = None,
     ):
         super().__init__()
         self.config = config
         self.metric = metric
         self.dirpath = dirpath
+        self.symlink_dirpath = symlink_dirpath or dirpath
 
         self._last_global_step_saved = 0  # no need to save when no steps were taken
 
@@ -83,9 +87,16 @@ class BestCheckpoint(Checkpoint):
             return None
         return f"{filename}{self.EXTENSION}"
 
-    def _ckpt_path(self, trainer: Trainer):
+    def _ckpt_path(self, trainer: Trainer, metric_value: float):
+        # Escape the metric name:
+        # - Replace '/' with '_'
+        # - Replace '.' with '_'
+        metric_name = self.metric.name.replace("/", "_").replace(".", "_")
         filename = self.config.filename.format(
-            epoch=trainer.current_epoch, step=trainer.global_step
+            epoch=trainer.current_epoch,
+            step=trainer.global_step,
+            metric_name=metric_name,
+            metric=metric_value,
         )
         filename = f"{self.PREFIX}{filename}{self.EXTENSION}"
         return self.dirpath / filename
@@ -116,7 +127,7 @@ class BestCheckpoint(Checkpoint):
 
         # If the symlink already exists and points to the best checkpoint,
         # then we don't need to create a new symlink.
-        symlink_path = self.dirpath / symlink_filename
+        symlink_path = self.symlink_dirpath / symlink_filename
         if symlink_path.exists() and symlink_path.resolve() == best_ckpt_path:
             return
 
@@ -150,7 +161,7 @@ class BestCheckpoint(Checkpoint):
             return
 
         # Save the current model
-        filepath = self._ckpt_path(trainer)
+        filepath = self._ckpt_path(trainer, current)
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
         log.debug(f"Saved best checkpoint: {filepath}")
 

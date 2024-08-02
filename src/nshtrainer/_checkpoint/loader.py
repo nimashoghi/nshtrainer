@@ -236,7 +236,7 @@ def _load_ckpt_meta(
         error_msg = f"Skipping checkpoint {path} because it belongs to a different run"
         match on_error:
             case "warn":
-                log.warn(error_msg)
+                log.warning(error_msg)
             case "raise":
                 raise ValueError(error_msg)
             case _:
@@ -325,13 +325,13 @@ def _resolve_checkpoint(
                     ),
                 ]
                 if not candidates:
-                    log.warn(
+                    log.warning(
                         "No checkpoint candidates found for `best` checkpoint strategy."
                     )
                     continue
 
                 if (metric := strategy.metric or root_config.primary_metric) is None:
-                    log.warn(
+                    log.warning(
                         "No metric specified for `best` checkpoint strategy, "
                         "and no primary metric is set in the configuration. "
                         "Skipping strategy."
@@ -360,7 +360,7 @@ def _resolve_checkpoint(
                     ),
                 ]
                 if not candidates:
-                    log.warn(
+                    log.warning(
                         "No checkpoint candidates found for `last` checkpoint strategy."
                     )
                     continue

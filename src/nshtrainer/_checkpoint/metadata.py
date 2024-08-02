@@ -4,7 +4,7 @@ import logging
 import shutil
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import nshconfig as C
 import numpy as np
@@ -24,6 +24,8 @@ HPARAMS_PATH_SUFFIX = ".hparams.json"
 
 
 class CheckpointMetadata(C.Config):
+    PATH_SUFFIX: ClassVar[str] = METADATA_PATH_SUFFIX
+
     checkpoint_path: Path
     checkpoint_filename: str
 
@@ -55,7 +57,10 @@ class CheckpointMetadata(C.Config):
 
 
 def _generate_checkpoint_metadata(
-    config: "BaseConfig", trainer: "Trainer", checkpoint_path: Path
+    config: "BaseConfig",
+    trainer: "Trainer",
+    checkpoint_path: Path,
+    metadata_path: Path,
 ):
     checkpoint_timestamp = datetime.datetime.now()
     start_timestamp = trainer.start_time()
@@ -70,7 +75,11 @@ def _generate_checkpoint_metadata(
                 metrics[name] = metric
 
     return CheckpointMetadata(
-        checkpoint_path=checkpoint_path,
+        # checkpoint_path=checkpoint_path,
+        # We should store the path as a relative path
+        # to the metadata file to avoid issues with
+        # moving the checkpoint directory
+        checkpoint_path=checkpoint_path.relative_to(metadata_path.parent),
         checkpoint_filename=checkpoint_path.name,
         run_id=config.id,
         name=config.run_name,
@@ -93,11 +102,13 @@ def _write_checkpoint_metadata(
     checkpoint_path: Path,
 ):
     config = cast("BaseConfig", model.config)
-    metadata = _generate_checkpoint_metadata(config, trainer, checkpoint_path)
+    metadata_path = checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+    metadata = _generate_checkpoint_metadata(
+        config, trainer, checkpoint_path, metadata_path
+    )
 
     # Write the metadata to the checkpoint directory
     try:
-        metadata_path = checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
         metadata_path.write_text(metadata.model_dump_json(indent=4))
     except Exception as e:
         log.warning(f"Failed to write metadata to {checkpoint_path}: {e}")
@@ -105,8 +116,8 @@ def _write_checkpoint_metadata(
         log.debug(f"Checkpoint metadata written to {checkpoint_path}")
 
     # Write the hparams to the checkpoint directory
+    hparams_path = checkpoint_path.with_suffix(HPARAMS_PATH_SUFFIX)
     try:
-        hparams_path = checkpoint_path.with_suffix(HPARAMS_PATH_SUFFIX)
         hparams_path.write_text(config.model_dump_json(indent=4))
     except Exception as e:
         log.warning(f"Failed to write hparams to {checkpoint_path}: {e}")

@@ -19,7 +19,7 @@ class LatestEpochCheckpointCallbackConfig(CallbackConfigBase):
     dirpath: str | Path | None = None
     """Directory path to save the checkpoint file."""
 
-    filename: str = "epoch{epoch:02d}_step{step:04d}"
+    filename: str = "epoch{epoch:03d}_step{step:07d}"
     """Checkpoint filename. This must not include the extension."""
 
     save_weights_only: bool = False
