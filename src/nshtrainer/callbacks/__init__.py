@@ -8,12 +8,6 @@ from .checkpoint import BestCheckpoint as BestCheckpoint
 from .checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from .checkpoint import LastCheckpoint as LastCheckpoint
 from .checkpoint import LastCheckpointCallbackConfig as LastCheckpointCallbackConfig
-from .checkpoint import LatestEpochCheckpoint as LatestEpochCheckpoint
-from .checkpoint import (
-    LatestEpochCheckpointCallbackConfig as LatestEpochCheckpointCallbackConfig,
-)
-from .checkpoint import ModelCheckpoint as ModelCheckpoint
-from .checkpoint import ModelCheckpointCallbackConfig as ModelCheckpointCallbackConfig
 from .checkpoint import OnExceptionCheckpoint as OnExceptionCheckpoint
 from .checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
@@ -49,8 +43,6 @@ CallbackConfig = Annotated[
     | EMAConfig
     | BestCheckpointCallbackConfig
     | LastCheckpointCallbackConfig
-    | ModelCheckpointCallbackConfig
-    | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig
     | WandbWatchConfig,
     C.Field(discriminator="name"),

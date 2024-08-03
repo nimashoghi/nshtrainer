@@ -40,8 +40,6 @@ from ..callbacks import (
     BestCheckpointCallbackConfig,
     CallbackConfig,
     LastCheckpointCallbackConfig,
-    LatestEpochCheckpointCallbackConfig,
-    ModelCheckpointCallbackConfig,
     OnExceptionCheckpointCallbackConfig,
     WandbWatchConfig,
 )
@@ -772,10 +770,8 @@ class ReproducibilityConfig(C.Config):
 
 
 CheckpointCallbackConfig: TypeAlias = Annotated[
-    ModelCheckpointCallbackConfig
-    | BestCheckpointCallbackConfig
+    BestCheckpointCallbackConfig
     | LastCheckpointCallbackConfig
-    | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig,
     C.Field(discriminator="name"),
 ]
@@ -786,7 +782,6 @@ class CheckpointSavingConfig(CallbackConfigBase):
     """Enable checkpoint saving."""
 
     checkpoint_callbacks: Sequence[CheckpointCallbackConfig] = [
-        # ModelCheckpointCallbackConfig(),
         BestCheckpointCallbackConfig(),
         LastCheckpointCallbackConfig(),
         OnExceptionCheckpointCallbackConfig(),
@@ -805,36 +800,6 @@ class CheckpointSavingConfig(CallbackConfigBase):
             return False
 
         return True
-
-    @property
-    def model_checkpoint(self) -> ModelCheckpointCallbackConfig | None:
-        return next(
-            (
-                callback
-                for callback in self.checkpoint_callbacks
-                if isinstance(callback, ModelCheckpointCallbackConfig)
-            ),
-        )
-
-    @property
-    def latest_epoch_checkpoint(self) -> LatestEpochCheckpointCallbackConfig | None:
-        return next(
-            (
-                callback
-                for callback in self.checkpoint_callbacks
-                if isinstance(callback, LatestEpochCheckpointCallbackConfig)
-            ),
-        )
-
-    @property
-    def on_exception_checkpoint(self) -> OnExceptionCheckpointCallbackConfig | None:
-        return next(
-            (
-                callback
-                for callback in self.checkpoint_callbacks
-                if isinstance(callback, OnExceptionCheckpointCallbackConfig)
-            ),
-        )
 
     @override
     def create_callbacks(self, root_config: "BaseConfig"):
