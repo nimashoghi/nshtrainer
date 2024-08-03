@@ -46,8 +46,8 @@ class BestCheckpoint(CheckpointBase[BestCheckpointCallbackConfig]):
         dirpath: Path,
         metric: MetricConfig,
     ):
-        super().__init__(config, dirpath)
         self.metric = metric
+        super().__init__(config, dirpath)
 
     @override
     def name(self):

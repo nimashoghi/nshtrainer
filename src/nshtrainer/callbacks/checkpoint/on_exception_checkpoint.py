@@ -73,6 +73,9 @@ class OnExceptionCheckpoint(_OnExceptionCheckpoint):
         self.config = config
         del config
 
+        dirpath = dirpath / "on_exception"
+        dirpath.mkdir(parents=True, exist_ok=True)
+
         super().__init__(dirpath, filename)
 
     @property

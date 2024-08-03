@@ -62,6 +62,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
 
         self.config = config
         self.dirpath = dirpath / self.name()
+        self.dirpath.mkdir(parents=True, exist_ok=True)
         self.symlink_dirpath = dirpath
 
         self._last_global_step_saved = 0
