@@ -64,6 +64,10 @@ class BestCheckpoint(CheckpointBase[BestCheckpointCallbackConfig]):
             float("-inf" if self.metric.mode == "max" else "inf"),
         )
 
+    @override
+    def topk_sort_reverse(self):
+        return self.metric.mode == "max"
+
     # Events
     @override
     def on_validation_end(self, trainer: Trainer, pl_module: LightningModule):

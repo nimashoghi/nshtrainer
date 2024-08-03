@@ -79,6 +79,9 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
     @abstractmethod
     def topk_sort_key(self, metadata: CheckpointMetadata) -> Any: ...
 
+    @abstractmethod
+    def topk_sort_reverse(self) -> bool: ...
+
     def symlink_path(self):
         if not self.config.save_symlink:
             return None
@@ -102,7 +105,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         ]
 
         # Sort by the topk sort key
-        metas = sorted(metas, key=self.topk_sort_key)
+        metas = sorted(metas, key=self.topk_sort_key, reverse=self.topk_sort_reverse())
 
         # Now, the metas are sorted from the best to the worst,
         # so we can remove the worst checkpoints
@@ -145,14 +148,14 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
 
         if trainer.is_global_zero:
-            # Remove old checkpoints
-            self.remove_old_checkpoints(trainer)
-
             # Create the latest symlink
             if (symlink_filename := self.symlink_path()) is not None:
                 symlink_path = self.dirpath / symlink_filename
                 _link_checkpoint(filepath, symlink_path, metadata=True)
                 log.debug(f"Created latest symlink: {symlink_path}")
+
+            # Remove old checkpoints
+            self.remove_old_checkpoints(trainer)
 
         # Barrier to ensure all processes have saved the checkpoint,
         # deleted the old checkpoints, and created the symlink before continuing

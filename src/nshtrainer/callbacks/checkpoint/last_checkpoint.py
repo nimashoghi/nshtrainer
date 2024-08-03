@@ -35,5 +35,9 @@ class LastCheckpoint(CheckpointBase[LastCheckpointCallbackConfig]):
         return metadata.checkpoint_timestamp
 
     @override
+    def topk_sort_reverse(self):
+        return True
+
+    @override
     def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
         self.save_checkpoints(trainer)
