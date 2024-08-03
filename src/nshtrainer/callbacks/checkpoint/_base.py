@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Any, Generic, Literal
 
 import numpy as np
 import torch
-from lightning.pytorch import LightningModule, Trainer
+from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import Checkpoint
 from typing_extensions import TypeVar, override
 
-from ..._checkpoint.metadata import CheckpointMetadata, _sort_ckpts_by_metadata
+from ..._checkpoint.metadata import CheckpointMetadata
 from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
 from ..base import CallbackConfigBase
 
@@ -61,7 +61,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         super().__init__()
 
         self.config = config
-        self.dirpath = dirpath / self.subdirname()
+        self.dirpath = dirpath / self.name()
         self.symlink_dirpath = dirpath
 
         self._last_global_step_saved = 0
@@ -70,7 +70,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
     def default_filename(self) -> str: ...
 
     @abstractmethod
-    def subdirname(self) -> str: ...
+    def name(self) -> str: ...
 
     def extension(self) -> str:
         return ".ckpt"
@@ -82,12 +82,12 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         if not self.config.save_symlink:
             return None
 
-        return self.symlink_dirpath / f"{self.subdirname()}{self.extension()}"
+        return self.symlink_dirpath / f"{self.name()}{self.extension()}"
 
-    def resolve_checkpoint_path(self, filename_context: dict[str, Any]) -> Path:
+    def resolve_checkpoint_path(self, current_metrics: dict[str, Any]) -> Path:
         if (filename := self.config.filename) is None:
             filename = self.default_filename()
-        filename = filename.format(**filename_context)
+        filename = filename.format(**current_metrics)
         return self.dirpath / f"{filename}{self.extension()}"
 
     def remove_old_checkpoints(self, trainer: Trainer):
@@ -116,8 +116,8 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
             _remove_checkpoint(trainer, old_ckpt_path, metadata=True)
             log.debug(f"Removed old checkpoint: {old_ckpt_path}")
 
-    def filename_context(self, trainer: Trainer) -> dict[str, Any]:
-        filename_context: dict[str, Any] = {
+    def current_metrics(self, trainer: Trainer) -> dict[str, Any]:
+        current_metrics: dict[str, Any] = {
             "epoch": trainer.current_epoch,
             "step": trainer.global_step,
         }
@@ -131,16 +131,16 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
                 case _:
                     pass
 
-            filename_context[name] = value
+            current_metrics[name] = value
 
-        return filename_context
+        return current_metrics
 
     def save_checkpoints(self, trainer: Trainer):
         if self._should_skip_saving_checkpoint(trainer):
             return
 
         # Save the new checkpoint
-        filepath = self.resolve_checkpoint_path(self.filename_context(trainer))
+        filepath = self.resolve_checkpoint_path(self.current_metrics(trainer))
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
 
         if trainer.is_global_zero:

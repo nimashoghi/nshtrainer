@@ -20,7 +20,6 @@ log = logging.getLogger(__name__)
 
 
 METADATA_PATH_SUFFIX = ".metadata.json"
-HPARAMS_PATH_SUFFIX = ".hparams.json"
 
 
 class CheckpointMetadata(C.Config):
@@ -40,6 +39,8 @@ class CheckpointMetadata(C.Config):
     training_time: datetime.timedelta
     metrics: dict[str, Any]
     environment: EnvironmentConfig
+
+    hparams: dict[str, Any] | None
 
     @classmethod
     def from_file(cls, path: Path):
@@ -93,6 +94,7 @@ def _generate_checkpoint_metadata(
         training_time=training_time,
         metrics=metrics,
         environment=config.environment,
+        hparams=config.model_dump(mode="json"),
     )
 
 
@@ -115,25 +117,15 @@ def _write_checkpoint_metadata(
     else:
         log.debug(f"Checkpoint metadata written to {checkpoint_path}")
 
-    # Write the hparams to the checkpoint directory
-    hparams_path = checkpoint_path.with_suffix(HPARAMS_PATH_SUFFIX)
-    try:
-        hparams_path.write_text(config.model_dump_json(indent=4))
-    except Exception as e:
-        log.warning(f"Failed to write hparams to {checkpoint_path}: {e}")
-    else:
-        log.debug(f"Checkpoint metadata written to {checkpoint_path}")
-
 
 def _remove_checkpoint_metadata(checkpoint_path: Path):
-    for suffix in (METADATA_PATH_SUFFIX, HPARAMS_PATH_SUFFIX):
-        path = checkpoint_path.with_suffix(suffix)
-        try:
-            path.unlink(missing_ok=True)
-        except Exception as e:
-            log.warning(f"Failed to remove {path}: {e}")
-        else:
-            log.debug(f"Removed {path}")
+    path = checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+    try:
+        path.unlink(missing_ok=True)
+    except Exception as e:
+        log.warning(f"Failed to remove {path}: {e}")
+    else:
+        log.debug(f"Removed {path}")
 
 
 def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Path):
@@ -141,20 +133,19 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
     _remove_checkpoint_metadata(linked_checkpoint_path)
 
     # Link the metadata files to the new checkpoint
-    for suffix in (METADATA_PATH_SUFFIX, HPARAMS_PATH_SUFFIX):
-        path = checkpoint_path.with_suffix(suffix)
-        linked_path = linked_checkpoint_path.with_suffix(suffix)
+    path = checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+    linked_path = linked_checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+    try:
         try:
-            try:
-                linked_path.symlink_to(path)
-            except OSError:
-                # on Windows, special permissions are required to create symbolic links as a regular user
-                # fall back to copying the file
-                shutil.copy(path, linked_path)
-        except Exception as e:
-            log.warning(f"Failed to link {path} to {linked_path}: {e}")
-        else:
-            log.debug(f"Linked {path} to {linked_path}")
+            linked_path.symlink_to(path)
+        except OSError:
+            # on Windows, special permissions are required to create symbolic links as a regular user
+            # fall back to copying the file
+            shutil.copy(path, linked_path)
+    except Exception as e:
+        log.warning(f"Failed to link {path} to {linked_path}: {e}")
+    else:
+        log.debug(f"Linked {path} to {linked_path}")
 
 
 def _sort_ckpts_by_metadata(

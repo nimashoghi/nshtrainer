@@ -39,6 +39,7 @@ from .._checkpoint.loader import CheckpointLoadingConfig
 from ..callbacks import (
     BestCheckpointCallbackConfig,
     CallbackConfig,
+    LastCheckpointCallbackConfig,
     LatestEpochCheckpointCallbackConfig,
     ModelCheckpointCallbackConfig,
     OnExceptionCheckpointCallbackConfig,
@@ -773,6 +774,7 @@ class ReproducibilityConfig(C.Config):
 CheckpointCallbackConfig: TypeAlias = Annotated[
     ModelCheckpointCallbackConfig
     | BestCheckpointCallbackConfig
+    | LastCheckpointCallbackConfig
     | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig,
     C.Field(discriminator="name"),
@@ -786,7 +788,7 @@ class CheckpointSavingConfig(CallbackConfigBase):
     checkpoint_callbacks: Sequence[CheckpointCallbackConfig] = [
         # ModelCheckpointCallbackConfig(),
         BestCheckpointCallbackConfig(),
-        LatestEpochCheckpointCallbackConfig(),
+        LastCheckpointCallbackConfig(),
         OnExceptionCheckpointCallbackConfig(),
     ]
     """Checkpoint callback configurations."""

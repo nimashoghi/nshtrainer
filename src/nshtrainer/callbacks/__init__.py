@@ -6,6 +6,8 @@ from . import checkpoint as checkpoint
 from .base import CallbackConfigBase as CallbackConfigBase
 from .checkpoint import BestCheckpoint as BestCheckpoint
 from .checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
+from .checkpoint import LastCheckpoint as LastCheckpoint
+from .checkpoint import LastCheckpointCallbackConfig as LastCheckpointCallbackConfig
 from .checkpoint import LatestEpochCheckpoint as LatestEpochCheckpoint
 from .checkpoint import (
     LatestEpochCheckpointCallbackConfig as LatestEpochCheckpointCallbackConfig,
@@ -46,6 +48,7 @@ CallbackConfig = Annotated[
     | GradientSkippingConfig
     | EMAConfig
     | BestCheckpointCallbackConfig
+    | LastCheckpointCallbackConfig
     | ModelCheckpointCallbackConfig
     | LatestEpochCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig
