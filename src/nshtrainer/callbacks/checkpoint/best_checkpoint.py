@@ -55,7 +55,7 @@ class BestCheckpoint(CheckpointBase[BestCheckpointCallbackConfig]):
 
     @override
     def default_filename(self):
-        return f"epoch{{epoch:03d}}-{self._metric_name_normalized}{{{self.metric.validation_monitor}}}"
+        return f"epoch{{epoch}}-step{{step}}-{self._metric_name_normalized}{{{self.metric.validation_monitor}}}"
 
     @override
     def topk_sort_key(self, metadata: CheckpointMetadata):

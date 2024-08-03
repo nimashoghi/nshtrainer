@@ -28,7 +28,7 @@ class LastCheckpoint(CheckpointBase[LastCheckpointCallbackConfig]):
 
     @override
     def default_filename(self):
-        return "epoch{epoch:03d}-step{step:07d}"
+        return "epoch{epoch}-step{step}"
 
     @override
     def topk_sort_key(self, metadata: CheckpointMetadata):
