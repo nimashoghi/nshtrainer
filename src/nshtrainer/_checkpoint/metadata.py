@@ -137,7 +137,11 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
     linked_path = linked_checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
     try:
         try:
-            linked_path.symlink_to(path)
+            # linked_path.symlink_to(path)
+            # We should store the path as a relative path
+            # to the metadata file to avoid issues with
+            # moving the checkpoint directory
+            linked_path.symlink_to(path.relative_to(linked_path.parent))
         except OSError:
             # on Windows, special permissions are required to create symbolic links as a regular user
             # fall back to copying the file

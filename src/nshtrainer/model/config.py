@@ -3,7 +3,6 @@ import logging
 import os
 import string
 import time
-import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from datetime import timedelta
@@ -48,10 +47,6 @@ from ..metrics import MetricConfig
 from ..util._environment_info import EnvironmentConfig
 
 log = logging.getLogger(__name__)
-
-
-class IdSeedWarning(Warning):
-    pass
 
 
 class BaseProfilerConfig(C.Config, ABC):
@@ -1478,35 +1473,12 @@ class BaseConfig(C.Config):
     _rng: ClassVar[np.random.Generator | None] = None
 
     @staticmethod
-    def generate_id(
-        *,
-        length: int = 8,
-        ignore_rng: bool = False,
-    ) -> str:
+    def generate_id(*, length: int = 8) -> str:
         """
         Generate a random ID of specified length.
 
-        Args:
-            length (int): The length of the generated ID. Default is 8.
-            ignore_rng (bool): If True, ignore the global random number generator and use a new one. Default is False.
-
-        Returns:
-            str: The generated random ID.
-
-        Raises:
-            IdSeedWarning: If the global random number generator is None and ignore_rng is False.
-
-        Notes:
-            - The generated IDs will not be reproducible if the global random number generator is None and ignore_rng is False.
-            - To ensure reproducibility, call BaseConfig.set_seed(...) before generating any IDs.
         """
-        rng = BaseConfig._rng if not ignore_rng else np.random.default_rng()
-        if rng is None:
-            warnings.warn(
-                "BaseConfig._rng is None. The generated IDs will not be reproducible. "
-                + "To fix this, call BaseConfig.set_seed(...) before generating any IDs.",
-                category=IdSeedWarning,
-            )
+        if (rng := BaseConfig._rng) is None:
             rng = np.random.default_rng()
 
         alphabet = list(string.ascii_lowercase + string.digits)
