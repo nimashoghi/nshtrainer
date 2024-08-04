@@ -8,6 +8,7 @@ from lightning.pytorch.callbacks import EarlyStopping as _EarlyStopping
 from lightning.pytorch.utilities.rank_zero import rank_prefixed_message
 from typing_extensions import override
 
+from ..metrics._config import MetricConfig
 from .base import CallbackConfigBase
 
 log = logging.getLogger(__name__)
@@ -16,16 +17,10 @@ log = logging.getLogger(__name__)
 class EarlyStoppingConfig(CallbackConfigBase):
     name: Literal["early_stopping"] = "early_stopping"
 
-    monitor: str | None = None
+    metric: MetricConfig | None = None
     """
     The metric to monitor for early stopping.
     If None, the primary metric will be used.
-    """
-
-    mode: Literal["min", "max"] | None = None
-    """
-    The mode for the metric to monitor for early stopping.
-    If None, the primary metric mode will be used.
     """
 
     patience: int
@@ -52,63 +47,29 @@ class EarlyStoppingConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
-        monitor = self.monitor
-        mode = self.mode
-        if monitor is None:
-            assert mode is None, "If `monitor` is not provided, `mode` must be None."
+        if (metric := self.metric) is None and (
+            metric := root_config.primary_metric
+        ) is None:
+            raise ValueError(
+                "Either `metric` or `root_config.primary_metric` must be set."
+            )
 
-            primary_metric = root_config.primary_metric
-            if primary_metric is None:
-                raise ValueError(
-                    "No primary metric is set, so `monitor` must be provided in `early_stopping`."
-                )
-            monitor = primary_metric.validation_monitor
-            mode = primary_metric.mode
-
-        if mode is None:
-            mode = "min"
-
-        yield EarlyStopping(
-            monitor=monitor,
-            mode=mode,
-            patience=self.patience,
-            min_delta=self.min_delta,
-            min_lr=self.min_lr,
-            strict=self.strict,
-        )
+        yield EarlyStopping(self, metric)
 
 
 class EarlyStopping(_EarlyStopping):
-    def __init__(
-        self,
-        monitor: str,
-        min_delta: float = 0,
-        min_lr: float | None = None,
-        patience: int = 3,
-        verbose: bool = True,
-        mode: str = "min",
-        strict: bool = True,
-        check_finite: bool = True,
-        stopping_threshold: float | None = None,
-        divergence_threshold: float | None = None,
-        check_on_train_epoch_end: bool | None = None,
-        log_rank_zero_only: bool = False,
-    ):
-        super().__init__(
-            monitor,
-            min_delta,
-            patience,
-            verbose,
-            mode,
-            strict,
-            check_finite,
-            stopping_threshold,
-            divergence_threshold,
-            check_on_train_epoch_end,
-            log_rank_zero_only,
-        )
+    def __init__(self, config: EarlyStoppingConfig, metric: MetricConfig):
+        self.config = config
+        self.metric = metric
+        del config, metric
 
-        self.min_lr = min_lr
+        super().__init__(
+            monitor=self.metric.validation_monitor,
+            mode=self.metric.mode,
+            patience=self.patience,
+            min_delta=self.min_delta,
+            strict=self.strict,
+        )
 
     @override
     @staticmethod
@@ -152,7 +113,7 @@ class EarlyStopping(_EarlyStopping):
     def _evaluate_stopping_criteria_min_lr(
         self, trainer: Trainer
     ) -> tuple[bool, str | None]:
-        if self.min_lr is None:
+        if self.config.min_lr is None:
             return False, None
 
         # Get the maximum LR across all param groups in all optimizers
@@ -167,13 +128,13 @@ class EarlyStopping(_EarlyStopping):
             return False, None
 
         # If the maximum LR is less than the minimum LR, stop training
-        if model_max_lr >= self.min_lr:
+        if model_max_lr >= self.config.min_lr:
             return False, None
 
         return True, (
             "Stopping threshold reached: "
             f"The maximum LR of the model across all param groups is {model_max_lr:.2e} "
-            f"which is less than the minimum LR {self.min_lr:.2e}"
+            f"which is less than the minimum LR {self.config.min_lr:.2e}"
         )
 
     def on_early_stopping(self, trainer: Trainer):
