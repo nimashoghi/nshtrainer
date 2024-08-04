@@ -66,16 +66,14 @@ class EarlyStopping(_EarlyStopping):
         super().__init__(
             monitor=self.metric.validation_monitor,
             mode=self.metric.mode,
-            patience=self.patience,
-            min_delta=self.min_delta,
-            strict=self.strict,
+            patience=self.config.patience,
+            min_delta=self.config.min_delta,
+            strict=self.config.strict,
         )
 
     @override
     @staticmethod
-    def _log_info(
-        trainer: Trainer | None, message: str, log_rank_zero_only: bool
-    ) -> None:
+    def _log_info(trainer: Trainer | None, message: str, log_rank_zero_only: bool):
         rank = _get_rank()
         if trainer is not None and trainer.world_size <= 1:
             rank = None
