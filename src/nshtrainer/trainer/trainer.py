@@ -244,7 +244,7 @@ class Trainer(LightningTrainer):
             log.critical(f"Disabling logger because {config.trainer.logging.enabled=}.")
             kwargs["logger"] = False
         else:
-            _update_kwargs(logger=config.trainer.logging.create_loggers(config))
+            _update_kwargs(logger=list(config.trainer.logging.create_loggers(config)))
 
         if config.trainer.auto_determine_num_nodes:
             # When num_nodes is auto, we need to detect the number of nodes.
