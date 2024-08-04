@@ -19,7 +19,6 @@ from typing import (
 
 import nshconfig as C
 import numpy as np
-import pkg_resources
 import torch
 from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
@@ -31,7 +30,6 @@ from lightning.pytorch.plugins.layer_sync import LayerSync
 from lightning.pytorch.plugins.precision.precision import Precision
 from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.strategies.strategy import Strategy
-from pydantic import DirectoryPath
 from typing_extensions import Self, TypedDict, TypeVar, override
 
 from .._checkpoint.loader import CheckpointLoadingConfig
@@ -41,9 +39,14 @@ from ..callbacks import (
     EarlyStoppingConfig,
     LastCheckpointCallbackConfig,
     OnExceptionCheckpointCallbackConfig,
-    WandbWatchConfig,
 )
 from ..callbacks.base import CallbackConfigBase
+from ..loggers import (
+    CSVLoggerConfig,
+    LoggerConfig,
+    TensorboardLoggerConfig,
+    WandbLoggerConfig,
+)
 from ..metrics import MetricConfig
 from ..util._environment_info import EnvironmentConfig
 
@@ -205,255 +208,6 @@ ProfilerConfig: TypeAlias = Annotated[
 ]
 
 
-class BaseLoggerConfig(C.Config, ABC):
-    enabled: bool = True
-    """Enable this logger."""
-
-    priority: int = 0
-    """Priority of the logger. Higher priority loggers are created first."""
-
-    log_dir: DirectoryPath | None = None
-    """Directory to save the logs to. If None, will use the default log directory for the trainer."""
-
-    @abstractmethod
-    def create_logger(self, root_config: "BaseConfig") -> Logger | None: ...
-
-    def disable_(self):
-        self.enabled = False
-        return self
-
-
-def _project_name(
-    root_config: "BaseConfig",
-    default_project: str = "lightning_logs",
-):
-    # If the config has a project name, use that.
-    if project := root_config.project:
-        return project
-
-    # Otherwise, we should use the name of the module that the config is defined in,
-    #   if we can find it.
-    # If this isn't in a module, use the default project name.
-    if not (module := root_config.__module__):
-        return default_project
-
-    # If the module is a package, use the package name.
-    if not (module := module.split(".", maxsplit=1)[0].strip()):
-        return default_project
-
-    return module
-
-
-def _wandb_available():
-    try:
-        from lightning.pytorch.loggers.wandb import _WANDB_AVAILABLE
-
-        if not _WANDB_AVAILABLE:
-            log.warning("WandB not found. Disabling WandbLogger.")
-            return False
-        return True
-    except ImportError:
-        return False
-
-
-class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
-    name: Literal["wandb"] = "wandb"
-
-    enabled: bool = C.Field(default_factory=lambda: _wandb_available())
-    """Enable WandB logging."""
-
-    priority: int = 2
-    """Priority of the logger. Higher priority loggers are created first,
-    and the highest priority logger is the "main" logger for PyTorch Lightning."""
-
-    project: str | None = None
-    """WandB project name to use for the logger. If None, will use the root config's project name."""
-
-    log_model: bool | Literal["all"] = False
-    """
-    Whether to log the model checkpoints to wandb.
-    Valid values are:
-        - False: Do not log the model checkpoints.
-        - True: Log the latest model checkpoint.
-        - "all": Log all model checkpoints.
-    """
-
-    watch: WandbWatchConfig = WandbWatchConfig()
-    """WandB model watch configuration. Used to log model architecture, gradients, and parameters."""
-
-    offline: bool = False
-    """Whether to run WandB in offline mode."""
-
-    use_wandb_core: bool = True
-    """Whether to use the new `wandb-core` backend for WandB.
-    `wandb-core` is a new backend for WandB that is faster and more efficient than the old backend.
-    """
-
-    def offline_(self, value: bool = True):
-        self.offline = value
-        return self
-
-    def core_(self, value: bool = True):
-        self.use_wandb_core = value
-        return self
-
-    @override
-    def create_logger(self, root_config):
-        if not self.enabled:
-            return None
-
-        # If `wandb-core` is enabled, we should use the new backend.
-        if self.use_wandb_core:
-            try:
-                import wandb  # type: ignore
-
-                # The minimum version that supports the new backend is 0.17.5
-                if pkg_resources.parse_version(
-                    wandb.__version__
-                ) < pkg_resources.parse_version("0.17.5"):
-                    log.warning(
-                        "The version of WandB installed does not support the `wandb-core` backend "
-                        f"(expected version >= 0.17.5, found version {wandb.__version__}). "
-                        "Please either upgrade to a newer version of WandB or disable the `use_wandb_core` option."
-                    )
-                else:
-                    wandb.require("core")
-                    log.critical("Using the `wandb-core` backend for WandB.")
-            except ImportError:
-                pass
-
-        from lightning.pytorch.loggers.wandb import WandbLogger
-
-        save_dir = root_config.directory._resolve_log_directory_for_logger(
-            root_config.id,
-            self,
-        )
-        return WandbLogger(
-            save_dir=save_dir,
-            project=self.project or _project_name(root_config),
-            name=root_config.run_name,
-            version=root_config.id,
-            log_model=self.log_model,
-            notes=(
-                "\n".join(f"- {note}" for note in root_config.notes)
-                if root_config.notes
-                else None
-            ),
-            tags=root_config.tags,
-            offline=self.offline,
-        )
-
-    @override
-    def create_callbacks(self, root_config):
-        if self.watch:
-            yield from self.watch.create_callbacks(root_config)
-
-
-class CSVLoggerConfig(BaseLoggerConfig):
-    name: Literal["csv"] = "csv"
-
-    enabled: bool = True
-    """Enable CSV logging."""
-
-    priority: int = 0
-    """Priority of the logger. Higher priority loggers are created first."""
-
-    prefix: str = ""
-    """A string to put at the beginning of metric keys."""
-
-    flush_logs_every_n_steps: int = 100
-    """How often to flush logs to disk."""
-
-    @override
-    def create_logger(self, root_config):
-        if not self.enabled:
-            return None
-
-        from lightning.pytorch.loggers.csv_logs import CSVLogger
-
-        save_dir = root_config.directory._resolve_log_directory_for_logger(
-            root_config.id,
-            self,
-        )
-        return CSVLogger(
-            save_dir=save_dir,
-            name=root_config.run_name,
-            version=root_config.id,
-            prefix=self.prefix,
-            flush_logs_every_n_steps=self.flush_logs_every_n_steps,
-        )
-
-
-def _tensorboard_available():
-    try:
-        from lightning.fabric.loggers.tensorboard import (
-            _TENSORBOARD_AVAILABLE,
-            _TENSORBOARDX_AVAILABLE,
-        )
-
-        if not _TENSORBOARD_AVAILABLE and not _TENSORBOARDX_AVAILABLE:
-            log.warning(
-                "TensorBoard/TensorBoardX not found. Disabling TensorBoardLogger. "
-                "Please install TensorBoard with `pip install tensorboard` or "
-                "TensorBoardX with `pip install tensorboardx` to enable TensorBoard logging."
-            )
-            return False
-        return True
-    except ImportError:
-        return False
-
-
-class TensorboardLoggerConfig(BaseLoggerConfig):
-    name: Literal["tensorboard"] = "tensorboard"
-
-    enabled: bool = C.Field(default_factory=lambda: _tensorboard_available())
-    """Enable TensorBoard logging."""
-
-    priority: int = 2
-    """Priority of the logger. Higher priority loggers are created first."""
-
-    log_graph: bool = False
-    """
-    Adds the computational graph to tensorboard. This requires that
-        the user has defined the `self.example_input_array` attribute in their
-        model.
-    """
-
-    default_hp_metric: bool = True
-    """
-    Enables a placeholder metric with key `hp_metric` when `log_hyperparams` is
-        called without a metric (otherwise calls to log_hyperparams without a metric are ignored).
-    """
-
-    prefix: str = ""
-    """A string to put at the beginning of metric keys."""
-
-    @override
-    def create_logger(self, root_config):
-        if not self.enabled:
-            return None
-
-        from lightning.pytorch.loggers.tensorboard import TensorBoardLogger
-
-        save_dir = root_config.directory._resolve_log_directory_for_logger(
-            root_config.id,
-            self,
-        )
-        return TensorBoardLogger(
-            save_dir=save_dir,
-            name=root_config.run_name,
-            version=root_config.id,
-            log_graph=self.log_graph,
-            default_hp_metric=self.default_hp_metric,
-        )
-
-
-LoggerConfig: TypeAlias = Annotated[
-    WandbLoggerConfig | CSVLoggerConfig | TensorboardLoggerConfig,
-    C.Field(discriminator="name"),
-]
-
-
 class LoggingConfig(CallbackConfigBase):
     enabled: bool = True
     """Enable experiment tracking."""
@@ -474,29 +228,32 @@ class LoggingConfig(CallbackConfigBase):
     """If enabled, will automatically save logged metrics using ActSave (if nshutils is installed)."""
 
     @property
-    def wandb(self) -> WandbLoggerConfig | None:
+    def wandb(self):
         return next(
             (
                 logger
                 for logger in self.loggers
                 if isinstance(logger, WandbLoggerConfig)
             ),
+            None,
         )
 
     @property
-    def csv(self) -> CSVLoggerConfig | None:
+    def csv(self):
         return next(
             (logger for logger in self.loggers if isinstance(logger, CSVLoggerConfig)),
+            None,
         )
 
     @property
-    def tensorboard(self) -> TensorboardLoggerConfig | None:
+    def tensorboard(self):
         return next(
             (
                 logger
                 for logger in self.loggers
                 if isinstance(logger, TensorboardLoggerConfig)
             ),
+            None,
         )
 
     def create_loggers(self, root_config: "BaseConfig"):
@@ -509,9 +266,8 @@ class LoggingConfig(CallbackConfigBase):
         Returns:
             list[Logger]: A list of constructed loggers.
         """
-        loggers: list[Logger] = []
         if not self.enabled:
-            return loggers
+            return
 
         for logger_config in sorted(
             self.loggers,
@@ -522,8 +278,7 @@ class LoggingConfig(CallbackConfigBase):
                 continue
             if (logger := logger_config.create_logger(root_config)) is None:
                 continue
-            loggers.append(logger)
-        return loggers
+            yield logger
 
     @override
     def create_callbacks(self, root_config):

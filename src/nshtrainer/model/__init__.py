@@ -3,7 +3,6 @@ from typing_extensions import TypeAlias
 from .base import Base as Base
 from .base import LightningModuleBase as LightningModuleBase
 from .config import BaseConfig as BaseConfig
-from .config import BaseLoggerConfig as BaseLoggerConfig
 from .config import BaseProfilerConfig as BaseProfilerConfig
 from .config import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from .config import CheckpointLoadingConfig as CheckpointLoadingConfig
@@ -22,6 +21,5 @@ from .config import PrimaryMetricConfig as PrimaryMetricConfig
 from .config import ReproducibilityConfig as ReproducibilityConfig
 from .config import SanityCheckingConfig as SanityCheckingConfig
 from .config import TrainerConfig as TrainerConfig
-from .config import WandbWatchConfig as WandbWatchConfig
 
 ConfigList: TypeAlias = list[tuple[BaseConfig, type[LightningModuleBase]]]

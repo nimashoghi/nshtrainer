@@ -23,7 +23,6 @@ from .log import pretty as pretty
 from .lr_scheduler import LRSchedulerConfig as LRSchedulerConfig
 from .model import Base as Base
 from .model import BaseConfig as BaseConfig
-from .model import BaseLoggerConfig as BaseLoggerConfig
 from .model import BaseProfilerConfig as BaseProfilerConfig
 from .model import CheckpointLoadingConfig as CheckpointLoadingConfig
 from .model import CheckpointSavingConfig as CheckpointSavingConfig
@@ -48,7 +47,6 @@ from .model import PrimaryMetricConfig as PrimaryMetricConfig
 from .model import ReproducibilityConfig as ReproducibilityConfig
 from .model import SanityCheckingConfig as SanityCheckingConfig
 from .model import TrainerConfig as TrainerConfig
-from .model import WandbWatchConfig as WandbWatchConfig
 from .nn import TypedModuleDict as TypedModuleDict
 from .nn import TypedModuleList as TypedModuleList
 from .optimizer import OptimizerConfig as OptimizerConfig
