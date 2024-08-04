@@ -38,6 +38,7 @@ from .._checkpoint.loader import CheckpointLoadingConfig
 from ..callbacks import (
     BestCheckpointCallbackConfig,
     CallbackConfig,
+    EarlyStoppingConfig,
     LastCheckpointCallbackConfig,
     OnExceptionCheckpointCallbackConfig,
     WandbWatchConfig,
@@ -1041,73 +1042,6 @@ class LightningTrainerKwargs(TypedDict, total=False):
     Default: ``os.getcwd()``.
     Can be remote file paths such as `s3://mybucket/path` or 'hdfs://path/'
     """
-
-
-class EarlyStoppingConfig(CallbackConfigBase):
-    monitor: str | None = None
-    """
-    The metric to monitor for early stopping.
-    If None, the primary metric will be used.
-    """
-
-    mode: Literal["min", "max"] | None = None
-    """
-    The mode for the metric to monitor for early stopping.
-    If None, the primary metric mode will be used.
-    """
-
-    patience: int
-    """
-    Number of epochs with no improvement after which training will be stopped.
-    """
-
-    min_delta: float = 1.0e-8
-    """
-    Minimum change in the monitored quantity to qualify as an improvement.
-    """
-
-    min_lr: float | None = None
-    """
-    Minimum learning rate. If the learning rate of the model is less than this value,
-    the training will be stopped.
-    """
-
-    strict: bool = True
-    """
-    Whether to enforce that the monitored quantity must improve by at least `min_delta`
-    to qualify as an improvement.
-    """
-
-    @override
-    def create_callbacks(self, root_config: "BaseConfig"):
-        from ..callbacks.early_stopping import EarlyStopping
-
-        monitor = self.monitor
-        mode = self.mode
-        if monitor is None:
-            assert mode is None, "If `monitor` is not provided, `mode` must be None."
-
-            primary_metric = root_config.primary_metric
-            if primary_metric is None:
-                raise ValueError(
-                    "No primary metric is set, so `monitor` must be provided in `early_stopping`."
-                )
-            monitor = primary_metric.validation_monitor
-            mode = primary_metric.mode
-
-        if mode is None:
-            mode = "min"
-
-        return [
-            EarlyStopping(
-                monitor=monitor,
-                mode=mode,
-                patience=self.patience,
-                min_delta=self.min_delta,
-                min_lr=self.min_lr,
-                strict=self.strict,
-            )
-        ]
 
 
 class SanityCheckingConfig(C.Config):

@@ -13,6 +13,7 @@ from .checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
 from .early_stopping import EarlyStopping as EarlyStopping
+from .early_stopping import EarlyStoppingConfig as EarlyStoppingConfig
 from .ema import EMA as EMA
 from .ema import EMAConfig as EMAConfig
 from .finite_checks import FiniteChecksCallback as FiniteChecksCallback
@@ -34,7 +35,8 @@ from .wandb_watch import WandbWatchCallback as WandbWatchCallback
 from .wandb_watch import WandbWatchConfig as WandbWatchConfig
 
 CallbackConfig = Annotated[
-    ThroughputMonitorConfig
+    EarlyStoppingConfig
+    | ThroughputMonitorConfig
     | EpochTimerConfig
     | PrintTableMetricsConfig
     | FiniteChecksConfig
