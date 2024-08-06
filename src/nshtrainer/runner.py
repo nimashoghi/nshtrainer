@@ -3,10 +3,9 @@ import functools
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Generic
 
-from nshrunner import RunInfo
+from nshrunner import RunInfo, Snapshot
 from nshrunner import Runner as _Runner
 from nshrunner._submit import screen
-from nshrunner.snapshot import SnapshotArgType
 from typing_extensions import TypeVar, TypeVarTuple, Unpack, override
 
 from .model.config import BaseConfig
@@ -93,7 +92,7 @@ class Runner(
         options: screen.ScreenJobKwargs = {},
         n_batches: int = 1,
         *,
-        snapshot: SnapshotArgType,
+        snapshot: Snapshot,
         setup_commands: Sequence[str] | None = None,
         env: Mapping[str, str] | None = None,
         transforms: list[
