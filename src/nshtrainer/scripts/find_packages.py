@@ -40,7 +40,6 @@ def main():
 
     if args.exclude_std:
         std_libs = set(sys.stdlib_module_names)
-        std_libs.update({"pkg_resources"})
         all_imports = all_imports - std_libs
 
     for package in sorted(all_imports):

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "0.14.4"
+version = "0.15.1"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
@@ -14,6 +14,7 @@ psutil = "*"
 numpy = "*"
 torch = "*"
 typing-extensions = "*"
+packaging = "*"
 lightning = "*"
 pytorch-lightning = "*"
 torchmetrics = { version = "*", optional = true }

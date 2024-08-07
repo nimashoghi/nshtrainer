@@ -1368,13 +1368,13 @@ uuid7 = "*"
 
 [[package]]
 name = "nshutils"
-version = "0.11.2"
+version = "0.12.2"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshutils-0.11.2-py3-none-any.whl", hash = "sha256:85e17cfd0c76ab69d9da5410dc322fef0186b3f00384607ab619a8f66c6954bf"},
-    {file = "nshutils-0.11.2.tar.gz", hash = "sha256:debd7b1d5a00ca35968b43c80d1a370eb4c1531ecd2b1462a05a5085aecf483e"},
+    {file = "nshutils-0.12.2-py3-none-any.whl", hash = "sha256:252e131538a0e50402b48136a77b15f00359eb86868e6661e53e9c89ef1ca802"},
+    {file = "nshutils-0.12.2.tar.gz", hash = "sha256:f509c7d31163d2e8033c19d9deb5827a3cf27fd0346dc13caec76c9d3147c835"},
 ]
 
 [package.dependencies]
@@ -1385,7 +1385,7 @@ typing-extensions = "*"
 uuid7 = "*"
 
 [package.extras]
-extra = ["pysnooper"]
+extra = ["lovely-numpy", "lovely-tensors", "pysnooper", "rich"]
 
 [[package]]
 name = "numpy"
@@ -2935,4 +2935,4 @@ extra = ["GitPython", "tensorboard", "torchmetrics", "wandb", "wrapt"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "949d0609f6b5f3e3423d6501954b3ff683f61d0d420e4b4754df2a347d978147"
+content-hash = "255b50bc860943e725bcf65ab1d310836553ede8f27a8c5257df0e39c702e1a1"

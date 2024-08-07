@@ -1,4 +1,5 @@
 import getpass
+import importlib.metadata
 import inspect
 import logging
 import os
@@ -12,6 +13,7 @@ from typing import TYPE_CHECKING, Any, cast
 import nshconfig as C
 import psutil
 import torch
+from packaging import version
 from typing_extensions import Self
 
 from .slurm import parse_slurm_node_list
@@ -398,23 +400,46 @@ class EnvironmentPackageConfig(C.Config):
 
     @classmethod
     def from_current_environment(cls):
-        # Add Python package information
         python_packages: dict[str, Self] = {}
         try:
-            import pkg_resources
+            for dist in importlib.metadata.distributions():
+                try:
+                    # Get package metadata
+                    metadata = dist.metadata
 
-            for package in pkg_resources.working_set:
-                python_packages[package.key] = cls(
-                    name=package.project_name,
-                    version=package.version,
-                    path=Path(package.location) if package.location else None,
-                    summary=getattr(package, "summary", None),
-                    author=getattr(package, "author", None),
-                    license=getattr(package, "license", None),
-                    requires=[str(req) for req in package.requires()],
-                )
+                    # Parse the version, stripping any local version identifier
+                    pkg_version = version.parse(dist.version)
+                    clean_version = (
+                        f"{pkg_version.major}.{pkg_version.minor}.{pkg_version.micro}"
+                    )
+
+                    # Get requirements
+                    requires = []
+                    for req in dist.requires or []:
+                        try:
+                            requires.append(str(req))
+                        except ValueError:
+                            # If there's an invalid requirement, we'll skip it
+                            log.warning(
+                                f"Skipping invalid requirement for {dist.name}: {req}"
+                            )
+
+                    python_packages[dist.name] = cls(
+                        name=dist.name,
+                        version=clean_version,
+                        path=Path(str(f)) if (f := dist.locate_file("")) else None,
+                        summary=metadata["Summary"] if "Summary" in metadata else None,
+                        author=metadata["Author"] if "Summary" in metadata else None,
+                        license=metadata["License"] if "Summary" in metadata else None,
+                        requires=requires,
+                    )
+                except Exception as e:
+                    log.warning(f"Error processing package {dist.name}: {str(e)}")
+
         except ImportError:
-            log.warning("pkg_resources not available, skipping package information")
+            log.warning(
+                "importlib.metadata not available, skipping package information"
+            )
 
         return python_packages
 

@@ -1,9 +1,10 @@
+import importlib.metadata
 import logging
 from typing import TYPE_CHECKING, Literal
 
 import nshconfig as C
-import pkg_resources
 from lightning.pytorch import Callback, LightningModule, Trainer
+from packaging import version
 from typing_extensions import override
 
 from ..callbacks import WandbWatchConfig
@@ -120,9 +121,8 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
                 import wandb  # type: ignore
 
                 # The minimum version that supports the new backend is 0.17.5
-                if pkg_resources.parse_version(
-                    wandb.__version__
-                ) < pkg_resources.parse_version("0.17.5"):
+                wandb_version = version.parse(importlib.metadata.version("wandb"))
+                if wandb_version < version.parse("0.17.5"):
                     log.warning(
                         "The version of WandB installed does not support the `wandb-core` backend "
                         f"(expected version >= 0.17.5, found version {wandb.__version__}). "
