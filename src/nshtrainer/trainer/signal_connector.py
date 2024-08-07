@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import re
 import signal
 import subprocess
@@ -25,6 +26,7 @@ log = logging.getLogger(__name__)
 
 _SIGNUM = int | signal.Signals
 _HANDLER: TypeAlias = Callable[[_SIGNUM, FrameType], Any] | int | signal.Handlers | None
+_IS_WINDOWS = platform.system() == "Windows"
 
 
 def _resolve_requeue_signals():
@@ -57,7 +59,7 @@ class _SignalConnector(_LightningSignalConnector):
         handlers: list[_HANDLER],
         replace_existing: bool = False,
     ):
-        if self._is_on_windows():
+        if _IS_WINDOWS:
             log.info(
                 f"Signal {signum.name} has no handlers or is not supported on Windows."
             )
