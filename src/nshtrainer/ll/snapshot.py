@@ -1,1 +1,1 @@
-from nshrunner.snapshot import *  # type: ignore # noqa: F403
+from nshsnap import *  # pyright: ignore[reportWildcardImportFromLibrary] # noqa: F403
