@@ -10,6 +10,8 @@ import nshconfig as C
 import numpy as np
 import torch
 
+from ..util._environment_info import EnvironmentConfig
+
 if TYPE_CHECKING:
     from ..model import BaseConfig, LightningModuleBase
     from ..trainer.trainer import Trainer
@@ -36,9 +38,9 @@ class CheckpointMetadata(C.Config):
     global_step: int
     training_time: datetime.timedelta
     metrics: dict[str, Any]
-    environment: dict[str, Any]
+    environment: EnvironmentConfig
 
-    hparams: dict[str, Any] | None
+    hparams: Any
 
     @classmethod
     def from_file(cls, path: Path):
@@ -89,8 +91,8 @@ def _generate_checkpoint_metadata(
         global_step=trainer.global_step,
         training_time=training_time,
         metrics=metrics,
-        environment=config.environment.model_dump(mode="json"),
-        hparams=config.model_dump(mode="json"),
+        environment=config.environment,
+        hparams=config.model_dump(),
     )
 
 
@@ -107,9 +109,9 @@ def _write_checkpoint_metadata(
 
     # Write the metadata to the checkpoint directory
     try:
-        metadata_path.write_text(metadata.model_dump_json(indent=4))
-    except Exception as e:
-        log.warning(f"Failed to write metadata to {checkpoint_path}: {e}")
+        metadata_path.write_text(metadata.model_dump_json(indent=4), encoding="utf-8")
+    except Exception:
+        log.exception(f"Failed to write metadata to {checkpoint_path}")
     else:
         log.debug(f"Checkpoint metadata written to {checkpoint_path}")
 
@@ -118,8 +120,8 @@ def _remove_checkpoint_metadata(checkpoint_path: Path):
     path = checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
     try:
         path.unlink(missing_ok=True)
-    except Exception as e:
-        log.warning(f"Failed to remove {path}: {e}")
+    except Exception:
+        log.exception(f"Failed to remove {path}")
     else:
         log.debug(f"Removed {path}")
 
@@ -142,8 +144,8 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
             # on Windows, special permissions are required to create symbolic links as a regular user
             # fall back to copying the file
             shutil.copy(path, linked_path)
-    except Exception as e:
-        log.warning(f"Failed to link {path} to {linked_path}: {e}")
+    except Exception:
+        log.exception(f"Failed to link {path} to {linked_path}")
     else:
         log.debug(f"Linked {path} to {linked_path}")
 

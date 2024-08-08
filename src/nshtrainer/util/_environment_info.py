@@ -429,12 +429,12 @@ class EnvironmentPackageConfig(C.Config):
                         version=clean_version,
                         path=Path(str(f)) if (f := dist.locate_file("")) else None,
                         summary=metadata["Summary"] if "Summary" in metadata else None,
-                        author=metadata["Author"] if "Summary" in metadata else None,
-                        license=metadata["License"] if "Summary" in metadata else None,
+                        author=metadata["Author"] if "Author" in metadata else None,
+                        license=metadata["License"] if "License" in metadata else None,
                         requires=requires,
                     )
-                except Exception as e:
-                    log.warning(f"Error processing package {dist.name}: {str(e)}")
+                except Exception:
+                    log.exception(f"Error processing package {dist.name}")
 
         except ImportError:
             log.warning(
@@ -672,8 +672,8 @@ class GitRepositoryConfig(C.Config):
             draft.is_dirty = repo.is_dirty()
         except git.InvalidGitRepositoryError:
             draft.is_git_repo = False
-        except Exception as e:
-            log.warning(f"Failed to get Git repository information: {e}")
+        except Exception:
+            log.exception("Failed to get Git repository information")
             draft.is_git_repo = None
 
         return draft.finalize()
