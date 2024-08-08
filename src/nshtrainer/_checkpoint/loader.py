@@ -10,7 +10,7 @@ from lightning.pytorch.trainer.states import TrainerFn
 from typing_extensions import assert_never
 
 from ..metrics._config import MetricConfig
-from .metadata import METADATA_PATH_SUFFIX, CheckpointMetadata
+from .metadata import CheckpointMetadata
 
 if TYPE_CHECKING:
     from ..model.config import BaseConfig
@@ -263,13 +263,13 @@ def _checkpoint_candidates(
 
     # Load all checkpoints in the directory.
     # We can do this by looking for metadata files.
-    for path in ckpt_dir.glob(f"*{METADATA_PATH_SUFFIX}"):
+    for path in ckpt_dir.glob(f"*{CheckpointMetadata.PATH_SUFFIX}"):
         if (meta := _load_ckpt_meta(path, root_config)) is not None:
             yield meta
 
     # If we have a pre-empted checkpoint, load it
     if include_hpc and (hpc_path := trainer._checkpoint_connector._hpc_resume_path):
-        hpc_meta_path = Path(hpc_path).with_suffix(METADATA_PATH_SUFFIX)
+        hpc_meta_path = Path(hpc_path).with_suffix(CheckpointMetadata.PATH_SUFFIX)
         if (meta := _load_ckpt_meta(hpc_meta_path, root_config)) is not None:
             yield meta
 
@@ -279,7 +279,9 @@ def _additional_candidates(
 ):
     for path in additional_candidates:
         if (
-            meta := _load_ckpt_meta(path.with_suffix(METADATA_PATH_SUFFIX), root_config)
+            meta := _load_ckpt_meta(
+                path.with_suffix(CheckpointMetadata.PATH_SUFFIX), root_config
+            )
         ) is None:
             continue
         yield meta
@@ -310,7 +312,7 @@ def _resolve_checkpoint(
         match strategy:
             case UserProvidedPathCheckpointStrategyConfig():
                 meta = _load_ckpt_meta(
-                    strategy.path.with_suffix(METADATA_PATH_SUFFIX),
+                    strategy.path.with_suffix(CheckpointMetadata.PATH_SUFFIX),
                     root_config,
                     on_error=strategy.on_error,
                 )

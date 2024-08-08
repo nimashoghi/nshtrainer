@@ -10,8 +10,6 @@ import nshconfig as C
 import numpy as np
 import torch
 
-from ..util._environment_info import EnvironmentConfig
-
 if TYPE_CHECKING:
     from ..model import BaseConfig, LightningModuleBase
     from ..trainer.trainer import Trainer
@@ -38,7 +36,7 @@ class CheckpointMetadata(C.Config):
     global_step: int
     training_time: datetime.timedelta
     metrics: dict[str, Any]
-    environment: EnvironmentConfig
+    environment: dict[str, Any]
 
     hparams: dict[str, Any] | None
 
@@ -48,9 +46,7 @@ class CheckpointMetadata(C.Config):
 
     @classmethod
     def from_ckpt_path(cls, checkpoint_path: Path):
-        if not (
-            metadata_path := checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
-        ).exists():
+        if not (metadata_path := checkpoint_path.with_suffix(cls.PATH_SUFFIX)).exists():
             raise FileNotFoundError(
                 f"Metadata file not found for checkpoint: {checkpoint_path}"
             )
@@ -93,7 +89,7 @@ def _generate_checkpoint_metadata(
         global_step=trainer.global_step,
         training_time=training_time,
         metrics=metrics,
-        environment=config.environment,
+        environment=config.environment.model_dump(mode="json"),
         hparams=config.model_dump(mode="json"),
     )
 
@@ -104,7 +100,7 @@ def _write_checkpoint_metadata(
     checkpoint_path: Path,
 ):
     config = cast("BaseConfig", model.config)
-    metadata_path = checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+    metadata_path = checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
     metadata = _generate_checkpoint_metadata(
         config, trainer, checkpoint_path, metadata_path
     )
@@ -119,7 +115,7 @@ def _write_checkpoint_metadata(
 
 
 def _remove_checkpoint_metadata(checkpoint_path: Path):
-    path = checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+    path = checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
     try:
         path.unlink(missing_ok=True)
     except Exception as e:
@@ -133,8 +129,8 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
     _remove_checkpoint_metadata(linked_checkpoint_path)
 
     # Link the metadata files to the new checkpoint
-    path = checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
-    linked_path = linked_checkpoint_path.with_suffix(METADATA_PATH_SUFFIX)
+    path = checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
+    linked_path = linked_checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
     try:
         try:
             # linked_path.symlink_to(path)

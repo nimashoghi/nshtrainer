@@ -102,6 +102,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         metas = [
             CheckpointMetadata.from_file(p)
             for p in self.dirpath.glob(f"*{CheckpointMetadata.PATH_SUFFIX}")
+            if p.is_file() and not p.is_symlink()
         ]
 
         # Sort by the topk sort key

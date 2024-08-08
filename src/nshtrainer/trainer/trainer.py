@@ -419,7 +419,8 @@ class Trainer(LightningTrainer):
 
         # Save the checkpoint metadata
         lm = self._base_module
-        if lm.config.trainer.save_checkpoint_metadata and self.is_global_zero:
+        hparams = cast(BaseConfig, lm.hparams)
+        if hparams.trainer.save_checkpoint_metadata and self.is_global_zero:
             # Generate the metadata and write to disk
             _write_checkpoint_metadata(self, lm, filepath)
 
