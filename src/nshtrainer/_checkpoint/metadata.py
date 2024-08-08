@@ -44,7 +44,7 @@ class CheckpointMetadata(C.Config):
 
     @classmethod
     def from_file(cls, path: Path):
-        return cls.model_validate_json(path.read_text())
+        return cls.model_validate_json(path.read_text(encoding="utf-8"))
 
     @classmethod
     def from_ckpt_path(cls, checkpoint_path: Path):
