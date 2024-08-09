@@ -1,3 +1,4 @@
+import io
 import logging
 import os
 from pathlib import Path
@@ -299,7 +300,22 @@ def _save_checkpoint_files(
     # Resolve the repository name
     repo_name = _repo_name(api, root_config)
 
+    # Let's read all the files to memory right now,
+    # in case they get used/removed by other processes.
+    # Read all the files to memory
+    file_contents: list[bytes | None] = []
     for p in paths:
+        try:
+            with open(p, "rb") as f:
+                file_contents.append(f.read())
+        except IOError as e:
+            log.warning(f"Failed to read checkpoint file {p}: {str(e)}")
+            file_contents.append(None)
+
+    for p, contents in zip(paths, file_contents):
+        if contents is None:
+            continue
+
         try:
             relative_path = p.relative_to(checkpoint_dir)
         except ValueError:
@@ -314,7 +330,7 @@ def _save_checkpoint_files(
         # Upload the checkpoint file to the repository
         try:
             api.upload_file(
-                path_or_fileobj=str(p.resolve().absolute()),
+                path_or_fileobj=io.BytesIO(contents),
                 path_in_repo=str(path_in_repo),
                 repo_id=repo_name,
                 repo_type="model",
