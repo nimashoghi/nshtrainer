@@ -33,6 +33,7 @@ from lightning.pytorch.strategies.strategy import Strategy
 from typing_extensions import Self, TypedDict, TypeVar, override
 
 from .._checkpoint.loader import CheckpointLoadingConfig
+from .._hf_hub import HuggingFaceHubConfig
 from ..callbacks import (
     BestCheckpointCallbackConfig,
     CallbackConfig,
@@ -819,6 +820,9 @@ class TrainerConfig(C.Config):
     checkpoint_saving: CheckpointSavingConfig = CheckpointSavingConfig()
     """Checkpoint saving configuration options."""
 
+    hf_hub: HuggingFaceHubConfig = HuggingFaceHubConfig()
+    """Hugging Face Hub configuration options."""
+
     logging: LoggingConfig = LoggingConfig()
     """Logging/experiment tracking (e.g., WandB) configuration options."""
 
@@ -1213,4 +1217,5 @@ class BaseConfig(C.Config):
         yield self.trainer.checkpoint_saving
         yield self.trainer.logging
         yield self.trainer.optimizer
+        yield self.trainer.hf_hub
         yield from self.trainer.callbacks

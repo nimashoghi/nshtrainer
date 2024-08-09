@@ -192,6 +192,7 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
             hparams = self.config_cls().model_validate(hparams)
         hparams.environment = EnvironmentConfig.from_current_environment(hparams, self)
         hparams = self.pre_init_update_hparams(hparams)
+
         super().__init__(hparams)
 
         self.save_hyperparameters(hparams)

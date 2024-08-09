@@ -10,6 +10,7 @@ from .config import CheckpointSavingConfig as CheckpointSavingConfig
 from .config import DirectoryConfig as DirectoryConfig
 from .config import EarlyStoppingConfig as EarlyStoppingConfig
 from .config import GradientClippingConfig as GradientClippingConfig
+from .config import HuggingFaceHubConfig as HuggingFaceHubConfig
 from .config import LastCheckpointCallbackConfig as LastCheckpointCallbackConfig
 from .config import LoggingConfig as LoggingConfig
 from .config import MetricConfig as MetricConfig
