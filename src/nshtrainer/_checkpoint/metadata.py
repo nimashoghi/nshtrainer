@@ -111,11 +111,11 @@ def _write_checkpoint_metadata(
     try:
         metadata_path.write_text(metadata.model_dump_json(indent=4), encoding="utf-8")
     except Exception:
-        log.exception(f"Failed to write metadata to {checkpoint_path}")
+        log.exception(f"Failed to write metadata to {metadata_path}")
         return None
 
-    log.debug(f"Checkpoint metadata written to {checkpoint_path}")
-    return checkpoint_path
+    log.debug(f"Checkpoint metadata written to {metadata_path}")
+    return metadata_path
 
 
 def _remove_checkpoint_metadata(checkpoint_path: Path):

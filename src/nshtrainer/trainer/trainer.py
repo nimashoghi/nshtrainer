@@ -426,7 +426,7 @@ class Trainer(LightningTrainer):
             metadata_path = _write_checkpoint_metadata(self, lm, filepath)
 
         # If HF Hub is enabled, then we upload
-        if hparams.trainer.hf_hub:
+        if hparams.trainer.hf_hub and self.is_global_zero:
             from .._hf_hub import _save_checkpoint_files
 
             files = [f for f in (filepath, metadata_path) if f is not None]
