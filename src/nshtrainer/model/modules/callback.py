@@ -1,7 +1,6 @@
 import logging
-from collections import abc
-from collections.abc import Callable, Iterable
-from typing import Any, TypeAlias, cast, final
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, TypeAlias, cast, final, overload
 
 from lightning.pytorch import Callback, LightningModule
 from lightning.pytorch.callbacks import LambdaCallback
@@ -19,11 +18,61 @@ class CallbackRegistrarModuleMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._ll_callbacks: list[CallbackFn] = []
+        self._nshtrainer_callbacks: list[CallbackFn] = []
+
+    @overload
+    def register_callback(
+        self, callback: Callback | Iterable[Callback] | CallbackFn | None = None, /
+    ): ...
+
+    @overload
+    def register_callback(
+        self,
+        /,
+        *,
+        setup: Callable | None = None,
+        teardown: Callable | None = None,
+        on_fit_start: Callable | None = None,
+        on_fit_end: Callable | None = None,
+        on_sanity_check_start: Callable | None = None,
+        on_sanity_check_end: Callable | None = None,
+        on_train_batch_start: Callable | None = None,
+        on_train_batch_end: Callable | None = None,
+        on_train_epoch_start: Callable | None = None,
+        on_train_epoch_end: Callable | None = None,
+        on_validation_epoch_start: Callable | None = None,
+        on_validation_epoch_end: Callable | None = None,
+        on_test_epoch_start: Callable | None = None,
+        on_test_epoch_end: Callable | None = None,
+        on_validation_batch_start: Callable | None = None,
+        on_validation_batch_end: Callable | None = None,
+        on_test_batch_start: Callable | None = None,
+        on_test_batch_end: Callable | None = None,
+        on_train_start: Callable | None = None,
+        on_train_end: Callable | None = None,
+        on_validation_start: Callable | None = None,
+        on_validation_end: Callable | None = None,
+        on_test_start: Callable | None = None,
+        on_test_end: Callable | None = None,
+        on_exception: Callable | None = None,
+        on_save_checkpoint: Callable | None = None,
+        on_load_checkpoint: Callable | None = None,
+        on_before_backward: Callable | None = None,
+        on_after_backward: Callable | None = None,
+        on_before_optimizer_step: Callable | None = None,
+        on_before_zero_grad: Callable | None = None,
+        on_predict_start: Callable | None = None,
+        on_predict_end: Callable | None = None,
+        on_predict_batch_start: Callable | None = None,
+        on_predict_batch_end: Callable | None = None,
+        on_predict_epoch_start: Callable | None = None,
+        on_predict_epoch_end: Callable | None = None,
+    ): ...
 
     def register_callback(
         self,
         callback: Callback | Iterable[Callback] | CallbackFn | None = None,
+        /,
         *,
         setup: Callable | None = None,
         teardown: Callable | None = None,
@@ -109,7 +158,7 @@ class CallbackRegistrarModuleMixin:
         else:
             callback_ = callback
 
-        self._ll_callbacks.append(callback_)
+        self._nshtrainer_callbacks.append(callback_)
 
 
 class CallbackModuleMixin(
@@ -136,7 +185,7 @@ class CallbackModuleMixin(
     @override
     def configure_callbacks(self):
         callbacks = super().configure_callbacks()
-        if not isinstance(callbacks, abc.Sequence):
+        if not isinstance(callbacks, Sequence):
             callbacks = [callbacks]
 
         callbacks = list(callbacks)
@@ -145,7 +194,7 @@ class CallbackModuleMixin(
             if callback_result is None:
                 continue
 
-            if not isinstance(callback_result, abc.Iterable):
+            if not isinstance(callback_result, Iterable):
                 callback_result = [callback_result]
 
             for callback in callback_result:
