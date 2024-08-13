@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -150,7 +151,32 @@ def _repo_name(api: "HfApi", root_config: "BaseConfig"):
     elif (username := api.whoami().get("name", None)) is None:
         raise ValueError("Could not get username from Hugging Face Hub.")
 
-    return f"{username}/{root_config.project}-{root_config.run_name}-{root_config.id}"
+    # Sanitize the project (if it exists), run_name, and id
+    parts = []
+    if root_config.project:
+        parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", root_config.project))
+    parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", root_config.run_name))
+    parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", root_config.id))
+
+    # Combine parts and ensure it starts and ends with alphanumeric characters
+    repo_name = "-".join(parts)
+    repo_name = repo_name.strip("-")
+    repo_name = re.sub(
+        r"-+", "-", repo_name
+    )  # Replace multiple dashes with a single dash
+
+    # Ensure the name is not longer than 96 characters (excluding username)
+    if len(repo_name) > 96:
+        repo_name = repo_name[:96].rstrip("-")
+
+    # Ensure the repo name starts with an alphanumeric character
+    repo_name = re.sub(r"^[^a-zA-Z0-9]+", "", repo_name)
+
+    # If the repo_name is empty after all sanitization, use a default name
+    if not repo_name:
+        repo_name = "default-repo-name"
+
+    return f"{username}/{repo_name}"
 
 
 def _init(*, trainer: "Trainer", root_config: "BaseConfig"):
