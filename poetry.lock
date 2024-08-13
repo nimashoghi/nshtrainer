@@ -1402,13 +1402,13 @@ uuid7 = "*"
 
 [[package]]
 name = "nshutils"
-version = "0.13.0"
+version = "0.14.0"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshutils-0.13.0-py3-none-any.whl", hash = "sha256:426f07f9328de88d7b1591a591fc7b701301e1d59813effc0edc5facf9551973"},
-    {file = "nshutils-0.13.0.tar.gz", hash = "sha256:5367479aec516c57fc4ea1f4ffadcfbe32baad30442479968d122e281c736583"},
+    {file = "nshutils-0.14.0-py3-none-any.whl", hash = "sha256:397a7a0099ed83b03740b37ec8581ff221566622577baef3c7783a768d09165e"},
+    {file = "nshutils-0.14.0.tar.gz", hash = "sha256:ea3ed76c896c5869994c064bbdfc2494f7e495690f0d392a10af0fb4c4cbe1be"},
 ]
 
 [package.dependencies]
@@ -1419,7 +1419,7 @@ typing-extensions = "*"
 uuid7 = "*"
 
 [package.extras]
-extra = ["lovely-numpy", "lovely-tensors", "pysnooper", "rich"]
+extra = ["lovely-numpy", "lovely-tensors", "pysnooper", "rich", "treescope"]
 
 [[package]]
 name = "numpy"
