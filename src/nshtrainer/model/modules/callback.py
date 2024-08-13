@@ -179,7 +179,7 @@ class CallbackModuleMixin(
             if isinstance(module, CallbackRegistrarModuleMixin)
         )
         for module in modules:
-            yield from module._ll_callbacks
+            yield from module._nshtrainer_callbacks
 
     @final
     @override
