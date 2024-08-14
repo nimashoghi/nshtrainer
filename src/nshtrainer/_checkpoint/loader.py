@@ -105,7 +105,8 @@ class CheckpointLoadingConfig(C.Config):
     @classmethod
     def _auto_eval(cls, ckpt: Literal["best", "last"] | str | Path | None):
         if ckpt is None:
-            raise ValueError("Checkpoint path must be provided for evaluation.")
+            log.warn("No checkpoint specified for evaluation. Defaulting to `last`.")
+            ckpt = "last"
 
         match ckpt:
             case "best":
