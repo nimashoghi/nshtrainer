@@ -811,11 +811,14 @@ class SanityCheckingConfig(C.Config):
 
 
 class TrainerConfig(C.Config):
-    ckpt_path: str | Path | None = None
-    """Path to a checkpoint to load and resume training from."""
+    ckpt_path: Literal["none"] | str | Path | None = None
+    """Path to a checkpoint to load and resume training from. If ``"none"``, will not load a checkpoint."""
 
-    checkpoint_loading: CheckpointLoadingConfig | Literal["auto"] = "auto"
-    """Checkpoint loading configuration options."""
+    checkpoint_loading: CheckpointLoadingConfig | Literal["auto", "none"] = "auto"
+    """Checkpoint loading configuration options.
+    `"auto"` will automatically determine the best checkpoint loading strategy based on the provided.
+    `"none"` will disable checkpoint loading.
+    """
 
     checkpoint_saving: CheckpointSavingConfig = CheckpointSavingConfig()
     """Checkpoint saving configuration options."""

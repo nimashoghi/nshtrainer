@@ -76,7 +76,11 @@ class CheckpointLoadingConfig(C.Config):
     """Whether to include checkpoints from HPC pre-emption."""
 
     @classmethod
-    def _auto_train(cls, ckpt: Literal["best", "last"] | str | Path | None):
+    def none(cls, include_hpc: bool = False):
+        return cls(strategies=[], include_hpc=include_hpc)
+
+    @classmethod
+    def _auto_train(cls, ckpt: Literal["best", "last", "none"] | str | Path | None):
         if ckpt is None:
             ckpt = "last"
         match ckpt:
@@ -90,6 +94,8 @@ class CheckpointLoadingConfig(C.Config):
                     strategies=[LastCheckpointStrategyConfig()],
                     include_hpc=True,
                 )
+            case "none":
+                return cls.none()
             case Path() | str():
                 ckpt = Path(ckpt)
                 return cls(
@@ -103,7 +109,7 @@ class CheckpointLoadingConfig(C.Config):
                 assert_never(ckpt)
 
     @classmethod
-    def _auto_eval(cls, ckpt: Literal["best", "last"] | str | Path | None):
+    def _auto_eval(cls, ckpt: Literal["best", "last", "none"] | str | Path | None):
         if ckpt is None:
             log.warn("No checkpoint specified for evaluation. Defaulting to `last`.")
             ckpt = "last"
@@ -119,6 +125,8 @@ class CheckpointLoadingConfig(C.Config):
                     strategies=[LastCheckpointStrategyConfig()],
                     include_hpc=False,
                 )
+            case "none":
+                return cls.none(include_hpc=False)
             case Path() | str():
                 ckpt = Path(ckpt)
                 return cls(
@@ -131,7 +139,7 @@ class CheckpointLoadingConfig(C.Config):
     @classmethod
     def auto(
         cls,
-        ckpt: Literal["best", "last"] | str | Path | None,
+        ckpt: Literal["best", "last", "none"] | str | Path | None,
         trainer_mode: TrainerFn,
     ):
         """
@@ -142,7 +150,7 @@ class CheckpointLoadingConfig(C.Config):
 
         Parameters:
         -----------
-        ckpt : Literal["best", "last"] | str | Path | None
+        ckpt : Literal["best", "last", "none"] | str | Path | None
             Specifies the checkpoint loading preference:
             - "best": Use the best checkpoint based on the primary metric.
             - "last": Use the most recent checkpoint.

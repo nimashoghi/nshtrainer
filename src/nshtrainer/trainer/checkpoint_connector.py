@@ -31,8 +31,14 @@ class _CheckpointConnector(_LightningCheckpointConnector):
 
         # Now, resolve the checkpoint loader config.
         root_config = cast("BaseConfig", trainer._base_module.config)
-        if (ckpt_loader_config := root_config.trainer.checkpoint_loading) == "auto":
-            ckpt_loader_config = CheckpointLoadingConfig.auto(ckpt_path, state_fn)
+        ckpt_loader_config = root_config.trainer.checkpoint_loading
+        match ckpt_loader_config:
+            case "auto":
+                ckpt_loader_config = CheckpointLoadingConfig.auto(ckpt_path, state_fn)
+            case "none":
+                ckpt_loader_config = CheckpointLoadingConfig.none()
+            case _:
+                pass
         log.debug(f"Checkpoint loader config: {ckpt_loader_config}")
 
         # Use the config to resolve the checkpoint.
