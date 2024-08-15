@@ -10,11 +10,7 @@ from nshrunner._env import SNAPSHOT_DIR
 from typing_extensions import override
 
 from ._callback import NTCallbackBase
-from .callbacks.base import (
-    CallbackConfigBase,
-    CallbackMetadataConfig,
-    CallbackWithMetadata,
-)
+from .callbacks.base import CallbackConfigBase
 
 if TYPE_CHECKING:
     from huggingface_hub import HfApi  # noqa: F401
@@ -81,10 +77,7 @@ class HuggingFaceHubConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
-        yield CallbackWithMetadata(
-            HFHubCallback(self),
-            CallbackMetadataConfig(ignore_if_exists=True),
-        )
+        yield self.with_metadata(HFHubCallback(self), ignore_if_exists=True)
 
 
 def _api(token: str | None = None):

@@ -2,29 +2,24 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, ClassVar, TypeAlias
 
 import nshconfig as C
 from lightning.pytorch import Callback
+from typing_extensions import TypedDict, Unpack
 
 if TYPE_CHECKING:
     from ..model.config import BaseConfig
 
 
-class CallbackMetadataDict(TypedDict, total=False):
+class CallbackMetadataConfig(TypedDict, total=False):
     ignore_if_exists: bool
-    """If `True`, the callback will not be added if another callback with the same class already exists."""
+    """If `True`, the callback will not be added if another callback with the same class already exists.
+    Default is `False`."""
 
     priority: int
-    """Priority of the callback. Callbacks with higher priority will be loaded first."""
-
-
-class CallbackMetadataConfig(C.Config):
-    ignore_if_exists: bool = False
-    """If `True`, the callback will not be added if another callback with the same class already exists."""
-
-    priority: int = 0
-    """Priority of the callback. Callbacks with higher priority will be loaded first."""
+    """Priority of the callback. Callbacks with higher priority will be loaded first.
+    Default is `0`."""
 
 
 @dataclass(frozen=True)
@@ -37,13 +32,18 @@ ConstructedCallback: TypeAlias = Callback | CallbackWithMetadata
 
 
 class CallbackConfigBase(C.Config, ABC):
-    metadata: CallbackMetadataConfig = CallbackMetadataConfig()
+    metadata: ClassVar[CallbackMetadataConfig] = CallbackMetadataConfig()
     """Metadata for the callback."""
 
-    def with_metadata(self, callback: Callback, **metadata: CallbackMetadataDict):
-        return CallbackWithMetadata(
-            callback=callback, metadata=self.metadata.model_copy(update=metadata)
-        )
+    @classmethod
+    def with_metadata(
+        cls, callback: Callback, **kwargs: Unpack[CallbackMetadataConfig]
+    ):
+        metadata: CallbackMetadataConfig = {}
+        metadata.update(cls.metadata)
+        metadata.update(kwargs)
+
+        return CallbackWithMetadata(callback=callback, metadata=metadata)
 
     @abstractmethod
     def create_callbacks(
@@ -73,7 +73,7 @@ def _filter_ignore_if_exists(callbacks: list[CallbackWithMetadata]):
     for callback in callbacks:
         # If `ignore_if_exists` is `True` and there is already a callback of the same class, skip this callback
         if (
-            callback.metadata.ignore_if_exists
+            callback.metadata.get("ignore_if_exists", False)
             and callback_classes[callback.callback.__class__] > 1
         ):
             continue
@@ -89,7 +89,10 @@ def _process_and_filter_callbacks(
     callbacks = list(callbacks)
 
     # Sort by priority (higher priority first)
-    callbacks.sort(key=lambda callback: callback.metadata.priority, reverse=True)
+    callbacks.sort(
+        key=lambda callback: callback.metadata.get("priority", 0),
+        reverse=True,
+    )
 
     # Process `ignore_if_exists`
     callbacks = _filter_ignore_if_exists(callbacks)
