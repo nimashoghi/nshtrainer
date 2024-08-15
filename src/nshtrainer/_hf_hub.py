@@ -39,60 +39,6 @@ class HuggingFaceHubAutoCreateConfig(C.Config):
         return self.enabled
 
 
-def _auto_compression():
-    try:
-        import zstandard  # noqa: F401 # type: ignore
-
-        return "zstd"
-    except ImportError:
-        try:
-            import gzip  # noqa: F401 # type: ignore
-
-            return "gzip"
-        except ImportError:
-            return None
-
-
-def _compress_file(path: Path, contents: bytes, compress: str):
-    match compress:
-        case "zstd":
-            import zstandard
-
-            compressor = zstandard.ZstdCompressor(level=3)  # Adjust level as needed
-            compressed = compressor.compress(contents)
-            return compressed, path.with_suffix(path.suffix + ".zst")
-        case "gzip":
-            import gzip
-            import io
-
-            compressed_file = io.BytesIO()
-            with gzip.GzipFile(fileobj=compressed_file, mode="wb") as f:
-                f.write(contents)
-            return compressed_file.getvalue(), path.with_suffix(path.suffix + ".gz")
-        case _:
-            return contents, path  # No compression
-
-
-class HuggingFaceSaveCheckpointsConfig(C.Config):
-    enabled: bool = True
-    """Enable saving checkpoints to the Hugging Face Hub."""
-
-    compress: bool | Literal["auto", "zstd", "gzip", "none"] = "auto"
-    """Whether to compress the checkpoint files before uploading."""
-
-    def __bool__(self):
-        return self.enabled
-
-    def _resolve_compression(self):
-        match self.compress:
-            case False | "none":
-                return None
-            case True | "auto":
-                return _auto_compression()
-            case _:
-                return self.compress
-
-
 class HuggingFaceHubConfig(CallbackConfigBase):
     """Configuration options for Hugging Face Hub integration."""
 
@@ -110,9 +56,7 @@ class HuggingFaceHubConfig(CallbackConfigBase):
     save_config: bool = True
     """Whether to save the model configuration to the Hugging Face Hub."""
 
-    save_checkpoints: HuggingFaceSaveCheckpointsConfig = (
-        HuggingFaceSaveCheckpointsConfig()
-    )
+    save_checkpoints: bool = True
     """Whether to save checkpoints to the Hugging Face Hub."""
 
     save_code: bool = True
@@ -394,22 +338,14 @@ def _save_checkpoint_files(
             log.warning(f"Failed to read checkpoint file {p}: {str(e)}")
             file_contents.append(None)
 
-    # If `compress` is enabled, compress the files
-    if compress := config.save_checkpoints._resolve_compression():
-        # Compress the files
-        file_contents_and_paths = [
-            _compress_file(p, contents, compress)
-            for p, contents in zip(paths, file_contents)
-            if contents is not None
-        ]
-    else:
-        # Remove the paths that failed to read
-        file_contents_and_paths = [
-            (contents, p)
-            for contents, p in zip(file_contents, paths)
-            if contents is not None
-        ]
+    # Remove the paths that failed to read
+    file_contents_and_paths = [
+        (contents, p)
+        for contents, p in zip(file_contents, paths)
+        if contents is not None
+    ]
 
+    # Upload the checkpoint files to the repository
     for contents, p in file_contents_and_paths:
         try:
             relative_path = p.relative_to(checkpoint_dir)
