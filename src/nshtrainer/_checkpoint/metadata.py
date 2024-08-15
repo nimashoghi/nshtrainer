@@ -96,13 +96,17 @@ def _generate_checkpoint_metadata(
     )
 
 
+def _metadata_path(checkpoint_path: Path):
+    return checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
+
+
 def _write_checkpoint_metadata(
     trainer: "Trainer",
     model: "LightningModuleBase",
     checkpoint_path: Path,
 ):
     config = cast("BaseConfig", model.config)
-    metadata_path = checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
+    metadata_path = _metadata_path(checkpoint_path)
     metadata = _generate_checkpoint_metadata(
         config, trainer, checkpoint_path, metadata_path
     )
@@ -119,7 +123,7 @@ def _write_checkpoint_metadata(
 
 
 def _remove_checkpoint_metadata(checkpoint_path: Path):
-    path = checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
+    path = _metadata_path(checkpoint_path)
     try:
         path.unlink(missing_ok=True)
     except Exception:
@@ -133,8 +137,8 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
     _remove_checkpoint_metadata(linked_checkpoint_path)
 
     # Link the metadata files to the new checkpoint
-    path = checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
-    linked_path = linked_checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
+    path = _metadata_path(checkpoint_path)
+    linked_path = _metadata_path(linked_checkpoint_path)
     try:
         try:
             # linked_path.symlink_to(path)

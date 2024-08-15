@@ -3,14 +3,13 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import nshconfig as C
-from lightning.pytorch import Callback
-from lightning.pytorch.trainer import Trainer
 from nshrunner._env import SNAPSHOT_DIR
 from typing_extensions import override
 
+from ._callback import NTCallbackBase
 from .callbacks.base import (
     CallbackConfigBase,
     CallbackMetadataConfig,
@@ -22,6 +21,8 @@ if TYPE_CHECKING:
 
     from .model.base import BaseConfig
     from .trainer.trainer import Trainer
+
+
 log = logging.getLogger(__name__)
 
 
@@ -102,9 +103,9 @@ def _api(token: str | None = None):
 
         # Verify authentication
         api.whoami()
-    except Exception as e:
+    except Exception:
         log.exception(
-            f"Authentication failed for Hugging Face Hub: {str(e)}. "
+            "Authentication failed for Hugging Face Hub. "
             "Please make sure you are logged in using `huggingface-cli login`, "
             "by setting the HUGGING_FACE_HUB_TOKEN environment variable, "
             "or by providing a valid token in the configuration."
@@ -210,10 +211,10 @@ def _init(*, trainer: "Trainer", root_config: "BaseConfig"):
                 exist_ok=True,
             )
             log.info(f"Created new repository '{repo_name}'.")
-        except Exception as e:
-            log.exception(f"Failed to create repository '{repo_name}': {str(e)}")
-    except Exception as e:
-        log.exception(f"Error checking repository '{repo_name}': {str(e)}")
+        except Exception:
+            log.exception(f"Failed to create repository '{repo_name}'")
+    except Exception:
+        log.exception(f"Error checking repository '{repo_name}'")
 
     # Upload the config
     _save_config(root_config, trainer=trainer)
@@ -262,9 +263,9 @@ def _save_code(
         log.info(
             f"Uploaded snapshot contents to repository '{repo_name}' under 'code' folder."
         )
-    except Exception as e:
+    except Exception:
         log.exception(
-            f"Failed to upload snapshot contents to repository '{repo_name}' under 'code' folder: {str(e)}"
+            f"Failed to upload snapshot contents to repository '{repo_name}' under 'code' folder."
         )
 
 
@@ -300,10 +301,8 @@ def _save_config(
             run_as_future=cast(Any, config.save_in_background),
         )
         log.info(f"Uploaded config.json to repository '{repo_name}'.")
-    except Exception as e:
-        log.exception(
-            f"Failed to upload config.json to repository '{repo_name}': {str(e)}"
-        )
+    except Exception:
+        log.exception(f"Failed to upload config.json to repository '{repo_name}'.")
 
 
 def _save_checkpoint_files(
@@ -331,11 +330,13 @@ def _save_checkpoint_files(
     # Read all the files to memory
     file_contents: list[bytes | None] = []
     for p in paths:
+        assert not p.is_symlink(), f"Path {p} is a symlink."
+        assert p.is_file(), f"Path {p} is not a file."
         try:
             with open(p, "rb") as f:
                 file_contents.append(f.read())
-        except IOError as e:
-            log.warning(f"Failed to read checkpoint file {p}: {str(e)}")
+        except IOError:
+            log.exception(f"Failed to read checkpoint file {p}.")
             file_contents.append(None)
 
     # Remove the paths that failed to read
@@ -370,21 +371,136 @@ def _save_checkpoint_files(
             log.info(
                 f"Uploaded checkpoint file {relative_path} to repository '{repo_name}'."
             )
-        except Exception as e:
+        except Exception:
             log.exception(
-                f"Failed to upload checkpoint file {relative_path} to repository '{repo_name}': {str(e)}"
+                f"Failed to upload checkpoint file {relative_path} to repository '{repo_name}'."
             )
 
     log.info(f"Completed uploading checkpoint files to repository '{repo_name}'.")
 
 
-class HFHubCallback(Callback):
+def _save_checkpoint_symlinks(
+    trainer: "Trainer",
+    paths: list[Path],
+    *,
+    root_config: "BaseConfig",
+):
+    config = root_config.trainer.hf_hub
+    if (
+        api := _enabled_and_valid(trainer, config, rank_zero_only=True)
+    ) is None or not config.save_checkpoints:
+        return
+
+    # Resolve the checkpoint directory
+    checkpoint_dir = root_config.directory.resolve_subdirectory(
+        root_config.id, "checkpoint"
+    )
+
+    # Resolve the repository name
+    repo_name = _repo_name(api, root_config)
+
+    # Create a commit for copying the files
+    from huggingface_hub.hf_api import CommitOperation, CommitOperationCopy
+
+    commits: list[CommitOperation] = []
+    for p in paths:
+        assert p.is_symlink(), f"Path {p} is not a symlink."
+
+        try:
+            dest_relative_path = p.relative_to(checkpoint_dir)
+        except ValueError:
+            log.warning(
+                f"Checkpoint path {p} is not within the checkpoint directory {checkpoint_dir}."
+            )
+            continue
+
+        try:
+            source_relative_path = p.resolve().relative_to(checkpoint_dir)
+        except ValueError:
+            log.warning(
+                f"Checkpoint symlink target {p.resolve()} is not within the checkpoint directory {checkpoint_dir}."
+            )
+            continue
+
+        # Prefix the path in repo with "checkpoints"
+        dest_path_in_repo = Path("checkpoints") / dest_relative_path
+        source_path_in_repo = Path("checkpoints") / source_relative_path
+
+        # Create and append a CommitOperationCopy for copying the symlink
+        copy_op = CommitOperationCopy(
+            src_path_in_repo=str(source_path_in_repo),
+            path_in_repo=str(dest_path_in_repo),
+        )
+        commits.append(copy_op)
+
+    log.info(f"Creating a commit with the following operations: {commits}")
+
+    try:
+        api.create_commit(
+            repo_id=repo_name,
+            repo_type="model",
+            commit_message="Copy checkpoint symlinks",
+            operations=commits,
+            run_as_future=cast(Any, config.save_in_background),
+        )
+        log.info(
+            f"Created commit to copy checkpoint symlinks to repository '{repo_name}'."
+        )
+    except Exception:
+        log.exception(
+            f"Failed to create commit to copy checkpoint symlinks to repository '{repo_name}'"
+        )
+
+    log.info(f"Completed copying checkpoint symlinks to repository '{repo_name}'.")
+
+
+def _save_checkpoint_directory(trainer: "Trainer", *, root_config: "BaseConfig"):
+    config = root_config.trainer.hf_hub
+    if (
+        api := _enabled_and_valid(trainer, config, rank_zero_only=True)
+    ) is None or not config.save_checkpoints:
+        return
+
+    # Resolve the checkpoint directory
+    checkpoint_dir = root_config.directory.resolve_subdirectory(
+        root_config.id, "checkpoint"
+    )
+
+    # Resolve the repository name
+    repo_name = _repo_name(api, root_config)
+
+    # Upload the checkpoint directory to the repository
+    try:
+        api.upload_folder(
+            folder_path=str(checkpoint_dir),
+            repo_id=repo_name,
+            repo_type="model",
+            path_in_repo="checkpoints",
+            run_as_future=cast(Any, config.save_in_background),
+        )
+        log.info(f"Uploaded checkpoint directory to repository '{repo_name}'.")
+    except Exception:
+        log.exception(
+            f"Failed to upload checkpoint directory to repository '{repo_name}'."
+        )
+
+    log.info(f"Completed uploading checkpoint files to repository '{repo_name}'.")
+
+
+class HFHubCallback(NTCallbackBase):
     def __init__(self, config: HuggingFaceHubConfig):
         super().__init__()
         self.config = config
 
     @override
     def setup(self, trainer, pl_module, stage):
+        from .trainer.trainer import Trainer
+
+        if not isinstance(trainer, Trainer):
+            raise ValueError(
+                f"HFHubCallback requires a `nshtrainer.Trainer` instance, got {type(trainer)}."
+            )
+
         root_config = cast("BaseConfig", pl_module.hparams)
         _init(trainer=trainer, root_config=root_config)
 
@@ -392,3 +508,18 @@ class HFHubCallback(Callback):
     def teardown(self, trainer, pl_module, stage):
         if hasattr(trainer, "_hf_hub_api"):
             delattr(trainer, "_hf_hub_api")
+
+    @override
+    def on_checkpoint_saved(self, ckpt_path, metadata_path, trainer, pl_module):
+        root_config = cast("BaseConfig", pl_module.hparams)
+
+        # If HF Hub is enabled, then we upload
+        if root_config.trainer.hf_hub and trainer.is_global_zero:
+            # Upload the regular files first, then the symlinks
+            all_paths = [p for p in (ckpt_path, metadata_path) if p is not None]
+            if regular_paths := [p for p in all_paths if not p.is_symlink()]:
+                _save_checkpoint_files(trainer, regular_paths, root_config=root_config)
+            if symlink_paths := [p for p in all_paths if p.is_symlink()]:
+                _save_checkpoint_symlinks(
+                    trainer, symlink_paths, root_config=root_config
+                )

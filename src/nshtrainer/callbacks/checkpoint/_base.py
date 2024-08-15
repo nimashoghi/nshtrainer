@@ -9,7 +9,7 @@ from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import Checkpoint
 from typing_extensions import TypeVar, override
 
-from ..._checkpoint.metadata import CheckpointMetadata
+from ..._checkpoint.metadata import CheckpointMetadata, _metadata_path
 from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
 from ..base import CallbackConfigBase
 
@@ -64,8 +64,6 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         self.dirpath = dirpath / self.name()
         self.dirpath.mkdir(parents=True, exist_ok=True)
         self.symlink_dirpath = dirpath
-
-        self._last_global_step_saved = 0
 
     @abstractmethod
     def default_filename(self) -> str: ...
@@ -144,9 +142,21 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         if self._should_skip_saving_checkpoint(trainer):
             return
 
+        from ...trainer import Trainer as NTTrainer
+
+        if not isinstance(trainer, NTTrainer):
+            raise TypeError(
+                f"Trainer must be an instance of {NTTrainer.__name__}, "
+                f"but got {type(trainer).__name__}"
+            )
+
         # Save the new checkpoint
         filepath = self.resolve_checkpoint_path(self.current_metrics(trainer))
-        trainer.save_checkpoint(filepath, self.config.save_weights_only)
+        trainer._nshtrainer_save_checkpoint(
+            filepath,
+            self.config.save_weights_only,
+            use_checkpoint_cache=None,
+        )
 
         if trainer.is_global_zero:
             # Create the latest symlink
@@ -162,8 +172,15 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         # deleted the old checkpoints, and created the symlink before continuing
         trainer.strategy.barrier()
 
-        # Set the last global step saved
-        self._last_global_step_saved = trainer.global_step
+        # Call the on save checkpoint callback for the symlink (if it exists)
+        if (symlink_filename := self.symlink_path()) is not None:
+            from ... import _callback
+
+            symlink_path = self.dirpath / symlink_filename
+            symlink_metadata_path = _metadata_path(symlink_path)
+            _callback._call_on_checkpoint_saved(
+                trainer, symlink_path, symlink_metadata_path
+            )
 
     def _should_skip_saving_checkpoint(self, trainer: Trainer) -> bool:
         from lightning.pytorch.trainer.states import TrainerFn
@@ -175,6 +192,4 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
             or trainer.state.fn
             != TrainerFn.FITTING  # don't save anything during non-fit
             or trainer.sanity_checking  # don't save anything during sanity check
-            or self._last_global_step_saved
-            == trainer.global_step  # already saved at the last step
         )

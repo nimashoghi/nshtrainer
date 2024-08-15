@@ -17,6 +17,7 @@ from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Unpack, assert_never, override
 
 from .._checkpoint.metadata import _write_checkpoint_metadata
+from .._checkpoint.saver import _link_checkpoint
 from ..callbacks.base import resolve_all_callbacks
 from ..model.config import (
     AcceleratorConfigProtocol,
@@ -285,6 +286,8 @@ class Trainer(LightningTrainer):
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
+        self._nshtrainer_checkpoint_cache: dict[tuple[int, int], Path] = {}
+
         self._pre_init(config)
 
         kwargs = self._update_kwargs(config, kwargs)
@@ -407,6 +410,60 @@ class Trainer(LightningTrainer):
 
         return super()._run(model, ckpt_path)
 
+    def _nshtrainer_save_checkpoint(
+        self,
+        filepath: str | Path,
+        weights_only: bool = False,
+        storage_options: Any | None = None,
+        use_checkpoint_cache: bool | None = None,
+    ):
+        lm = self._base_module
+        hparams = cast(BaseConfig, lm.hparams)
+        if use_checkpoint_cache is None:
+            use_checkpoint_cache = hparams.trainer.use_checkpoint_cache
+
+        filepath = Path(filepath)
+
+        # List of files that we should upload to HF
+        written_files: list[Path] = [filepath]
+
+        cached_path = None
+        if (
+            use_checkpoint_cache
+            and (
+                cached_path := self._nshtrainer_checkpoint_cache.get(
+                    (self.current_epoch, self.global_step)
+                )
+            )
+            is not None
+        ):
+            # If we have a cached path, then we symlink it to the new path.
+            log.info(f"Re-using cached checkpoint {cached_path} for {filepath}.")
+            _link_checkpoint(cached_path, filepath, metadata=False)
+        else:
+            super().save_checkpoint(filepath, weights_only, storage_options)
+
+        # If we are using the cache but we don't have a cached path, then we save the checkpoint to the cache.
+        if use_checkpoint_cache and cached_path is None:
+            self._nshtrainer_checkpoint_cache[
+                (self.current_epoch, self.global_step)
+            ] = filepath
+            log.debug(f"Checkpoint saved to cache: {filepath}")
+
+        # Save the checkpoint metadata
+        metadata_path = None
+        if hparams.trainer.save_checkpoint_metadata and self.is_global_zero:
+            # Generate the metadata and write to disk
+            if (
+                metadata_path := _write_checkpoint_metadata(self, lm, filepath)
+            ) is not None:
+                written_files.append(metadata_path)
+
+        # Call the `on_checkpoint_saved` method on all callbacks
+        from .. import _callback
+
+        _callback._call_on_checkpoint_saved(self, filepath, metadata_path)
+
     @override
     def save_checkpoint(
         self,
@@ -414,22 +471,9 @@ class Trainer(LightningTrainer):
         weights_only: bool = False,
         storage_options: Any | None = None,
     ):
-        filepath = Path(filepath)
-        ret_val = super().save_checkpoint(filepath, weights_only, storage_options)
-
-        # Save the checkpoint metadata
-        lm = self._base_module
-        hparams = cast(BaseConfig, lm.hparams)
-        metadata_path = None
-        if hparams.trainer.save_checkpoint_metadata and self.is_global_zero:
-            # Generate the metadata and write to disk
-            metadata_path = _write_checkpoint_metadata(self, lm, filepath)
-
-        # If HF Hub is enabled, then we upload
-        if hparams.trainer.hf_hub and self.is_global_zero:
-            from .._hf_hub import _save_checkpoint_files
-
-            files = [f for f in (filepath, metadata_path) if f is not None]
-            _save_checkpoint_files(self, files, root_config=hparams)
-
-        return ret_val
+        return self._nshtrainer_save_checkpoint(
+            filepath=filepath,
+            weights_only=weights_only,
+            storage_options=storage_options,
+            use_checkpoint_cache=False,
+        )
