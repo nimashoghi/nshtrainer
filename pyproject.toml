@@ -23,7 +23,6 @@ GitPython = { version = "*", optional = true }
 wandb = { version = "*", optional = true }
 tensorboard = { version = "*", optional = true }
 huggingface-hub = { version = "*", optional = true }
-zstandard = { version = "*", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.372"
@@ -54,5 +53,4 @@ extra = [
     "wandb",
     "tensorboard",
     "huggingface-hub",
-    "zstandard",
 ]
