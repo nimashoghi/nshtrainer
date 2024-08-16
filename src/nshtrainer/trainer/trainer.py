@@ -439,7 +439,8 @@ class Trainer(LightningTrainer):
         ):
             # If we have a cached path, then we symlink it to the new path.
             log.info(f"Re-using cached checkpoint {cached_path} for {filepath}.")
-            _link_checkpoint(cached_path, filepath, metadata=False)
+            if self.is_global_zero:
+                _link_checkpoint(cached_path, filepath, metadata=False)
         else:
             super().save_checkpoint(filepath, weights_only, storage_options)
 
