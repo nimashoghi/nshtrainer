@@ -2,6 +2,7 @@ import io
 import logging
 import os
 import re
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -110,6 +111,7 @@ def _api(token: str | None = None):
 
 def _enabled_and_valid(
     trainer: "Trainer",
+    callback: "HFHubCallback",
     config: HuggingFaceHubConfig,
     *,
     rank_zero_only: bool,
@@ -120,22 +122,9 @@ def _enabled_and_valid(
 
     # If `rank_zero_only` and this is not rank 0, stop here.
     if rank_zero_only and not trainer.is_global_zero:
-        return
-
-    # Make sure that `huggingface_hub` is installed
-    try:
-        import huggingface_hub  # noqa: F401
-    except ImportError:
-        log.exception(
-            "Could not import `huggingface_hub`. Please install it using `pip install huggingface_hub`."
-        )
         return None
 
-    # Create and authenticate the API instance
-    if (api := getattr(trainer, "_hf_hub_api", None)) is None:
-        api = _api(config.token)
-        setattr(trainer, "_hf_hub_api", api)
-    return cast(huggingface_hub.HfApi, api)
+    return callback._hf_hub_api
 
 
 def _repo_name(api: "HfApi", root_config: "BaseConfig"):
@@ -173,11 +162,12 @@ def _repo_name(api: "HfApi", root_config: "BaseConfig"):
     return f"{username}/{repo_name}"
 
 
-def _init(*, trainer: "Trainer", root_config: "BaseConfig"):
+def _init(*, trainer: "Trainer", callback: "HFHubCallback", root_config: "BaseConfig"):
     config = root_config.trainer.hf_hub
     if (
         api := _enabled_and_valid(
             trainer,
+            callback,
             config,
             rank_zero_only=True,
         )
@@ -210,10 +200,10 @@ def _init(*, trainer: "Trainer", root_config: "BaseConfig"):
         log.exception(f"Error checking repository '{repo_name}'")
 
     # Upload the config
-    _save_config(root_config, trainer=trainer)
+    _save_config(root_config, trainer=trainer, callback=callback)
 
     # Upload the code
-    _save_code(repo_name, config=config, trainer=trainer)
+    _save_code(repo_name, config=config, trainer=trainer, callback=callback)
 
 
 def _save_code(
@@ -221,10 +211,12 @@ def _save_code(
     *,
     config: HuggingFaceHubConfig,
     trainer: "Trainer",
+    callback: "HFHubCallback",
 ):
     if (
         api := _enabled_and_valid(
             trainer,
+            callback,
             config,
             rank_zero_only=True,
         )
@@ -266,11 +258,13 @@ def _save_config(
     root_config: "BaseConfig",
     *,
     trainer: "Trainer",
+    callback: "HFHubCallback",
 ):
     config = root_config.trainer.hf_hub
     if (
         api := _enabled_and_valid(
             trainer,
+            callback,
             config,
             rank_zero_only=True,
         )
@@ -298,15 +292,45 @@ def _save_config(
         log.exception(f"Failed to upload config.json to repository '{repo_name}'.")
 
 
+def _is_link(p: Path, trainer: "Trainer"):
+    if p.is_symlink():
+        return True
+
+    try:
+        link_path = trainer._nshtrainer_ckpt_link(p)
+        return link_path in trainer._nshtrainer_checkpoint_link_dict
+    except Exception:
+        log.info(f"Failed to check if path {p} is a symlink.", exc_info=True)
+
+    return False
+
+
+def _resolve_link(p: Path, trainer: "Trainer"):
+    if p.is_symlink():
+        return p.resolve()
+
+    try:
+        link_path = trainer._nshtrainer_ckpt_link(p)
+        if (
+            resolved := trainer._nshtrainer_checkpoint_link_dict.get(link_path)
+        ) is not None:
+            return resolved
+    except Exception:
+        log.info(f"Failed to resolve symlink for path {p}.", exc_info=True)
+
+    return None
+
+
 def _save_checkpoint_files(
     trainer: "Trainer",
+    callback: "HFHubCallback",
     paths: list[Path],
     *,
     root_config: "BaseConfig",
 ):
     config = root_config.trainer.hf_hub
     if (
-        api := _enabled_and_valid(trainer, config, rank_zero_only=True)
+        api := _enabled_and_valid(trainer, callback, config, rank_zero_only=True)
     ) is None or not config.save_checkpoints:
         return
 
@@ -323,7 +347,7 @@ def _save_checkpoint_files(
     # Read all the files to memory
     file_contents: list[bytes | None] = []
     for p in paths:
-        assert not p.is_symlink(), f"Path {p} is a symlink."
+        assert not _is_link(p, trainer=trainer), f"Path {p} is a symlink."
         assert p.is_file(), f"Path {p} is not a file."
         try:
             with open(p, "rb") as f:
@@ -374,13 +398,14 @@ def _save_checkpoint_files(
 
 def _save_checkpoint_symlinks(
     trainer: "Trainer",
+    callback: "HFHubCallback",
     paths: list[Path],
     *,
     root_config: "BaseConfig",
 ):
     config = root_config.trainer.hf_hub
     if (
-        api := _enabled_and_valid(trainer, config, rank_zero_only=True)
+        api := _enabled_and_valid(trainer, callback, config, rank_zero_only=True)
     ) is None or not config.save_checkpoints:
         return
 
@@ -397,7 +422,7 @@ def _save_checkpoint_symlinks(
 
     commits: list[CommitOperation] = []
     for p in paths:
-        assert p.is_symlink(), f"Path {p} is not a symlink."
+        assert _is_link(p, trainer=trainer), f"Path {p} is not a symlink."
 
         try:
             dest_relative_path = p.relative_to(checkpoint_dir)
@@ -407,11 +432,15 @@ def _save_checkpoint_symlinks(
             )
             continue
 
+        if (p_resolved := _resolve_link(p, trainer=trainer)) is None:
+            log.warning(f"Failed to resolve symlink for path {p}.")
+            continue
+
         try:
-            source_relative_path = p.resolve().relative_to(checkpoint_dir)
+            source_relative_path = p_resolved.relative_to(checkpoint_dir)
         except ValueError:
             log.warning(
-                f"Checkpoint symlink target {p.resolve()} is not within the checkpoint directory {checkpoint_dir}."
+                f"Checkpoint symlink target {p_resolved} is not within the checkpoint directory {checkpoint_dir}."
             )
             continue
 
@@ -447,39 +476,6 @@ def _save_checkpoint_symlinks(
     log.info(f"Completed copying checkpoint symlinks to repository '{repo_name}'.")
 
 
-def _save_checkpoint_directory(trainer: "Trainer", *, root_config: "BaseConfig"):
-    config = root_config.trainer.hf_hub
-    if (
-        api := _enabled_and_valid(trainer, config, rank_zero_only=True)
-    ) is None or not config.save_checkpoints:
-        return
-
-    # Resolve the checkpoint directory
-    checkpoint_dir = root_config.directory.resolve_subdirectory(
-        root_config.id, "checkpoint"
-    )
-
-    # Resolve the repository name
-    repo_name = _repo_name(api, root_config)
-
-    # Upload the checkpoint directory to the repository
-    try:
-        api.upload_folder(
-            folder_path=str(checkpoint_dir),
-            repo_id=repo_name,
-            repo_type="model",
-            path_in_repo="checkpoints",
-            run_as_future=cast(Any, config.save_in_background),
-        )
-        log.info(f"Uploaded checkpoint directory to repository '{repo_name}'.")
-    except Exception:
-        log.exception(
-            f"Failed to upload checkpoint directory to repository '{repo_name}'."
-        )
-
-    log.info(f"Completed uploading checkpoint files to repository '{repo_name}'.")
-
-
 class HFHubCallback(NTCallbackBase):
     def __init__(self, config: HuggingFaceHubConfig):
         super().__init__()
@@ -495,12 +491,7 @@ class HFHubCallback(NTCallbackBase):
             )
 
         root_config = cast("BaseConfig", pl_module.hparams)
-        _init(trainer=trainer, root_config=root_config)
-
-    @override
-    def teardown(self, trainer, pl_module, stage):
-        if hasattr(trainer, "_hf_hub_api"):
-            delattr(trainer, "_hf_hub_api")
+        _init(trainer=trainer, callback=self, root_config=root_config)
 
     @override
     def on_checkpoint_saved(self, ckpt_path, metadata_path, trainer, pl_module):
@@ -510,9 +501,18 @@ class HFHubCallback(NTCallbackBase):
         if root_config.trainer.hf_hub and trainer.is_global_zero:
             # Upload the regular files first, then the symlinks
             all_paths = [p for p in (ckpt_path, metadata_path) if p is not None]
-            if regular_paths := [p for p in all_paths if not p.is_symlink()]:
-                _save_checkpoint_files(trainer, regular_paths, root_config=root_config)
-            if symlink_paths := [p for p in all_paths if p.is_symlink()]:
-                _save_checkpoint_symlinks(
-                    trainer, symlink_paths, root_config=root_config
+            if regular_paths := [
+                p for p in all_paths if not _is_link(p, trainer=trainer)
+            ]:
+                _save_checkpoint_files(
+                    trainer, self, regular_paths, root_config=root_config
                 )
+            if symlink_paths := [p for p in all_paths if _is_link(p, trainer=trainer)]:
+                _save_checkpoint_symlinks(
+                    trainer, self, symlink_paths, root_config=root_config
+                )
+
+    @cached_property
+    def _hf_hub_api(self):
+        # Create and authenticate the API instance
+        return _api(self.config.token)

@@ -27,3 +27,26 @@ def get_relative_path(source: _Path, destination: _Path):
     down = os.sep.join(destination_parts[i:])
 
     return Path(os.path.normpath(os.path.join(up, down)))
+
+
+def find_symlinks(
+    target_file: _Path,
+    *search_directories: _Path,
+    glob_pattern: str = "*",
+):
+    target_file = Path(target_file).resolve()
+    symlinks: list[Path] = []
+
+    for search_directory in search_directories:
+        search_directory = Path(search_directory)
+        for path in search_directory.rglob(glob_pattern):
+            if path.is_symlink():
+                try:
+                    link_target = path.resolve()
+                    if link_target.samefile(target_file):
+                        symlinks.append(path)
+                except FileNotFoundError:
+                    # Handle broken symlinks
+                    pass
+
+    return symlinks

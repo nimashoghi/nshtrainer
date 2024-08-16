@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -6,6 +7,8 @@ from lightning.pytorch import Trainer
 
 from ..util.path import get_relative_path
 from .metadata import _link_checkpoint_metadata, _remove_checkpoint_metadata
+
+log = logging.getLogger(__name__)
 
 
 def _link_checkpoint(
@@ -19,11 +22,14 @@ def _link_checkpoint(
     linkpath = Path(linkpath)
 
     if remove_existing:
-        if linkpath.exists():
-            if linkpath.is_symlink() or linkpath.is_file():
-                linkpath.unlink()
-            elif linkpath.is_dir():
-                shutil.rmtree(linkpath)
+        try:
+            if linkpath.exists():
+                if linkpath.is_dir():
+                    shutil.rmtree(linkpath, ignore_errors=True)
+                else:
+                    linkpath.unlink(missing_ok=True)
+        except Exception:
+            log.exception(f"Failed to remove {linkpath}")
 
         if metadata:
             _remove_checkpoint_metadata(linkpath)
