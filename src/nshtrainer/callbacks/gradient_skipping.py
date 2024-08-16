@@ -1,8 +1,8 @@
-import importlib.util
 import logging
 from typing import Any, Literal, Protocol, runtime_checkable
 
 import torch
+import torchmetrics
 from lightning.pytorch import Callback, LightningModule, Trainer
 from torch.optim import Optimizer
 from typing_extensions import override
@@ -20,19 +20,12 @@ class HasGradSkippedSteps(Protocol):
 
 class GradientSkipping(Callback):
     def __init__(self, config: "GradientSkippingConfig"):
-        if importlib.util.find_spec("torchmetrics") is not None:
-            raise ImportError(
-                "To use the GradientSkipping callback, please install torchmetrics: pip install torchmetrics"
-            )
-
         super().__init__()
         self.config = config
 
     @override
     def setup(self, trainer: Trainer, pl_module: LightningModule, stage: str) -> None:
         if not isinstance(pl_module, HasGradSkippedSteps):
-            import torchmetrics  # type: ignore
-
             pl_module.grad_skipped_steps = torchmetrics.SumMetric()
 
     @override
