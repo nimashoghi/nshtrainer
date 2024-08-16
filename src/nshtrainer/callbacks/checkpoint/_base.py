@@ -119,42 +119,6 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
             _remove_checkpoint(trainer, old_ckpt_path, metadata=True)
             log.debug(f"Removed old checkpoint: {old_ckpt_path}")
 
-    # def _remove_checkpoint_with_link_support(
-    #     self,
-    #     trainer: Trainer,
-    #     path: Path,
-    #     metadata: bool,
-    # ):
-    #     # Find all the symlinks to the checkpoint
-    #     ckpt_callbacks: list[CheckpointBase] = [
-    #         callback
-    #         for callback in trainer.checkpoint_callbacks
-    #         if isinstance(callback, CheckpointBase) and callback is not self
-    #     ]
-    #     symlink_paths = find_symlinks(
-    #         path,
-    #         *[callback.dirpath for callback in ckpt_callbacks],
-    #         glob_pattern=f"*.{self.extension()}",
-    #     )
-
-    #     # If there are no symlinks, just remove the checkpoint
-    #     if not symlink_paths:
-    #         _remove_checkpoint(trainer, path, metadata=metadata)
-    #         return
-
-    #     log.debug(
-    #         f"Removing checkpoint with symlinks: {path}, symlinks: {symlink_paths}"
-    #     )
-
-    #     # For the first symlink, we can just move the checkpoint file
-    #     # to the symlink path. For the rest, we need to make new symlinks.
-    #     new_target = symlink_paths.pop(0)
-    #     path.rename(new_target)
-    #     log.debug(f"New symlink target: {new_target}")
-
-    #     for symlink_path in symlink_paths:
-    #         _link_checkpoint(new_target, symlink_path, metadata=False)
-
     def current_metrics(self, trainer: Trainer) -> dict[str, Any]:
         current_metrics: dict[str, Any] = {
             "epoch": trainer.current_epoch,
