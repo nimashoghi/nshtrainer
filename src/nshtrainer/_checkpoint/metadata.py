@@ -11,6 +11,7 @@ import numpy as np
 import torch
 
 from ..util._environment_info import EnvironmentConfig
+from ..util.path import get_relative_path
 
 if TYPE_CHECKING:
     from ..model import BaseConfig, LightningModuleBase
@@ -145,7 +146,7 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
             # We should store the path as a relative path
             # to the metadata file to avoid issues with
             # moving the checkpoint directory
-            linked_path.symlink_to(path.relative_to(linked_path.parent))
+            linked_path.symlink_to(get_relative_path(linked_path, path))
         except OSError:
             # on Windows, special permissions are required to create symbolic links as a regular user
             # fall back to copying the file
