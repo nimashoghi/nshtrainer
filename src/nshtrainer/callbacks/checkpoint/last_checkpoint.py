@@ -39,5 +39,5 @@ class LastCheckpoint(CheckpointBase[LastCheckpointCallbackConfig]):
         return True
 
     @override
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
+    def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
         self.save_checkpoints(trainer)

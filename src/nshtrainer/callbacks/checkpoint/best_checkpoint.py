@@ -70,5 +70,5 @@ class BestCheckpoint(CheckpointBase[BestCheckpointCallbackConfig]):
 
     # Events
     @override
-    def on_validation_end(self, trainer: Trainer, pl_module: LightningModule):
+    def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
         self.save_checkpoints(trainer)
