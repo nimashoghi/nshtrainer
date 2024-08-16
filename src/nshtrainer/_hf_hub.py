@@ -1,7 +1,8 @@
-import io
+import contextlib
 import logging
 import os
 import re
+from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from huggingface_hub import HfApi  # noqa: F401
 
     from .model.base import BaseConfig
-    from .trainer.trainer import Trainer
 
 
 log = logging.getLogger(__name__)
@@ -109,24 +109,6 @@ def _api(token: str | None = None):
     return api
 
 
-def _enabled_and_valid(
-    trainer: "Trainer",
-    callback: "HFHubCallback",
-    config: HuggingFaceHubConfig,
-    *,
-    rank_zero_only: bool,
-):
-    # Make sure this is enabled and the config is valid
-    if not config:
-        return None
-
-    # If `rank_zero_only` and this is not rank 0, stop here.
-    if rank_zero_only and not trainer.is_global_zero:
-        return None
-
-    return callback._hf_hub_api
-
-
 def _repo_name(api: "HfApi", root_config: "BaseConfig"):
     username = None
     if (ac := root_config.trainer.hf_hub.auto_create) and ac.namespace:
@@ -162,324 +144,52 @@ def _repo_name(api: "HfApi", root_config: "BaseConfig"):
     return f"{username}/{repo_name}"
 
 
-def _init(*, trainer: "Trainer", callback: "HFHubCallback", root_config: "BaseConfig"):
-    config = root_config.trainer.hf_hub
-    if (
-        api := _enabled_and_valid(
-            trainer,
-            callback,
-            config,
-            rank_zero_only=True,
+@dataclass
+class _Upload:
+    local_path: Path
+    path_in_repo: Path
+
+    @classmethod
+    def from_local_path(
+        cls,
+        local_path: Path,
+        root_config: "BaseConfig",
+    ):
+        # Resolve the checkpoint directory
+        checkpoint_dir = root_config.directory.resolve_subdirectory(
+            root_config.id, "checkpoint"
         )
-    ) is None or not config.auto_create:
-        return
 
-    from huggingface_hub.utils import RepositoryNotFoundError
-
-    # Resolve the repository name
-    repo_name = _repo_name(api, root_config)
-
-    # Create the repository, if it doesn't exist
-    try:
-        # Check if the repository exists
-        api.repo_info(repo_id=repo_name, repo_type="model")
-        log.info(f"Repository '{repo_name}' already exists.")
-    except RepositoryNotFoundError:
-        # Repository doesn't exist, so create it
         try:
-            api.create_repo(
-                repo_id=repo_name,
-                repo_type="model",
-                private=config.auto_create.private,
-                exist_ok=True,
-            )
-            log.info(f"Created new repository '{repo_name}'.")
-        except Exception:
-            log.exception(f"Failed to create repository '{repo_name}'")
-    except Exception:
-        log.exception(f"Error checking repository '{repo_name}'")
-
-    # Upload the config
-    _save_config(root_config, trainer=trainer, callback=callback)
-
-    # Upload the code
-    _save_code(repo_name, config=config, trainer=trainer, callback=callback)
-
-
-def _save_code(
-    repo_name: str,
-    *,
-    config: HuggingFaceHubConfig,
-    trainer: "Trainer",
-    callback: "HFHubCallback",
-):
-    if (
-        api := _enabled_and_valid(
-            trainer,
-            callback,
-            config,
-            rank_zero_only=True,
-        )
-    ) is None or not config.save_code:
-        return
-
-    # If a snapshot has been taken (which can be detected using the SNAPSHOT_DIR env),
-    # then upload all contents within the snapshot directory to the repository.
-    snapshot_dir = os.environ.get(SNAPSHOT_DIR)
-    if not snapshot_dir:
-        log.info("No snapshot directory found. Skipping upload.")
-        return
-
-    snapshot_path = Path(snapshot_dir)
-    if not snapshot_path.exists() or not snapshot_path.is_dir():
-        log.warning(
-            f"Snapshot directory '{snapshot_dir}' does not exist or is not a directory."
-        )
-        return
-
-    try:
-        api.upload_folder(
-            folder_path=str(snapshot_path),
-            repo_id=repo_name,
-            repo_type="model",
-            path_in_repo="code",  # Prefix with "code" folder
-            run_as_future=cast(Any, config.save_in_background),
-        )
-        log.info(
-            f"Uploaded snapshot contents to repository '{repo_name}' under 'code' folder."
-        )
-    except Exception:
-        log.exception(
-            f"Failed to upload snapshot contents to repository '{repo_name}' under 'code' folder."
-        )
-
-
-def _save_config(
-    root_config: "BaseConfig",
-    *,
-    trainer: "Trainer",
-    callback: "HFHubCallback",
-):
-    config = root_config.trainer.hf_hub
-    if (
-        api := _enabled_and_valid(
-            trainer,
-            callback,
-            config,
-            rank_zero_only=True,
-        )
-    ) is None or not config.save_config:
-        return
-
-    # Convert the root config to a JSON string
-    # NOTE: This is a utf-8 string.
-    config_json = root_config.model_dump_json(indent=4)
-
-    # Resolve the repository name
-    repo_name = _repo_name(api, root_config)
-
-    # Upload the config file to the repository
-    try:
-        api.upload_file(
-            path_or_fileobj=config_json.encode("utf-8"),
-            path_in_repo="config.json",
-            repo_id=repo_name,
-            repo_type="model",
-            run_as_future=cast(Any, config.save_in_background),
-        )
-        log.info(f"Uploaded config.json to repository '{repo_name}'.")
-    except Exception:
-        log.exception(f"Failed to upload config.json to repository '{repo_name}'.")
-
-
-def _is_link(p: Path, trainer: "Trainer"):
-    if p.is_symlink():
-        return True
-
-    try:
-        link_path = trainer._nshtrainer_ckpt_link(p)
-        return link_path in trainer._nshtrainer_checkpoint_link_dict
-    except Exception:
-        log.info(f"Failed to check if path {p} is a symlink.", exc_info=True)
-
-    return False
-
-
-def _resolve_link(p: Path, trainer: "Trainer"):
-    if p.is_symlink():
-        return p.resolve()
-
-    try:
-        link_path = trainer._nshtrainer_ckpt_link(p)
-        if (
-            resolved := trainer._nshtrainer_checkpoint_link_dict.get(link_path)
-        ) is not None:
-            return resolved
-    except Exception:
-        log.info(f"Failed to resolve symlink for path {p}.", exc_info=True)
-
-    return None
-
-
-def _save_checkpoint_files(
-    trainer: "Trainer",
-    callback: "HFHubCallback",
-    paths: list[Path],
-    *,
-    root_config: "BaseConfig",
-):
-    config = root_config.trainer.hf_hub
-    if (
-        api := _enabled_and_valid(trainer, callback, config, rank_zero_only=True)
-    ) is None or not config.save_checkpoints:
-        return
-
-    # Resolve the checkpoint directory
-    checkpoint_dir = root_config.directory.resolve_subdirectory(
-        root_config.id, "checkpoint"
-    )
-
-    # Resolve the repository name
-    repo_name = _repo_name(api, root_config)
-
-    # Let's read all the files to memory right now,
-    # in case they get used/removed by other processes.
-    # Read all the files to memory
-    file_contents: list[bytes | None] = []
-    for p in paths:
-        assert not _is_link(p, trainer=trainer), f"Path {p} is a symlink."
-        assert p.is_file(), f"Path {p} is not a file."
-        try:
-            with open(p, "rb") as f:
-                file_contents.append(f.read())
-        except IOError:
-            log.exception(f"Failed to read checkpoint file {p}.")
-            file_contents.append(None)
-
-    # Remove the paths that failed to read
-    file_contents_and_paths = [
-        (contents, p)
-        for contents, p in zip(file_contents, paths)
-        if contents is not None
-    ]
-
-    # Upload the checkpoint files to the repository
-    for contents, p in file_contents_and_paths:
-        try:
-            relative_path = p.relative_to(checkpoint_dir)
+            relative_path = local_path.relative_to(checkpoint_dir)
         except ValueError:
-            log.warning(
-                f"Checkpoint path {p} is not within the checkpoint directory {checkpoint_dir}."
+            raise ValueError(
+                f"Checkpoint path {local_path} is not within the checkpoint directory {checkpoint_dir}."
             )
-            continue
 
         # Prefix the path in repo with "checkpoints"
         path_in_repo = Path("checkpoints") / relative_path
 
-        # Upload the checkpoint file to the repository
-        try:
-            api.upload_file(
-                path_or_fileobj=io.BytesIO(contents),
-                path_in_repo=str(path_in_repo),
-                repo_id=repo_name,
-                repo_type="model",
-                run_as_future=cast(Any, config.save_in_background),
-            )
-            log.info(
-                f"Uploaded checkpoint file {relative_path} to repository '{repo_name}'."
-            )
-        except Exception:
-            log.exception(
-                f"Failed to upload checkpoint file {relative_path} to repository '{repo_name}'."
-            )
-
-    log.info(f"Completed uploading checkpoint files to repository '{repo_name}'.")
-
-
-def _save_checkpoint_symlinks(
-    trainer: "Trainer",
-    callback: "HFHubCallback",
-    paths: list[Path],
-    *,
-    root_config: "BaseConfig",
-):
-    config = root_config.trainer.hf_hub
-    if (
-        api := _enabled_and_valid(trainer, callback, config, rank_zero_only=True)
-    ) is None or not config.save_checkpoints:
-        return
-
-    # Resolve the checkpoint directory
-    checkpoint_dir = root_config.directory.resolve_subdirectory(
-        root_config.id, "checkpoint"
-    )
-
-    # Resolve the repository name
-    repo_name = _repo_name(api, root_config)
-
-    # Create a commit for copying the files
-    from huggingface_hub.hf_api import CommitOperation, CommitOperationCopy
-
-    commits: list[CommitOperation] = []
-    for p in paths:
-        assert _is_link(p, trainer=trainer), f"Path {p} is not a symlink."
-
-        try:
-            dest_relative_path = p.relative_to(checkpoint_dir)
-        except ValueError:
-            log.warning(
-                f"Checkpoint path {p} is not within the checkpoint directory {checkpoint_dir}."
-            )
-            continue
-
-        if (p_resolved := _resolve_link(p, trainer=trainer)) is None:
-            log.warning(f"Failed to resolve symlink for path {p}.")
-            continue
-
-        try:
-            source_relative_path = p_resolved.relative_to(checkpoint_dir)
-        except ValueError:
-            log.warning(
-                f"Checkpoint symlink target {p_resolved} is not within the checkpoint directory {checkpoint_dir}."
-            )
-            continue
-
-        # Prefix the path in repo with "checkpoints"
-        dest_path_in_repo = Path("checkpoints") / dest_relative_path
-        source_path_in_repo = Path("checkpoints") / source_relative_path
-
-        # Create and append a CommitOperationCopy for copying the symlink
-        copy_op = CommitOperationCopy(
-            src_path_in_repo=str(source_path_in_repo),
-            path_in_repo=str(dest_path_in_repo),
-        )
-        commits.append(copy_op)
-
-    log.info(f"Creating a commit with the following operations: {commits}")
-
-    try:
-        api.create_commit(
-            repo_id=repo_name,
-            repo_type="model",
-            commit_message="Copy checkpoint symlinks",
-            operations=commits,
-            run_as_future=cast(Any, config.save_in_background),
-        )
-        log.info(
-            f"Created commit to copy checkpoint symlinks to repository '{repo_name}'."
-        )
-    except Exception:
-        log.exception(
-            f"Failed to create commit to copy checkpoint symlinks to repository '{repo_name}'"
-        )
-
-    log.info(f"Completed copying checkpoint symlinks to repository '{repo_name}'.")
+        return cls(local_path=local_path, path_in_repo=path_in_repo)
 
 
 class HFHubCallback(NTCallbackBase):
+    @contextlib.contextmanager
+    def _with_error_handling(self, opeartion: str):
+        try:
+            yield
+        except Exception:
+            log.exception(f"Failed to {opeartion}, repo_id={self._repo_id}")
+        else:
+            log.debug(f"Successfully {opeartion}, repo_id={self._repo_id}")
+
     def __init__(self, config: HuggingFaceHubConfig):
         super().__init__()
+
         self.config = config
+
+        self._repo_id = None
+        self._checksum_to_path_in_repo: dict[str, Path] = {}
 
     @override
     def setup(self, trainer, pl_module, stage):
@@ -491,28 +201,137 @@ class HFHubCallback(NTCallbackBase):
             )
 
         root_config = cast("BaseConfig", pl_module.hparams)
-        _init(trainer=trainer, callback=self, root_config=root_config)
+
+        # Create the repository, if it doesn't exist
+        self._repo_id = self.api.create_repo(
+            repo_id=_repo_name(self.api, root_config),
+            repo_type="model",
+            private=self.config.auto_create.private,
+            exist_ok=True,
+        )
+
+        # Upload the config and code
+        self._save_config(root_config)
+        self._save_code()
 
     @override
     def on_checkpoint_saved(self, ckpt_path, metadata_path, trainer, pl_module):
         root_config = cast("BaseConfig", pl_module.hparams)
 
         # If HF Hub is enabled, then we upload
-        if root_config.trainer.hf_hub and trainer.is_global_zero:
-            # Upload the regular files first, then the symlinks
-            all_paths = [p for p in (ckpt_path, metadata_path) if p is not None]
-            if regular_paths := [
-                p for p in all_paths if not _is_link(p, trainer=trainer)
-            ]:
-                _save_checkpoint_files(
-                    trainer, self, regular_paths, root_config=root_config
-                )
-            if symlink_paths := [p for p in all_paths if _is_link(p, trainer=trainer)]:
-                _save_checkpoint_symlinks(
-                    trainer, self, symlink_paths, root_config=root_config
+        if self.config and trainer.is_global_zero:
+            with self._with_error_handling("save checkpoints"):
+                self._save_checkpoint(
+                    _Upload.from_local_path(ckpt_path, root_config),
+                    _Upload.from_local_path(metadata_path, root_config)
+                    if metadata_path is not None
+                    else None,
                 )
 
     @cached_property
-    def _hf_hub_api(self):
+    def api(self):
         # Create and authenticate the API instance
-        return _api(self.config.token)
+        if (api := _api(self.config.token)) is None:
+            raise ValueError("Failed to create Hugging Face Hub API instance.")
+        return api
+
+    @property
+    def repo_id(self):
+        if self._repo_id is None:
+            raise ValueError("Repository id has not been initialized.")
+        return self._repo_id
+
+    def _save_config(self, root_config: "BaseConfig"):
+        with self._with_error_handling("upload config"):
+            self.api.upload_file(
+                path_or_fileobj=root_config.model_dump_json(indent=4).encode("utf-8"),
+                path_in_repo="config.json",
+                repo_id=self.repo_id,
+                repo_type="model",
+                run_as_future=cast(Any, self.config.save_in_background),
+            )
+
+    def _save_code(self):
+        # If a snapshot has been taken (which can be detected using the SNAPSHOT_DIR env),
+        # then upload all contents within the snapshot directory to the repository.
+        if not (snapshot_dir := os.environ.get(SNAPSHOT_DIR)):
+            log.debug("No snapshot directory found. Skipping upload.")
+            return
+
+        with self._with_error_handling("save code"):
+            snapshot_dir = Path(snapshot_dir)
+            if not snapshot_dir.exists() or not snapshot_dir.is_dir():
+                log.warning(
+                    f"Snapshot directory '{snapshot_dir}' does not exist or is not a directory."
+                )
+                return
+
+            self.api.upload_folder(
+                folder_path=str(snapshot_dir),
+                repo_id=self.repo_id,
+                repo_type="model",
+                path_in_repo="code",  # Prefix with "code" folder
+                run_as_future=cast(Any, self.config.save_in_background),
+            )
+
+    def _save_file(self, p: _Upload):
+        with self._with_error_handling("save file"):
+            # Upload the checkpoint files to the repository
+            self.api.upload_file(
+                path_or_fileobj=p.local_path,
+                path_in_repo=str(p.path_in_repo),
+                repo_id=self.repo_id,
+                repo_type="model",
+                run_as_future=cast(Any, self.config.save_in_background),
+            )
+
+    def _copy_file(self, source_path_in_repo: Path, dest_path_in_repo: Path):
+        # Create a commit for copying the files
+        from huggingface_hub.hf_api import CommitOperationCopy
+
+        with self._with_error_handling("copy file"):
+            copy_op = CommitOperationCopy(
+                src_path_in_repo=str(source_path_in_repo),
+                path_in_repo=str(dest_path_in_repo),
+            )
+
+            self.api.create_commit(
+                repo_id=self.repo_id,
+                repo_type="model",
+                commit_message="Copy checkpoint file",
+                operations=[copy_op],
+                run_as_future=cast(Any, self.config.save_in_background),
+            )
+
+    def _save_checkpoint(self, path: _Upload, metadata_path: _Upload | None):
+        if not self.config.save_checkpoints:
+            return
+
+        # If no metadata, just save regularly.
+        if metadata_path is None:
+            self._save_file(path)
+            return
+
+        # Otherwise, let's check to see if we've already uploaded the metadata.
+        # If so, we can just copy the checkpoint file.
+        from ._checkpoint.metadata import CheckpointMetadata
+
+        metadata = CheckpointMetadata.from_file(metadata_path.local_path)
+        if (
+            existing_ckpt_path := self._checksum_to_path_in_repo.get(
+                metadata.checkpoint_checksum
+            )
+        ) is not None:
+            self._copy_file(existing_ckpt_path, path.path_in_repo)
+        else:
+            # Otherwise, we save the checkpoint & keep the checksum so we don't
+            # re-upload the same file again.
+            self._save_file(path)
+            self._checksum_to_path_in_repo[metadata.checkpoint_checksum] = (
+                path.path_in_repo
+            )
+
+        # Save the metadata file
+        # NOTE: This file is fairly small, so we can just upload it directly.
+        # No need to copy.
+        self._save_file(metadata_path)

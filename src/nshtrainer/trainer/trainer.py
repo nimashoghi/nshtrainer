@@ -280,13 +280,6 @@ class Trainer(LightningTrainer):
     if TYPE_CHECKING:
         callbacks: list[Callback]
 
-    def _nshtrainer_ckpt_link(self, ckpt_path: Path):
-        root_config = cast(BaseConfig, self._base_module.hparams)
-        ckpt_dir = root_config.directory.resolve_subdirectory(
-            root_config.id, "checkpoint"
-        )
-        return str(ckpt_path.absolute().relative_to(ckpt_dir))
-
     @override
     def __init__(
         self,
@@ -295,7 +288,6 @@ class Trainer(LightningTrainer):
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
         self._nshtrainer_checkpoint_cache: dict[tuple[int, int], Path] = {}
-        self._nshtrainer_checkpoint_link_dict = dict[str, Path]()
 
         self._pre_init(config)
 
@@ -454,9 +446,6 @@ class Trainer(LightningTrainer):
                     _link_checkpoint(cached_path, filepath, metadata=False)
                 else:
                     shutil.copy(cached_path, filepath)
-                self._nshtrainer_checkpoint_link_dict[
-                    self._nshtrainer_ckpt_link(filepath)
-                ] = cached_path
             self.strategy.barrier("Trainer.save_checkpoint")
         else:
             super().save_checkpoint(filepath, weights_only, storage_options)
