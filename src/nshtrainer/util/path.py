@@ -1,3 +1,4 @@
+import hashlib
 import os
 from pathlib import Path
 from typing import TypeAlias
@@ -50,3 +51,20 @@ def find_symlinks(
                     pass
 
     return symlinks
+
+
+def compute_file_checksum(file_path: Path) -> str:
+    """
+    Calculate the SHA256 checksum of a file.
+
+    Args:
+        file_path (Path): The path to the file.
+
+    Returns:
+        str: The hexadecimal representation of the file's SHA256 checksum.
+    """
+    sha256_hash = hashlib.sha256()
+    with file_path.open("rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()

@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from ..util._environment_info import EnvironmentConfig
-from ..util.path import get_relative_path
+from ..util.path import compute_file_checksum, get_relative_path
 
 if TYPE_CHECKING:
     from ..model import BaseConfig, LightningModuleBase
@@ -28,6 +28,7 @@ class CheckpointMetadata(C.Config):
 
     checkpoint_path: Path
     checkpoint_filename: str
+    checkpoint_checksum: str
 
     run_id: str
     name: str
@@ -81,6 +82,7 @@ def _generate_checkpoint_metadata(
         # moving the checkpoint directory
         checkpoint_path=checkpoint_path.relative_to(metadata_path.parent),
         checkpoint_filename=checkpoint_path.name,
+        checkpoint_checksum=compute_file_checksum(checkpoint_path),
         run_id=config.id,
         name=config.run_name,
         project=config.project,
