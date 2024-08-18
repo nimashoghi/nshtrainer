@@ -5,7 +5,7 @@ from pathlib import Path
 
 from lightning.pytorch import Trainer
 
-from ..util.path import get_relative_path
+from ..util.path import try_symlink_or_copy
 from .metadata import _link_checkpoint_metadata, _remove_checkpoint_metadata
 
 log = logging.getLogger(__name__)
@@ -34,13 +34,7 @@ def _link_checkpoint(
         if metadata:
             _remove_checkpoint_metadata(linkpath)
 
-    try:
-        linkpath.symlink_to(get_relative_path(linkpath, filepath))
-    except OSError:
-        # on Windows, special permissions are required to create symbolic links as a regular user
-        # fall back to copying the file
-        shutil.copy(filepath, linkpath)
-
+    try_symlink_or_copy(filepath, linkpath)
     if metadata:
         _link_checkpoint_metadata(filepath, linkpath)
 

@@ -1,7 +1,12 @@
 import hashlib
+import logging
 import os
+import platform
+import shutil
 from pathlib import Path
 from typing import TypeAlias
+
+log = logging.getLogger(__name__)
 
 _Path: TypeAlias = str | Path | os.PathLike
 
@@ -68,3 +73,32 @@ def compute_file_checksum(file_path: Path) -> str:
         for byte_block in iter(lambda: f.read(4096), b""):
             sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
+
+
+def try_symlink_or_copy(
+    file_path: Path,
+    link_path: Path,
+    target_is_directory: bool = False,
+    relative: bool = True,
+):
+    """
+    Symlinks on Unix, copies on Windows.
+    """
+
+    symlink_target = get_relative_path(link_path, file_path) if relative else file_path
+    try:
+        if platform.system() == "Windows":
+            if target_is_directory:
+                shutil.copytree(file_path, link_path)
+            else:
+                shutil.copy(file_path, link_path)
+        else:
+            link_path.symlink_to(
+                symlink_target, target_is_directory=target_is_directory
+            )
+    except Exception:
+        log.exception(f"Failed to create symlink or copy {file_path} to {link_path}")
+        return False
+    else:
+        log.debug(f"Created symlink or copied {file_path} to {link_path}")
+        return True

@@ -1,7 +1,6 @@
 import copy
 import datetime
 import logging
-import shutil
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, cast
@@ -11,7 +10,7 @@ import numpy as np
 import torch
 
 from ..util._environment_info import EnvironmentConfig
-from ..util.path import compute_file_checksum, get_relative_path
+from ..util.path import compute_file_checksum, try_symlink_or_copy
 
 if TYPE_CHECKING:
     from ..model import BaseConfig, LightningModuleBase
@@ -142,21 +141,7 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
     # Link the metadata files to the new checkpoint
     path = _metadata_path(checkpoint_path)
     linked_path = _metadata_path(linked_checkpoint_path)
-    try:
-        try:
-            # linked_path.symlink_to(path)
-            # We should store the path as a relative path
-            # to the metadata file to avoid issues with
-            # moving the checkpoint directory
-            linked_path.symlink_to(get_relative_path(linked_path, path))
-        except OSError:
-            # on Windows, special permissions are required to create symbolic links as a regular user
-            # fall back to copying the file
-            shutil.copy(path, linked_path)
-    except Exception:
-        log.exception(f"Failed to link {path} to {linked_path}")
-    else:
-        log.debug(f"Linked {path} to {linked_path}")
+    try_symlink_or_copy(path, linked_path)
 
 
 def _sort_ckpts_by_metadata(
