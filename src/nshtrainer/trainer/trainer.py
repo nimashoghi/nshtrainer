@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -18,7 +19,6 @@ from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Unpack, assert_never, override
 
 from .._checkpoint.metadata import _write_checkpoint_metadata
-from .._checkpoint.saver import _link_checkpoint
 from ..callbacks.base import resolve_all_callbacks
 from ..model.config import (
     AcceleratorConfigProtocol,
@@ -280,6 +280,12 @@ class Trainer(LightningTrainer):
     if TYPE_CHECKING:
         callbacks: list[Callback]
 
+    def _nshtrainer_checkpoint_cache_get(self, key: tuple[int, int]):
+        return next(
+            (ckpt for ckpt in self._nshtrainer_checkpoint_cache[key] if ckpt.exists()),
+            None,
+        )
+
     @override
     def __init__(
         self,
@@ -287,7 +293,9 @@ class Trainer(LightningTrainer):
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
-        self._nshtrainer_checkpoint_cache: dict[tuple[int, int], Path] = {}
+        self._nshtrainer_checkpoint_cache = defaultdict[tuple[int, int], list[Path]](
+            lambda: []
+        )
 
         self._pre_init(config)
 
@@ -417,7 +425,6 @@ class Trainer(LightningTrainer):
         weights_only: bool = False,
         storage_options: Any | None = None,
         use_checkpoint_cache: bool | None = None,
-        ckpt_cache_use_symlink: bool = False,
     ):
         lm = self._base_module
         root_config = cast(BaseConfig, lm.hparams)
@@ -433,7 +440,7 @@ class Trainer(LightningTrainer):
         if (
             use_checkpoint_cache
             and (
-                cached_path := self._nshtrainer_checkpoint_cache.get(
+                cached_path := self._nshtrainer_checkpoint_cache_get(
                     (self.current_epoch, self.global_step)
                 )
             )
@@ -442,10 +449,7 @@ class Trainer(LightningTrainer):
             # If we have a cached path, then we symlink it to the new path.
             log.info(f"Re-using cached checkpoint {cached_path} for {filepath}.")
             if self.is_global_zero:
-                if ckpt_cache_use_symlink:
-                    _link_checkpoint(cached_path, filepath, metadata=False)
-                else:
-                    shutil.copy(cached_path, filepath)
+                shutil.copy(cached_path, filepath)
             self.strategy.barrier("Trainer.save_checkpoint")
         else:
             super().save_checkpoint(filepath, weights_only, storage_options)
@@ -454,7 +458,7 @@ class Trainer(LightningTrainer):
         if use_checkpoint_cache and cached_path is None:
             self._nshtrainer_checkpoint_cache[
                 (self.current_epoch, self.global_step)
-            ] = filepath
+            ].append(filepath)
             log.debug(f"Checkpoint saved to cache: {filepath}")
 
         # Save the checkpoint metadata

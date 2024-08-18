@@ -1012,7 +1012,7 @@ class TrainerConfig(C.Config):
     """If enabled, the model supports scaling the gradients of shared parameters that are registered using `LightningModuleBase.register_shared_parameters(...)`"""
     save_checkpoint_metadata: bool = True
     """If enabled, will save additional metadata whenever a checkpoint is saved."""
-    use_checkpoint_cache: bool = True
+    use_checkpoint_cache: bool = False
     """If enabled, will optimize the saving of duplicate checkpoints by creating symlinks instead of copying the file."""
 
     lightning_kwargs: LightningTrainerKwargs = LightningTrainerKwargs()

@@ -153,10 +153,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         # Save the new checkpoint
         filepath = self.resolve_checkpoint_path(self.current_metrics(trainer))
         trainer._nshtrainer_save_checkpoint(
-            filepath,
-            self.config.save_weights_only,
-            use_checkpoint_cache=None,
-            ckpt_cache_use_symlink=False,
+            filepath, self.config.save_weights_only, use_checkpoint_cache=None
         )
 
         if trainer.is_global_zero:
