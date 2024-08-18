@@ -188,27 +188,19 @@ class HFHubCallback(NTCallbackBase):
 
         self.config = config
 
-        self._repo_id = None
+        self._repo_id: str | None = None
         self._checksum_to_path_in_repo: dict[str, Path] = {}
 
     @override
     def setup(self, trainer, pl_module, stage):
-        from .trainer.trainer import Trainer
-
-        if not isinstance(trainer, Trainer):
-            raise ValueError(
-                f"HFHubCallback requires a `nshtrainer.Trainer` instance, got {type(trainer)}."
-            )
-
         root_config = cast("BaseConfig", pl_module.hparams)
+        self._repo_id = _repo_name(self.api, root_config)
+
+        if not self.config or not trainer.is_global_zero:
+            return
 
         # Create the repository, if it doesn't exist
-        self._repo_id = self.api.create_repo(
-            repo_id=_repo_name(self.api, root_config),
-            repo_type="model",
-            private=self.config.auto_create.private,
-            exist_ok=True,
-        )
+        self._create_repo_if_not_exists()
 
         # Upload the config and code
         self._save_config(root_config)
@@ -216,17 +208,22 @@ class HFHubCallback(NTCallbackBase):
 
     @override
     def on_checkpoint_saved(self, ckpt_path, metadata_path, trainer, pl_module):
-        root_config = cast("BaseConfig", pl_module.hparams)
-
         # If HF Hub is enabled, then we upload
-        if self.config and trainer.is_global_zero:
-            with self._with_error_handling("save checkpoints"):
-                self._save_checkpoint(
-                    _Upload.from_local_path(ckpt_path, root_config),
-                    _Upload.from_local_path(metadata_path, root_config)
-                    if metadata_path is not None
-                    else None,
-                )
+        if (
+            not self.config
+            or not self.config.save_checkpoints
+            or not trainer.is_global_zero
+        ):
+            return
+
+        with self._with_error_handling("save checkpoints"):
+            root_config = cast("BaseConfig", pl_module.hparams)
+            self._save_checkpoint(
+                _Upload.from_local_path(ckpt_path, root_config),
+                _Upload.from_local_path(metadata_path, root_config)
+                if metadata_path is not None
+                else None,
+            )
 
     @cached_property
     def api(self):
@@ -240,6 +237,33 @@ class HFHubCallback(NTCallbackBase):
         if self._repo_id is None:
             raise ValueError("Repository id has not been initialized.")
         return self._repo_id
+
+    def _create_repo_if_not_exists(self):
+        if not self.config or not self.config.auto_create:
+            return
+
+        # Create the repository, if it doesn't exist
+        with self._with_error_handling("create repository"):
+            from huggingface_hub.utils import RepositoryNotFoundError
+
+            try:
+                # Check if the repository exists
+                self.api.repo_info(repo_id=self.repo_id, repo_type="model")
+                log.info(f"Repository '{self.repo_id}' already exists.")
+            except RepositoryNotFoundError:
+                # Repository doesn't exist, so create it
+                try:
+                    self.api.create_repo(
+                        repo_id=self.repo_id,
+                        repo_type="model",
+                        private=self.config.auto_create.private,
+                        exist_ok=True,
+                    )
+                    log.info(f"Created new repository '{self.repo_id}'.")
+                except Exception:
+                    log.exception(f"Failed to create repository '{self.repo_id}'")
+            except Exception:
+                log.exception(f"Error checking repository '{self.repo_id}'")
 
     def _save_config(self, root_config: "BaseConfig"):
         with self._with_error_handling("upload config"):
