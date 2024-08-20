@@ -359,19 +359,3 @@ class HFHubCallback(NTCallbackBase):
         # NOTE: This file is fairly small, so we can just upload it directly.
         # No need to copy.
         self._save_file(metadata_path)
-
-    @override
-    def state_dict(self):
-        return {
-            "repo_id": self._repo_id,
-            "checksum_to_path_in_repo": {
-                k: str(v) for k, v in self._checksum_to_path_in_repo.items()
-            },
-        }
-
-    @override
-    def load_state_dict(self, state_dict):
-        self._repo_id = state_dict["repo_id"]
-        self._checksum_to_path_in_repo = {
-            k: Path(v) for k, v in state_dict["checksum_to_path_in_repo"].items()
-        }
