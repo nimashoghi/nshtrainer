@@ -306,9 +306,15 @@ class HFHubCallback(NTCallbackBase):
 
     def _save_file(self, p: _Upload):
         with self._with_error_handling("save file"):
+            # First, read the file into memory.
+            # We do this to avoid issues with
+            # the file being moved or deleted.
+            with p.local_path.open("rb") as f:
+                data = f.read()
+
             # Upload the checkpoint files to the repository
             self.api.upload_file(
-                path_or_fileobj=p.local_path,
+                path_or_fileobj=data,
                 path_in_repo=str(p.path_in_repo),
                 repo_id=self.repo_id,
                 repo_type="model",
