@@ -97,7 +97,10 @@ def try_symlink_or_copy(
                 symlink_target, target_is_directory=target_is_directory
             )
     except Exception:
-        log.exception(f"Failed to create symlink or copy {file_path} to {link_path}")
+        log.warning(
+            f"Failed to create symlink or copy {file_path} to {link_path}",
+            exc_info=True,
+        )
         return False
     else:
         log.debug(f"Created symlink or copied {file_path} to {link_path}")

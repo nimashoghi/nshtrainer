@@ -179,7 +179,9 @@ class HFHubCallback(NTCallbackBase):
         try:
             yield
         except Exception:
-            log.exception(f"Failed to {opeartion}, repo_id={self._repo_id}")
+            log.warning(
+                f"Failed to {opeartion}, repo_id={self._repo_id}", exc_info=True
+            )
         else:
             log.debug(f"Successfully {opeartion}, repo_id={self._repo_id}")
 
@@ -261,9 +263,13 @@ class HFHubCallback(NTCallbackBase):
                     )
                     log.info(f"Created new repository '{self.repo_id}'.")
                 except Exception:
-                    log.exception(f"Failed to create repository '{self.repo_id}'")
+                    log.warning(
+                        f"Failed to create repository '{self.repo_id}'", exc_info=True
+                    )
             except Exception:
-                log.exception(f"Error checking repository '{self.repo_id}'")
+                log.warning(
+                    f"Error checking repository '{self.repo_id}'", exc_info=True
+                )
 
     def _save_config(self, root_config: "BaseConfig"):
         with self._with_error_handling("upload config"):

@@ -434,7 +434,7 @@ class EnvironmentPackageConfig(C.Config):
                         requires=requires,
                     )
                 except Exception:
-                    log.exception(f"Error processing package {dist.name}")
+                    log.warning(f"Error processing package {dist.name}", exc_info=True)
 
         except ImportError:
             log.warning(
@@ -673,7 +673,7 @@ class GitRepositoryConfig(C.Config):
         except git.InvalidGitRepositoryError:
             draft.is_git_repo = False
         except Exception:
-            log.exception("Failed to get Git repository information")
+            log.warning("Failed to get Git repository information", exc_info=True)
             draft.is_git_repo = None
 
         return draft.finalize()

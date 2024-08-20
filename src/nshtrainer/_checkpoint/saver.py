@@ -25,11 +25,11 @@ def _link_checkpoint(
         try:
             if linkpath.exists():
                 if linkpath.is_dir():
-                    shutil.rmtree(linkpath, ignore_errors=True)
+                    shutil.rmtree(linkpath)
                 else:
                     linkpath.unlink(missing_ok=True)
         except Exception:
-            log.exception(f"Failed to remove {linkpath}")
+            log.warning(f"Failed to remove {linkpath}", exc_info=True)
 
         if metadata:
             _remove_checkpoint_metadata(linkpath)
