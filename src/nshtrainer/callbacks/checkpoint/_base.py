@@ -9,7 +9,7 @@ from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import Checkpoint
 from typing_extensions import TypeVar, override
 
-from ..._checkpoint.metadata import CheckpointMetadata, _metadata_path
+from ..._checkpoint.metadata import CheckpointMetadata
 from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
 from ..base import CallbackConfigBase
 
