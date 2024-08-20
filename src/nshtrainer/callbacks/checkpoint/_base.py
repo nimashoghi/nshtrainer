@@ -168,16 +168,6 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         # deleted the old checkpoints, and created the symlink before continuing
         trainer.strategy.barrier()
 
-        # Call the on save checkpoint callback for the symlink (if it exists)
-        if (symlink_filename := self.symlink_path()) is not None:
-            from ... import _callback
-
-            symlink_path = self.dirpath / symlink_filename
-            symlink_metadata_path = _metadata_path(symlink_path)
-            _callback._call_on_checkpoint_saved(
-                trainer, symlink_path, symlink_metadata_path
-            )
-
     def _should_skip_saving_checkpoint(self, trainer: Trainer) -> bool:
         from lightning.pytorch.trainer.states import TrainerFn
 
