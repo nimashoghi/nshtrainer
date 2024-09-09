@@ -155,14 +155,14 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
 
         if trainer.is_global_zero:
+            # Remove old checkpoints
+            self.remove_old_checkpoints(trainer)
+
             # Create the latest symlink
             if (symlink_filename := self.symlink_path()) is not None:
                 symlink_path = self.dirpath / symlink_filename
                 _link_checkpoint(filepath, symlink_path, metadata=True)
                 log.debug(f"Created latest symlink: {symlink_path}")
-
-            # Remove old checkpoints
-            self.remove_old_checkpoints(trainer)
 
         # Barrier to ensure all processes have saved the checkpoint,
         # deleted the old checkpoints, and created the symlink before continuing
