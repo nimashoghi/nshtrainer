@@ -2,11 +2,11 @@ import math
 import warnings
 from typing import Literal
 
-import nshconfig as C
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from typing_extensions import override
 
+from ..config import Duration
 from ._base import LRSchedulerConfigBase, LRSchedulerMetadata
 
 
@@ -91,13 +91,13 @@ class LinearWarmupCosineAnnealingLR(LRScheduler):
 class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
     name: Literal["linear_warmup_cosine_decay"] = "linear_warmup_cosine_decay"
 
-    warmup_epochs: int = C.Field(ge=0)
-    r"""The number of epochs for the linear warmup phase.
-    The learning rate is linearly increased from `warmup_start_lr` to the initial learning rate over this number of epochs."""
+    warmup_duration: Duration
+    r"""The duration for the linear warmup phase.
+    The learning rate is linearly increased from `warmup_start_lr` to the initial learning rate over this duration."""
 
-    max_epochs: int = C.Field(gt=0)
-    r"""The total number of epochs.
-    The learning rate is decayed to `min_lr` over this number of epochs."""
+    max_duration: Duration
+    r"""The total duration.
+    The learning rate is decayed to `min_lr` over this duration."""
 
     warmup_start_lr_factor: float = 0.0
     r"""The initial learning rate for the linear warmup phase, as a factor of the initial learning rate.
@@ -121,10 +121,19 @@ class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
     @override
     def create_scheduler_impl(self, optimizer, lightning_module, lr):
         num_steps_per_epoch = self.compute_num_steps_per_epoch(lightning_module)
-        warmup_steps = self.warmup_epochs * num_steps_per_epoch
-        max_steps = self.max_epochs * num_steps_per_epoch
+        warmup_steps = (
+            self.warmup_duration.to_steps(num_steps_per_epoch).value
+            * num_steps_per_epoch
+        )
+        max_steps = (
+            self.max_duration.to_steps(num_steps_per_epoch).value * num_steps_per_epoch
+        )
         warmup_start_lr = self.warmup_start_lr_factor * lr
         min_lr = self.min_lr_factor * lr
+
+        # Warmup and max steps should be at least 1.
+        warmup_steps = max(warmup_steps, 1)
+        max_steps = max(max_steps, 1)
 
         # Create the scheduler
         scheduler = LinearWarmupCosineAnnealingLR(
