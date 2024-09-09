@@ -121,13 +121,8 @@ class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
     @override
     def create_scheduler_impl(self, optimizer, lightning_module, lr):
         num_steps_per_epoch = self.compute_num_steps_per_epoch(lightning_module)
-        warmup_steps = (
-            self.warmup_duration.to_steps(num_steps_per_epoch).value
-            * num_steps_per_epoch
-        )
-        max_steps = (
-            self.max_duration.to_steps(num_steps_per_epoch).value * num_steps_per_epoch
-        )
+        warmup_steps = self.warmup_duration.to_steps(num_steps_per_epoch).value
+        max_steps = self.max_duration.to_steps(num_steps_per_epoch).value
         warmup_start_lr = self.warmup_start_lr_factor * lr
         min_lr = self.min_lr_factor * lr
 
