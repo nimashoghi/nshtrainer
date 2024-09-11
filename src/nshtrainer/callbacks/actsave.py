@@ -23,11 +23,9 @@ class ActSaveConfig(CallbackConfigBase):
         return self.enabled
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield ActSaveCallback(
-            self,
-            self.save_dir
-            or root_config.directory.resolve_subdirectory(root_config.id, "activation"),
+            self, trainer_config.dir_or_default_subdir(self.save_dir, "activation")
         )
 
 

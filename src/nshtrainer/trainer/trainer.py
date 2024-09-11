@@ -18,15 +18,15 @@ from typing_extensions import Unpack, assert_never, override
 
 from .._checkpoint.metadata import _write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
-from ..model.config import (
+from ._runtime_callback import RuntimeTrackerCallback, Stage
+from .checkpoint_connector import _CheckpointConnector
+from .config import (
     AcceleratorConfigProtocol,
-    BaseConfig,
     BaseProfilerConfig,
     LightningTrainerKwargs,
     StrategyConfigProtocol,
+    TrainerConfig,
 )
-from ._runtime_callback import RuntimeTrackerCallback, Stage
-from .checkpoint_connector import _CheckpointConnector
 from .signal_connector import _SignalConnector
 
 log = logging.getLogger(__name__)
@@ -57,55 +57,61 @@ def _is_bf16_supported_no_emulation():
 
 
 class Trainer(LightningTrainer):
+    hparams: TrainerConfig
+
+    @property
+    def config(self):
+        return self.hparams
+
     @classmethod
-    def _pre_init(cls, config: BaseConfig):
-        if (precision := config.trainer.set_float32_matmul_precision) is not None:
+    def _pre_init(cls, config: TrainerConfig):
+        if (precision := config.set_float32_matmul_precision) is not None:
             torch.set_float32_matmul_precision(precision)
 
     @classmethod
     def _update_kwargs(
         cls,
-        config: BaseConfig,
+        config: TrainerConfig,
         kwargs_ctor: LightningTrainerKwargs,
     ):
         kwargs: LightningTrainerKwargs = {
-            "deterministic": config.trainer.reproducibility.deterministic,
-            "fast_dev_run": config.trainer.fast_dev_run,
-            "max_epochs": config.trainer.max_epochs,
-            "min_epochs": config.trainer.min_epochs,
-            "max_steps": config.trainer.max_steps,
-            "min_steps": config.trainer.min_steps,
-            "max_time": config.trainer.max_time,
-            "limit_train_batches": config.trainer.limit_train_batches,
-            "limit_val_batches": config.trainer.limit_val_batches,
-            "limit_test_batches": config.trainer.limit_test_batches,
-            "limit_predict_batches": config.trainer.limit_predict_batches,
-            "overfit_batches": config.trainer.overfit_batches,
-            "val_check_interval": config.trainer.val_check_interval,
-            "num_sanity_val_steps": config.trainer.num_sanity_val_steps,
-            "log_every_n_steps": config.trainer.log_every_n_steps,
-            "inference_mode": config.trainer.inference_mode,
+            "deterministic": config.reproducibility.deterministic,
+            "fast_dev_run": config.fast_dev_run,
+            "max_epochs": config.max_epochs,
+            "min_epochs": config.min_epochs,
+            "max_steps": config.max_steps,
+            "min_steps": config.min_steps,
+            "max_time": config.max_time,
+            "limit_train_batches": config.limit_train_batches,
+            "limit_val_batches": config.limit_val_batches,
+            "limit_test_batches": config.limit_test_batches,
+            "limit_predict_batches": config.limit_predict_batches,
+            "overfit_batches": config.overfit_batches,
+            "val_check_interval": config.val_check_interval,
+            "num_sanity_val_steps": config.num_sanity_val_steps,
+            "log_every_n_steps": config.log_every_n_steps,
+            "inference_mode": config.inference_mode,
             "callbacks": [],
             "plugins": [],
             "logger": [],
             # Moved to `lightning_kwargs`:
-            # "enable_checkpointing": config.trainer.enable_checkpointing,
-            # "accelerator": config.trainer.accelerator,
-            # "strategy": config.trainer.strategy,
-            # "num_nodes": config.trainer.num_nodes,
-            # "precision": config.trainer.precision,
-            # "logger": config.trainer.logging.enabled,
-            # "log_every_n_steps": config.trainer.log_every_n_steps,
-            # "enable_progress_bar": config.trainer.enable_progress_bar,
-            # "enable_model_summary": config.trainer.enable_model_summary,
-            # "accumulate_grad_batches": config.trainer.accumulate_grad_batches,
-            # "benchmark": config.trainer.benchmark,
-            # "use_distributed_sampler": config.trainer.use_distributed_sampler,
-            # "detect_anomaly": config.trainer.detect_anomaly,
-            # "barebones": config.trainer.barebones,
-            # "plugins": config.trainer.plugins,
-            # "sync_batchnorm": config.trainer.sync_batchnorm,
-            # "reload_dataloaders_every_n_epochs": config.trainer.reload_dataloaders_every_n_epochs,
+            # "enable_checkpointing": config.enable_checkpointing,
+            # "accelerator": config.accelerator,
+            # "strategy": config.strategy,
+            # "num_nodes": config.num_nodes,
+            # "precision": config.precision,
+            # "logger": config.logging.enabled,
+            # "log_every_n_steps": config.log_every_n_steps,
+            # "enable_progress_bar": config.enable_progress_bar,
+            # "enable_model_summary": config.enable_model_summary,
+            # "accumulate_grad_batches": config.accumulate_grad_batches,
+            # "benchmark": config.benchmark,
+            # "use_distributed_sampler": config.use_distributed_sampler,
+            # "detect_anomaly": config.detect_anomaly,
+            # "barebones": config.barebones,
+            # "plugins": config.plugins,
+            # "sync_batchnorm": config.sync_batchnorm,
+            # "reload_dataloaders_every_n_epochs": config.reload_dataloaders_every_n_epochs,
         }
 
         def _update_key(key: str, new_value: Any):
@@ -135,20 +141,20 @@ class Trainer(LightningTrainer):
                 _update_key(key, value)
 
         # Set `default_root_dir` if `auto_set_default_root_dir` is enabled.
-        if config.trainer.auto_set_default_root_dir:
+        if config.auto_set_default_root_dir:
             if kwargs.get("default_root_dir"):
                 raise ValueError(
-                    "You have set `config.trainer.default_root_dir`. "
+                    "You have set `config.default_root_dir`. "
                     "But we are trying to set it automatically. "
-                    "Please use `config.directory.base` rather than `config.trainer.default_root_dir`. "
-                    "If you want to set it manually, please set `config.trainer.auto_set_default_root_dir=False`."
+                    "Please use `config.directory.base` rather than `config.default_root_dir`. "
+                    "If you want to set it manually, please set `config.auto_set_default_root_dir=False`."
                 )
 
             _update_kwargs(
-                default_root_dir=config.directory.resolve_run_root_directory(config.id)
+                default_root_dir=config.directory.resolve_run_root_directory(config.run)
             )
 
-        if (devices_input := config.trainer.devices) is not None:
+        if (devices_input := config.devices) is not None:
             match devices_input:
                 case "all":
                     devices = -1
@@ -161,22 +167,20 @@ class Trainer(LightningTrainer):
 
             _update_kwargs(devices=devices)
 
-        if (
-            use_distributed_sampler := config.trainer.use_distributed_sampler
-        ) is not None:
+        if (use_distributed_sampler := config.use_distributed_sampler) is not None:
             _update_kwargs(use_distributed_sampler=use_distributed_sampler)
 
-        if (accelerator := config.trainer.accelerator) is not None:
+        if (accelerator := config.accelerator) is not None:
             if isinstance(accelerator, AcceleratorConfigProtocol):
                 accelerator = accelerator.create_accelerator()
             _update_kwargs(accelerator=accelerator)
 
-        if (strategy := config.trainer.strategy) is not None:
+        if (strategy := config.strategy) is not None:
             if isinstance(strategy, StrategyConfigProtocol):
                 strategy = strategy.create_strategy()
             _update_kwargs(strategy=strategy)
 
-        if (precision := config.trainer.precision) is not None:
+        if (precision := config.precision) is not None:
             resolved_precision: _PRECISION_INPUT
             match precision:
                 case "64-true" | "32-true" | "bf16-mixed":
@@ -204,11 +208,11 @@ class Trainer(LightningTrainer):
 
             _update_kwargs(precision=resolved_precision)
 
-        if (detect_anomaly := config.trainer.detect_anomaly) is not None:
+        if (detect_anomaly := config.detect_anomaly) is not None:
             _update_kwargs(detect_anomaly=detect_anomaly)
 
         if (
-            grad_clip_config := config.trainer.optimizer.gradient_clipping
+            grad_clip_config := config.optimizer.gradient_clipping
         ) is not None and grad_clip_config.enabled:
             # kwargs["gradient_clip_algorithm"] = grad_clip_config.algorithm
             # kwargs["gradient_clip_val"] = grad_clip_config.value
@@ -217,7 +221,7 @@ class Trainer(LightningTrainer):
                 gradient_clip_val=grad_clip_config.value,
             )
 
-        if profiler := config.trainer.profiler:
+        if profiler := config.profiler:
             # If the profiler is an ProfilerConfig instance, then we instantiate it.
             if isinstance(profiler, BaseProfilerConfig):
                 profiler = profiler.create_profiler(config)
@@ -233,20 +237,20 @@ class Trainer(LightningTrainer):
         if callbacks := resolve_all_callbacks(config):
             _update_kwargs(callbacks=callbacks)
 
-        if plugin_configs := config.trainer.plugins:
+        if plugin_configs := config.plugins:
             _update_kwargs(
                 plugins=[
                     plugin_config.create_plugin() for plugin_config in plugin_configs
                 ]
             )
 
-        if not config.trainer.logging.enabled:
-            log.critical(f"Disabling logger because {config.trainer.logging.enabled=}.")
+        if not config.logging.enabled:
+            log.critical(f"Disabling logger because {config.logging.enabled=}.")
             kwargs["logger"] = False
         else:
-            _update_kwargs(logger=list(config.trainer.logging.create_loggers(config)))
+            _update_kwargs(logger=list(config.logging.create_loggers(config)))
 
-        if config.trainer.auto_determine_num_nodes:
+        if config.auto_determine_num_nodes:
             # When num_nodes is auto, we need to detect the number of nodes.
             if SLURMEnvironment.detect():
                 if (num_nodes := os.environ.get("SLURM_NNODES")) is not None:
@@ -265,12 +269,12 @@ class Trainer(LightningTrainer):
                 _update_kwargs(num_nodes=num_nodes)
             else:
                 log.info(
-                    "config.trainer.auto_determine_num_nodes ignored because no SLURM or LSF detected."
+                    "config.auto_determine_num_nodes ignored because no SLURM or LSF detected."
                 )
 
-        # Update the kwargs with the additional trainer kwargs
-        _update_kwargs(**cast(Any, config.trainer.additional_lightning_kwargs))
-        _update_kwargs(**config.trainer.lightning_kwargs)
+        # Update the kwargs with the additional kwargs
+        _update_kwargs(**cast(Any, config.additional_lightning_kwargs))
+        _update_kwargs(**config.lightning_kwargs)
         _update_kwargs(**kwargs_ctor)
 
         return kwargs
@@ -281,13 +285,16 @@ class Trainer(LightningTrainer):
     @override
     def __init__(
         self,
-        config: BaseConfig,
+        hparams: TrainerConfig,
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
-        self._pre_init(config)
+        self.hparams = hparams
+        del hparams
 
-        kwargs = self._update_kwargs(config, kwargs)
+        self._pre_init(self.config)
+
+        kwargs = self._update_kwargs(self.config, kwargs_ctor=kwargs)
         log.critical(f"LightningTrainer.__init__ with {kwargs=}.")
 
         super().__init__(**kwargs)
@@ -307,7 +314,7 @@ class Trainer(LightningTrainer):
         log.critical(f"LightningTrainer log directory: {self.log_dir}.")
 
         # Set the checkpoint
-        if (ckpt_path := config.trainer.ckpt_path) is not None:
+        if (ckpt_path := self.config.ckpt_path) is not None:
             self.ckpt_path = str(Path(ckpt_path).resolve().absolute())
 
     def __runtime_tracker(self):
@@ -424,8 +431,7 @@ class Trainer(LightningTrainer):
         # Save the checkpoint metadata
         metadata_path = None
         lm = self._base_module
-        root_config = cast(BaseConfig, lm.hparams)
-        if root_config.trainer.save_checkpoint_metadata and self.is_global_zero:
+        if self.config.save_checkpoint_metadata and self.is_global_zero:
             # Generate the metadata and write to disk
             if (
                 metadata_path := _write_checkpoint_metadata(self, lm, filepath)

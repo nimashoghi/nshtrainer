@@ -12,30 +12,20 @@ from ..callbacks.base import CallbackConfigBase
 from ._base import BaseLoggerConfig
 
 if TYPE_CHECKING:
-    from ..model.config import BaseConfig
+    from ..trainer.config import TrainerConfig
 
 log = logging.getLogger(__name__)
 
 
 def _project_name(
-    root_config: "BaseConfig",
-    default_project: str = "lightning_logs",
+    trainer_config: "TrainerConfig", default_project: str = "nshtrainer_logs"
 ):
     # If the config has a project name, use that.
-    if project := root_config.project:
+    if project := trainer_config.run.project:
         return project
 
-    # Otherwise, we should use the name of the module that the config is defined in,
-    #   if we can find it.
-    # If this isn't in a module, use the default project name.
-    if not (module := root_config.__module__):
-        return default_project
-
-    # If the module is a package, use the package name.
-    if not (module := module.split(".", maxsplit=1)[0].strip()):
-        return default_project
-
-    return module
+    # Otherwise, use the default project name.
+    return default_project
 
 
 def _wandb_available():
@@ -111,7 +101,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
         return self
 
     @override
-    def create_logger(self, root_config):
+    def create_logger(self, trainer_config):
         if not self.enabled:
             return None
 
@@ -136,28 +126,28 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
 
         from lightning.pytorch.loggers.wandb import WandbLogger
 
-        save_dir = root_config.directory._resolve_log_directory_for_logger(
-            root_config.id,
+        save_dir = trainer_config.directory._resolve_log_directory_for_logger(
+            trainer_config.run.id,
             self,
         )
         return WandbLogger(
             save_dir=save_dir,
-            project=self.project or _project_name(root_config),
-            name=root_config.run_name,
-            version=root_config.id,
+            project=self.project or _project_name(trainer_config),
+            name=trainer_config.run.name,
+            version=trainer_config.run.id,
             log_model=self.log_model,
             notes=(
-                "\n".join(f"- {note}" for note in root_config.notes)
-                if root_config.notes
+                "\n".join(f"- {note}" for note in notes)
+                if (notes := trainer_config.run.notes)
                 else None
             ),
-            tags=root_config.tags,
+            tags=trainer_config.run.tags,
             offline=self.offline,
         )
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield FinishWandbOnTeardownCallback()
 
         if self.watch:
-            yield from self.watch.create_callbacks(root_config)
+            yield from self.watch.create_callbacks(trainer_config)

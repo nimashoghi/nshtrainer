@@ -46,9 +46,9 @@ class EarlyStoppingConfig(CallbackConfigBase):
     """
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         if (metric := self.metric) is None and (
-            metric := root_config.primary_metric
+            metric := trainer_config.primary_metric
         ) is None:
             raise ValueError(
                 "Either `metric` or `root_config.primary_metric` must be set."

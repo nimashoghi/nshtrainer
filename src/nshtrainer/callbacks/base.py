@@ -9,7 +9,7 @@ from lightning.pytorch import Callback
 from typing_extensions import TypedDict, Unpack
 
 if TYPE_CHECKING:
-    from ..model.config import BaseConfig
+    from ..trainer.config import TrainerConfig
 
 
 class CallbackMetadataConfig(TypedDict, total=False):
@@ -47,15 +47,15 @@ class CallbackConfigBase(C.Config, ABC):
 
     @abstractmethod
     def create_callbacks(
-        self, root_config: "BaseConfig"
+        self, trainer_config: "TrainerConfig"
     ) -> Iterable[Callback | CallbackWithMetadata]: ...
 
 
 # region Config resolution helpers
 def _create_callbacks_with_metadata(
-    config: CallbackConfigBase, root_config: "BaseConfig"
+    config: CallbackConfigBase, trainer_config: "TrainerConfig"
 ) -> Iterable[CallbackWithMetadata]:
-    for callback in config.create_callbacks(root_config):
+    for callback in config.create_callbacks(trainer_config):
         if isinstance(callback, CallbackWithMetadata):
             yield callback
             continue
@@ -100,16 +100,16 @@ def _process_and_filter_callbacks(
     return [callback.callback for callback in callbacks]
 
 
-def resolve_all_callbacks(root_config: "BaseConfig"):
+def resolve_all_callbacks(trainer_config: "TrainerConfig"):
     callback_configs = [
         config
-        for config in root_config._nshtrainer_all_callback_configs()
+        for config in trainer_config._nshtrainer_all_callback_configs()
         if config is not None
     ]
     callbacks = _process_and_filter_callbacks(
         callback
         for callback_config in callback_configs
-        for callback in _create_callbacks_with_metadata(callback_config, root_config)
+        for callback in _create_callbacks_with_metadata(callback_config, trainer_config)
     )
     return callbacks
 

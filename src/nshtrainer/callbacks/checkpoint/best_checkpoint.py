@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Literal
 
 from lightning.pytorch import LightningModule, Trainer
-from typing_extensions import final, override
+from typing_extensions import override
 
 from nshtrainer._checkpoint.metadata import CheckpointMetadata
 
@@ -13,7 +13,6 @@ from ._base import BaseCheckpointCallbackConfig, CheckpointBase
 log = logging.getLogger(__name__)
 
 
-@final
 class BestCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     name: Literal["best_checkpoint"] = "best_checkpoint"
 
@@ -21,10 +20,10 @@ class BestCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     """Metric to monitor, or `None` to use the default metric."""
 
     @override
-    def create_checkpoint(self, root_config, dirpath):
+    def create_checkpoint(self, trainer_config, dirpath):
         # Resolve metric
         if (metric := self.metric) is None and (
-            metric := root_config.primary_metric
+            metric := trainer_config.primary_metric
         ) is None:
             raise ValueError(
                 "No metric provided and no primary metric found in the root config"
@@ -33,7 +32,6 @@ class BestCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
         return BestCheckpoint(self, dirpath, metric)
 
 
-@final
 class BestCheckpoint(CheckpointBase[BestCheckpointCallbackConfig]):
     @property
     def _metric_name_normalized(self):

@@ -14,13 +14,13 @@ from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
 from ..base import CallbackConfigBase
 
 if TYPE_CHECKING:
-    from ...model.config import BaseConfig
+    from ...trainer.config import TrainerConfig
 
 log = logging.getLogger(__name__)
 
 
 class BaseCheckpointCallbackConfig(CallbackConfigBase, ABC):
-    dirpath: str | Path | None = None
+    dirpath: Path | None = None
     """Directory path to save the checkpoint file."""
 
     filename: str | None = None
@@ -39,18 +39,15 @@ class BaseCheckpointCallbackConfig(CallbackConfigBase, ABC):
     @abstractmethod
     def create_checkpoint(
         self,
-        root_config: "BaseConfig",
+        trainer_config: "TrainerConfig",
         dirpath: Path,
     ) -> "CheckpointBase": ...
 
     @override
-    def create_callbacks(self, root_config):
-        dirpath = Path(
-            self.dirpath
-            or root_config.directory.resolve_subdirectory(root_config.id, "checkpoint")
-        )
+    def create_callbacks(self, trainer_config):
+        dirpath = trainer_config.dir_or_default_subdir(self.dirpath, "checkpoint")
 
-        yield self.create_checkpoint(root_config, dirpath)
+        yield self.create_checkpoint(trainer_config, dirpath)
 
 
 TConfig = TypeVar("TConfig", bound=BaseCheckpointCallbackConfig, infer_variance=True)

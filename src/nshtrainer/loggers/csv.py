@@ -21,20 +21,20 @@ class CSVLoggerConfig(BaseLoggerConfig):
     """How often to flush logs to disk."""
 
     @override
-    def create_logger(self, root_config):
+    def create_logger(self, trainer_config):
         if not self.enabled:
             return None
 
         from lightning.pytorch.loggers.csv_logs import CSVLogger
 
-        save_dir = root_config.directory._resolve_log_directory_for_logger(
-            root_config.id,
+        save_dir = trainer_config.directory._resolve_log_directory_for_logger(
+            trainer_config.run.id,
             self,
         )
         return CSVLogger(
             save_dir=save_dir,
-            name=root_config.run_name,
-            version=root_config.id,
+            name=trainer_config.run.name,
+            version=trainer_config.run.id,
             prefix=self.prefix,
             flush_logs_every_n_steps=self.flush_logs_every_n_steps,
         )

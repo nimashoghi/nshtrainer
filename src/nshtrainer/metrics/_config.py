@@ -2,6 +2,7 @@ import builtins
 from typing import Literal
 
 import nshconfig as C
+from typing_extensions import override
 
 from ..util._useful_types import SupportsRichComparisonT
 
@@ -21,7 +22,10 @@ class MetricConfig(C.Config):
     def validation_monitor(self) -> str:
         return f"val/{self.name}"
 
+    @override
     def __post_init__(self):
+        super().__post_init__()
+
         for split in ("train", "val", "test", "predict"):
             if self.name.startswith(f"{split}/"):
                 raise ValueError(

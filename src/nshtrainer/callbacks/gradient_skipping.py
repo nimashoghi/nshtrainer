@@ -93,5 +93,5 @@ class GradientSkippingConfig(CallbackConfigBase):
     """
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield GradientSkipping(self)

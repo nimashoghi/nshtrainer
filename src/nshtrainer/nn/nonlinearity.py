@@ -5,7 +5,7 @@ import nshconfig as C
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing_extensions import final, override
+from typing_extensions import override
 
 
 class BaseNonlinearityConfig(C.Config, ABC):
@@ -16,7 +16,6 @@ class BaseNonlinearityConfig(C.Config, ABC):
     def __call__(self, x: torch.Tensor) -> torch.Tensor: ...
 
 
-@final
 class ReLUNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["relu"] = "relu"
 
@@ -28,7 +27,6 @@ class ReLUNonlinearityConfig(BaseNonlinearityConfig):
         return F.relu(x)
 
 
-@final
 class SigmoidNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["sigmoid"] = "sigmoid"
 
@@ -40,7 +38,6 @@ class SigmoidNonlinearityConfig(BaseNonlinearityConfig):
         return torch.sigmoid(x)
 
 
-@final
 class TanhNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["tanh"] = "tanh"
 
@@ -52,7 +49,6 @@ class TanhNonlinearityConfig(BaseNonlinearityConfig):
         return torch.tanh(x)
 
 
-@final
 class SoftmaxNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["softmax"] = "softmax"
 
@@ -67,7 +63,6 @@ class SoftmaxNonlinearityConfig(BaseNonlinearityConfig):
         return torch.softmax(x, dim=self.dim)
 
 
-@final
 class SoftplusNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["softplus"] = "softplus"
 
@@ -85,7 +80,6 @@ class SoftplusNonlinearityConfig(BaseNonlinearityConfig):
         return F.softplus(x, beta=self.beta, threshold=self.threshold)
 
 
-@final
 class SoftsignNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["softsign"] = "softsign"
 
@@ -97,7 +91,6 @@ class SoftsignNonlinearityConfig(BaseNonlinearityConfig):
         return F.softsign(x)
 
 
-@final
 class ELUNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["elu"] = "elu"
 
@@ -112,7 +105,6 @@ class ELUNonlinearityConfig(BaseNonlinearityConfig):
         return F.elu(x, alpha=self.alpha)
 
 
-@final
 class LeakyReLUNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["leaky_relu"] = "leaky_relu"
 
@@ -127,7 +119,6 @@ class LeakyReLUNonlinearityConfig(BaseNonlinearityConfig):
         return F.leaky_relu(x, negative_slope=self.negative_slope)
 
 
-@final
 class PReLUConfig(BaseNonlinearityConfig):
     name: Literal["prelu"] = "prelu"
 
@@ -149,7 +140,6 @@ class PReLUConfig(BaseNonlinearityConfig):
         )
 
 
-@final
 class GELUNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["gelu"] = "gelu"
 
@@ -164,7 +154,6 @@ class GELUNonlinearityConfig(BaseNonlinearityConfig):
         return F.gelu(x, approximate=self.approximate)
 
 
-@final
 class SwishNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["swish"] = "swish"
 
@@ -176,7 +165,6 @@ class SwishNonlinearityConfig(BaseNonlinearityConfig):
         return F.silu(x)
 
 
-@final
 class SiLUNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["silu"] = "silu"
 
@@ -188,7 +176,6 @@ class SiLUNonlinearityConfig(BaseNonlinearityConfig):
         return F.silu(x)
 
 
-@final
 class MishNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["mish"] = "mish"
 
@@ -207,7 +194,6 @@ class SwiGLU(nn.SiLU):
         return input * super().forward(gate)
 
 
-@final
 class SwiGLUNonlinearityConfig(BaseNonlinearityConfig):
     name: Literal["swiglu"] = "swiglu"
 
