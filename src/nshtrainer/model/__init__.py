@@ -3,7 +3,6 @@ from typing_extensions import TypeAlias
 from .base import Base as Base
 from .base import LightningModuleBase as LightningModuleBase
 from .config import BaseConfig as BaseConfig
-from .config import BaseProfilerConfig as BaseProfilerConfig
 from .config import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from .config import CheckpointLoadingConfig as CheckpointLoadingConfig
 from .config import CheckpointSavingConfig as CheckpointSavingConfig

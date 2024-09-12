@@ -7,6 +7,7 @@ from . import metrics as metrics
 from . import model as model
 from . import nn as nn
 from . import optimizer as optimizer
+from . import profiler as profiler
 from .metrics import MetricConfig as MetricConfig
 from .model import Base as Base
 from .model import BaseConfig as BaseConfig

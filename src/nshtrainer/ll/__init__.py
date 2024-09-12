@@ -23,7 +23,6 @@ from .log import pretty as pretty
 from .lr_scheduler import LRSchedulerConfig as LRSchedulerConfig
 from .model import Base as Base
 from .model import BaseConfig as BaseConfig
-from .model import BaseProfilerConfig as BaseProfilerConfig
 from .model import CheckpointLoadingConfig as CheckpointLoadingConfig
 from .model import CheckpointSavingConfig as CheckpointSavingConfig
 from .model import ConfigList as ConfigList

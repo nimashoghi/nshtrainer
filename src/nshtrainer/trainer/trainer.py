@@ -21,7 +21,6 @@ from ..callbacks.base import resolve_all_callbacks
 from ..model.config import (
     AcceleratorConfigProtocol,
     BaseConfig,
-    BaseProfilerConfig,
     LightningTrainerKwargs,
     StrategyConfigProtocol,
 )
@@ -217,18 +216,16 @@ class Trainer(LightningTrainer):
                 gradient_clip_val=grad_clip_config.value,
             )
 
-        if profiler := config.trainer.profiler:
-            # If the profiler is an ProfilerConfig instance, then we instantiate it.
-            if isinstance(profiler, BaseProfilerConfig):
-                profiler = profiler.create_profiler(config)
-                # Make sure that the profiler is an instance of `Profiler`.
-                if not isinstance(profiler, Profiler):
-                    raise ValueError(f"{profiler=} is not an instance of `{Profiler}`.")
-
+        if profiler_config := config.trainer.profiler:
+            if (profiler := profiler_config.create_profiler(config)) is None:
+                log.warning(f"Profiler config {profiler_config=} returned None.")
+            # Make sure that the profiler is an instance of `Profiler`.
+            elif not isinstance(profiler, Profiler):
+                raise ValueError(f"{profiler=} is not an instance of `{Profiler}`.")
             # Otherwise, if the profiler is a string (e.g., "simpe", "advanced", "pytorch"),
             #   then we just pass it through.
-            # kwargs["profiler"] = profiler
-            _update_kwargs(profiler=profiler)
+            else:
+                _update_kwargs(profiler=profiler)
 
         if callbacks := resolve_all_callbacks(config):
             _update_kwargs(callbacks=callbacks)
