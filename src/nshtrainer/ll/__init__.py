@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 from . import _experimental as _experimental
 from . import actsave as actsave
 from . import callbacks as callbacks
@@ -42,7 +44,6 @@ from .model import LightningModuleBase as LightningModuleBase
 from .model import LoggingConfig as LoggingConfig
 from .model import MetricConfig as MetricConfig
 from .model import OptimizationConfig as OptimizationConfig
-from .model import PrimaryMetricConfig as PrimaryMetricConfig
 from .model import ReproducibilityConfig as ReproducibilityConfig
 from .model import SanityCheckingConfig as SanityCheckingConfig
 from .model import TrainerConfig as TrainerConfig
@@ -53,3 +54,5 @@ from .runner import Runner as Runner
 from .runner import SnapshotConfig as SnapshotConfig
 from .snoop import snoop as snoop
 from .trainer import Trainer as Trainer
+
+PrimaryMetricConfig: TypeAlias = MetricConfig

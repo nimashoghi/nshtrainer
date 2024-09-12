@@ -876,9 +876,6 @@ class TrainerConfig(C.Config):
     """If enabled, will set the torch float32 matmul precision to the specified value. Useful for faster training on Ampere+ GPUs."""
 
 
-PrimaryMetricConfig: TypeAlias = MetricConfig
-
-
 class BaseConfig(C.Config):
     id: str = C.Field(default_factory=lambda: BaseConfig.generate_id())
     """ID of the run."""
@@ -905,7 +902,7 @@ class BaseConfig(C.Config):
     trainer: TrainerConfig = TrainerConfig()
     """PyTorch Lightning trainer configuration options. Check Lightning's `Trainer` documentation for more information."""
 
-    primary_metric: PrimaryMetricConfig | None = None
+    primary_metric: MetricConfig | None = None
     """Primary metric configuration options. This is used in the following ways:
     - To determine the best model checkpoint to save with the ModelCheckpoint callback.
     - To monitor the primary metric during training and stop training based on the `early_stopping` configuration.
