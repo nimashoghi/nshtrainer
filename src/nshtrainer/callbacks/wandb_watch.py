@@ -15,9 +15,6 @@ log = logging.getLogger(__name__)
 class WandbWatchConfig(CallbackConfigBase):
     name: Literal["wandb_watch"] = "wandb_watch"
 
-    enabled: bool = True
-    """Enable watching the model for wandb."""
-
     log: str | None = None
     """Log type for wandb."""
 
@@ -26,9 +23,6 @@ class WandbWatchConfig(CallbackConfigBase):
 
     log_freq: int = 100
     """Log frequency for wandb."""
-
-    def __bool__(self):
-        return self.enabled
 
     @override
     def create_callbacks(self, trainer_config):

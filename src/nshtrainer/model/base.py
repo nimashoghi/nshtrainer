@@ -5,49 +5,73 @@ from collections.abc import MutableMapping
 from typing import IO, TYPE_CHECKING, Any, Generic, cast
 
 import torch
+import torch.distributed
 from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.utilities.types import STEP_OUTPUT
-from typing_extensions import Self, TypeVar, override
+from typing_extensions import Self, TypeVar, deprecated, override
 
 from ..util._environment_info import EnvironmentConfig
+from ..util.type_asserts import is_nshtrainer
 from .config import BaseConfig
 from .modules.callback import CallbackModuleMixin
-from .modules.debug import DebugModuleMixin
 from .modules.distributed import DistributedMixin
 from .modules.logger import LoggerLightningModuleMixin
 from .modules.profiler import ProfilerMixin
 from .modules.rlp_sanity_checks import RLPSanityCheckModuleMixin
 from .modules.shared_parameters import SharedParametersModuleMixin
 
+if TYPE_CHECKING:
+    from ..trainer.config import TrainerConfig
+
 log = logging.getLogger(__name__)
 
 THparams = TypeVar("THparams", bound=BaseConfig, infer_variance=True)
 
 
-class Base(DebugModuleMixin, Generic[THparams]):
+class _DebugMixin:
+    @torch.jit.unused
+    def breakpoint(self, rank_zero_only: bool = True):
+        if (
+            not rank_zero_only
+            or not torch.distributed.is_initialized()
+            or torch.distributed.get_rank() == 0
+        ):
+            breakpoint()
+
+        if rank_zero_only and torch.distributed.is_initialized():
+            _ = torch.distributed.barrier()
+
+    @torch.jit.unused
+    def ensure_finite(
+        self,
+        tensor: torch.Tensor,
+        name: str | None = None,
+        throw: bool = False,
+    ):
+        name_parts: list[str] = ["Tensor"]
+        if name is not None:
+            name_parts.append(name)
+        name = " ".join(name_parts)
+
+        not_finite = ~torch.isfinite(tensor)
+        if not_finite.any():
+            msg = f"{name} has {not_finite.sum().item()}/{not_finite.numel()} non-finite values."
+            if throw:
+                raise RuntimeError(msg)
+            else:
+                log.warning(msg)
+            return False
+        return True
+
+
+@deprecated("Use `torch.nn.Module` instead.")
+class Base(_DebugMixin, Generic[THparams]):
     @torch.jit.unused
     @property
     def config(self) -> THparams:
         return self.hparams
-
-    @torch.jit.unused
-    @property
-    def C(self) -> THparams:
-        return self.hparams
-
-    @property
-    def debug(self) -> bool:
-        if torch.jit.is_scripting():
-            return False
-        return self.config.debug
-
-    @property
-    def dev(self) -> bool:
-        if torch.jit.is_scripting():
-            return False
-        return self.config.debug
 
     @override
     def __init__(self, hparams: THparams):
@@ -57,7 +81,7 @@ class Base(DebugModuleMixin, Generic[THparams]):
             self.hparams = hparams
 
 
-class DebugFlagCallback(Callback):
+class _DebugFlagCallback(Callback):
     """
     Sets the debug flag to true in the following circumstances:
     - fast_dev_run is enabled
@@ -66,28 +90,28 @@ class DebugFlagCallback(Callback):
 
     @override
     def setup(self, trainer: Trainer, pl_module: LightningModule, stage: str):
+        assert is_nshtrainer(trainer)
         if not getattr(trainer, "fast_dev_run", False):
             return
 
-        hparams = cast(BaseConfig, pl_module.hparams)
-        if not hparams.debug:
+        if not trainer.config.debug:
             log.critical("Fast dev run detected, setting debug flag to True.")
-        hparams.debug = True
+        trainer.config.debug = True
 
     @override
     def on_sanity_check_start(self, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast(BaseConfig, pl_module.hparams)
-        self._debug = hparams.debug
+        assert is_nshtrainer(trainer)
+        self._debug = trainer.config.debug
         if not self._debug:
             log.critical("Enabling debug flag during sanity check routine.")
-        hparams.debug = True
+        trainer.config.debug = True
 
     @override
     def on_sanity_check_end(self, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast(BaseConfig, pl_module.hparams)
+        assert is_nshtrainer(trainer)
         if not self._debug:
             log.critical("Sanity check routine complete, disabling debug flag.")
-        hparams.debug = self._debug
+        trainer.config.debug = self._debug
 
 
 class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -97,17 +121,48 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     SharedParametersModuleMixin,
     DistributedMixin,
     CallbackModuleMixin,
-    Base[THparams],
+    _DebugMixin,
     LightningModule,
     ABC,
     Generic[THparams],
 ):
+    @torch.jit.unused
+    @property
+    def config(self) -> THparams:
+        return self.hparams
+
+    @torch.jit.unused
+    @property
+    def trainer_config_option(self) -> "TrainerConfig | None":
+        if (trainer := self._trainer) is None:
+            return None
+        assert is_nshtrainer(
+            trainer
+        ), f"Expected a nshtrainer.Trainer, got {type(trainer)}"
+        return trainer.config
+
+    @torch.jit.unused
+    @property
+    def trainer_config(self) -> "TrainerConfig":
+        if (config := self.trainer_config_option) is None:
+            raise RuntimeError("Trainer config is not available.")
+        return config
+
+    @torch.jit.unused
+    @property
+    def debug(self) -> bool:
+        if torch.jit.is_scripting():
+            return False
+        if (trainer_config := self.trainer_config_option) is None:
+            return False
+        return trainer_config.debug
+
     # Our own custom __repr__ method.
     # Torch's __repr__ method is too verbose and doesn't provide any useful information.
     @override
     def __repr__(self):
         parts: list[str] = []
-        parts.append(f"config={self.hparams.concise_repr()}")
+        parts.append(f"config={self.hparams.__repr__()}")
         parts.append(f"device={self.device}")
         if self.debug:
             parts.append("debug=True")
@@ -196,7 +251,7 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
         super().__init__(hparams)
 
         self.save_hyperparameters(hparams)
-        self.register_callback(lambda: DebugFlagCallback())
+        self.register_callback(lambda: _DebugFlagCallback())
 
     def zero_loss(self):
         """

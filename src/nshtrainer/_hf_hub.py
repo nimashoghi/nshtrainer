@@ -49,7 +49,9 @@ class HuggingFaceHubConfig(CallbackConfigBase):
     This needs to either be set using `huggingface-cli login` or by setting the `HUGGINGFACE_TOKEN`
     environment variable."""
 
-    auto_create: HuggingFaceHubAutoCreateConfig = HuggingFaceHubAutoCreateConfig()
+    auto_create: HuggingFaceHubAutoCreateConfig | None = (
+        HuggingFaceHubAutoCreateConfig()
+    )
     """Automatic repository creation configuration options."""
 
     save_config: bool = True
