@@ -6,7 +6,7 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from typing_extensions import override
 
-from ..config import Duration
+from ..util.config import Duration
 from ._base import LRSchedulerConfigBase, LRSchedulerMetadata
 
 
