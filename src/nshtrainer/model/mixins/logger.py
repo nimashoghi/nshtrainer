@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 import torchmetrics
-from lightning.pytorch import LightningDataModule, LightningModule
+from lightning.pytorch import LightningModule
 from lightning.pytorch.utilities.types import _METRIC
 from lightning_utilities.core.rank_zero import rank_zero_warn
 from nshutils import ActSave
@@ -23,15 +23,13 @@ class _LogContext:
     kwargs: dict[str, Any] = field(default_factory=dict)
 
 
-class LoggerModuleMixin:
+class LoggerModuleMixin(mixin_base_type(LightningModule)):
     @property
     def log_dir(self):
-        if not isinstance(self, (LightningModule, LightningDataModule)):
-            raise TypeError(
-                "log_dir can only be used on LightningModule or LightningDataModule"
-            )
-
-        if (trainer := self.trainer) is None:
+        """
+        The directory where logs are saved.
+        """
+        if (trainer := self._trainer) is None:
             raise RuntimeError("trainer is not defined")
 
         if (logger := trainer.logger) is None:
@@ -44,16 +42,15 @@ class LoggerModuleMixin:
 
     @property
     def should_update_logs(self):
-        if not isinstance(self, (LightningModule, LightningDataModule)):
-            raise TypeError(
-                "should_update_logs can only be used on LightningModule or LightningDataModule"
+        """
+        Whether logs should be updated. This is true once every `log_every_n_steps` steps.
+        """
+        if self._trainer is None:
+            raise RuntimeError(
+                "`should_update_logs` can only be used after the module is attached to a trainer"
             )
 
-        trainer = self._trainer if isinstance(self, LightningModule) else self.trainer
-        if trainer is None:
-            return True
-
-        return trainer._logger_connector.should_update_logs
+        return self._trainer._logger_connector.should_update_logs
 
 
 class LoggerLightningModuleMixin(LoggerModuleMixin, mixin_base_type(LightningModule)):

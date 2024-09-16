@@ -28,6 +28,10 @@ from .norm_logging import NormLoggingCallback as NormLoggingCallback
 from .norm_logging import NormLoggingConfig as NormLoggingConfig
 from .print_table import PrintTableMetricsCallback as PrintTableMetricsCallback
 from .print_table import PrintTableMetricsConfig as PrintTableMetricsConfig
+from .rlp_sanity_checks import RLPSanityChecksCallback as RLPSanityChecksCallback
+from .rlp_sanity_checks import RLPSanityChecksConfig as RLPSanityChecksConfig
+from .shared_parameters import SharedParametersCallback as SharedParametersCallback
+from .shared_parameters import SharedParametersConfig as SharedParametersConfig
 from .throughput_monitor import ThroughputMonitorConfig as ThroughputMonitorConfig
 from .timer import EpochTimer as EpochTimer
 from .timer import EpochTimerConfig as EpochTimerConfig
@@ -46,6 +50,8 @@ CallbackConfig = Annotated[
     | BestCheckpointCallbackConfig
     | LastCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig
+    | SharedParametersConfig
+    | RLPSanityChecksConfig
     | WandbWatchConfig,
     C.Field(discriminator="name"),
 ]

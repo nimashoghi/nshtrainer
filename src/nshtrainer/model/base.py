@@ -13,11 +13,11 @@ from lightning.pytorch.profilers import PassThroughProfiler, Profiler
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from typing_extensions import Self, TypeVar, override
 
+from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
 from ..util._environment_info import EnvironmentConfig
 from .config import BaseConfig
-from .modules.callback import CallbackModuleMixin
-from .modules.logger import LoggerLightningModuleMixin
-from .modules.rlp_sanity_checks import RLPSanityCheckModuleMixin
+from .mixins.callback import CallbackModuleMixin
+from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ VALID_REDUCE_OPS = (
 
 
 class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
-    RLPSanityCheckModuleMixin,
+    _RLPSanityCheckModuleMixin,
     LoggerLightningModuleMixin,
     CallbackModuleMixin,
     LightningModule,

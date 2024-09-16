@@ -35,7 +35,8 @@ from ..callbacks import (
     OnExceptionCheckpointCallbackConfig,
 )
 from ..callbacks.base import CallbackConfigBase
-from ..callbacks.shared_parameters import SharedParametersCallbackConfig
+from ..callbacks.rlp_sanity_checks import RLPSanityChecksConfig
+from ..callbacks.shared_parameters import SharedParametersConfig
 from ..loggers import (
     CSVLoggerConfig,
     LoggerConfig,
@@ -562,8 +563,14 @@ class TrainerConfig(C.Config):
     reproducibility: ReproducibilityConfig = ReproducibilityConfig()
     """Reproducibility configuration options."""
 
-    sanity_checking: SanityCheckingConfig = SanityCheckingConfig()
-    """Sanity checking configuration options."""
+    reduce_lr_on_plateau_sanity_checking: RLPSanityChecksConfig | None = (
+        RLPSanityChecksConfig()
+    )
+    """
+    If enabled, will do some sanity checks if the `ReduceLROnPlateau` scheduler is used:
+        - If the `interval` is step, it makes sure that validation is called every `frequency` steps.
+        - If the `interval` is epoch, it makes sure that validation is called every `frequency` epochs.
+    """
 
     early_stopping: EarlyStoppingConfig | None = None
     """Early stopping configuration options."""
@@ -733,9 +740,7 @@ class TrainerConfig(C.Config):
     automatic selection based on the chosen accelerator. Default: ``"auto"``.
     """
 
-    shared_parameters: SharedParametersCallbackConfig | None = (
-        SharedParametersCallbackConfig()
-    )
+    shared_parameters: SharedParametersConfig | None = SharedParametersConfig()
     """If enabled, the model supports scaling the gradients of shared parameters that
     are registered in the self.shared_parameters list. This is useful for models that
     share parameters across multiple modules (e.g., in a GPT model) and want to

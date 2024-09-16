@@ -16,7 +16,8 @@ from nshtrainer.callbacks.finite_checks import FiniteChecksConfig as FiniteCheck
 from nshtrainer.callbacks.gradient_skipping import GradientSkippingConfig as GradientSkippingConfig
 from nshtrainer.callbacks.norm_logging import NormLoggingConfig as NormLoggingConfig
 from nshtrainer.callbacks.print_table import PrintTableMetricsConfig as PrintTableMetricsConfig
-from nshtrainer.callbacks.shared_parameters import SharedParametersCallbackConfig as SharedParametersCallbackConfig
+from nshtrainer.callbacks.rlp_sanity_checks import RLPSanityChecksConfig as RLPSanityChecksConfig
+from nshtrainer.callbacks.shared_parameters import SharedParametersConfig as SharedParametersConfig
 from nshtrainer.callbacks.throughput_monitor import ThroughputMonitorConfig as ThroughputMonitorConfig
 from nshtrainer.callbacks.timer import EpochTimerConfig as EpochTimerConfig
 from nshtrainer.callbacks.wandb_watch import WandbWatchConfig as WandbWatchConfig
