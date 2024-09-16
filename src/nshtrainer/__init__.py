@@ -11,7 +11,6 @@ from . import profiler as profiler
 from .metrics import MetricConfig as MetricConfig
 from .model import Base as Base
 from .model import BaseConfig as BaseConfig
-from .model import ConfigList as ConfigList
 from .model import LightningModuleBase as LightningModuleBase
 from .runner import Runner as Runner
 from .trainer import Trainer as Trainer

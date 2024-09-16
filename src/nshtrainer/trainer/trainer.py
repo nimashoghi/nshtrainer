@@ -18,15 +18,17 @@ from typing_extensions import Unpack, assert_never, override
 
 from .._checkpoint.metadata import _write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
-from ..model.config import (
+from ._config import (
     AcceleratorConfigProtocol,
-    BaseConfig,
     LightningTrainerKwargs,
     StrategyConfigProtocol,
 )
 from ._runtime_callback import RuntimeTrackerCallback, Stage
 from .checkpoint_connector import _CheckpointConnector
 from .signal_connector import _SignalConnector
+
+if TYPE_CHECKING:
+    from ..model.config import BaseConfig
 
 log = logging.getLogger(__name__)
 
@@ -57,14 +59,14 @@ def _is_bf16_supported_no_emulation():
 
 class Trainer(LightningTrainer):
     @classmethod
-    def _pre_init(cls, config: BaseConfig):
+    def _pre_init(cls, config: "BaseConfig"):
         if (precision := config.trainer.set_float32_matmul_precision) is not None:
             torch.set_float32_matmul_precision(precision)
 
     @classmethod
     def _update_kwargs(
         cls,
-        config: BaseConfig,
+        config: "BaseConfig",
         kwargs_ctor: LightningTrainerKwargs,
     ):
         kwargs: LightningTrainerKwargs = {
@@ -278,7 +280,7 @@ class Trainer(LightningTrainer):
     @override
     def __init__(
         self,
-        config: BaseConfig,
+        config: "BaseConfig",
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
@@ -421,7 +423,7 @@ class Trainer(LightningTrainer):
         # Save the checkpoint metadata
         metadata_path = None
         lm = self._base_module
-        root_config = cast(BaseConfig, lm.hparams)
+        root_config = cast("BaseConfig", lm.hparams)
         if root_config.trainer.save_checkpoint_metadata and self.is_global_zero:
             # Generate the metadata and write to disk
             if (

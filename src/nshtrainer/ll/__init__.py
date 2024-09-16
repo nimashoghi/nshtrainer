@@ -27,7 +27,6 @@ from .model import Base as Base
 from .model import BaseConfig as BaseConfig
 from .model import CheckpointLoadingConfig as CheckpointLoadingConfig
 from .model import CheckpointSavingConfig as CheckpointSavingConfig
-from .model import ConfigList as ConfigList
 from .model import DirectoryConfig as DirectoryConfig
 from .model import (
     EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
@@ -56,3 +55,4 @@ from .snoop import snoop as snoop
 from .trainer import Trainer as Trainer
 
 PrimaryMetricConfig: TypeAlias = MetricConfig
+ConfigList: TypeAlias = list[tuple[BaseConfig, type[LightningModuleBase]]]

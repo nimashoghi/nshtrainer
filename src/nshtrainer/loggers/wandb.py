@@ -129,7 +129,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
                         "Please either upgrade to a newer version of WandB or disable the `use_wandb_core` option."
                     )
                 else:
-                    wandb.require("core")
+                    wandb.require("core")  # type: ignore
                     log.critical("Using the `wandb-core` backend for WandB.")
             except ImportError:
                 pass
