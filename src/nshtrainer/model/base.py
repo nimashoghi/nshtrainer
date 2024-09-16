@@ -8,6 +8,7 @@ import torch
 from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
+from lightning.pytorch.profilers import PassThroughProfiler, Profiler
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from typing_extensions import Self, TypeVar, override
 
@@ -17,7 +18,6 @@ from .modules.callback import CallbackModuleMixin
 from .modules.debug import DebugModuleMixin
 from .modules.distributed import DistributedMixin
 from .modules.logger import LoggerLightningModuleMixin
-from .modules.profiler import ProfilerMixin
 from .modules.rlp_sanity_checks import RLPSanityCheckModuleMixin
 
 log = logging.getLogger(__name__)
@@ -90,7 +90,6 @@ class DebugFlagCallback(Callback):
 
 
 class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
-    ProfilerMixin,
     RLPSanityCheckModuleMixin,
     LoggerLightningModuleMixin,
     DistributedMixin,
@@ -100,6 +99,19 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     ABC,
     Generic[THparams],
 ):
+    @property
+    def profiler(self) -> Profiler:
+        if (trainer := self._trainer) is None:
+            raise RuntimeError("trainer is not defined")
+
+        if not hasattr(trainer, "profiler"):
+            raise RuntimeError("trainer does not have profiler")
+
+        if (profiler := getattr(trainer, "profiler")) is None:
+            profiler = PassThroughProfiler()
+
+        return profiler
+
     # Our own custom __repr__ method.
     # Torch's __repr__ method is too verbose and doesn't provide any useful information.
     @override
