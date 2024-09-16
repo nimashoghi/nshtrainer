@@ -2,9 +2,10 @@ import inspect
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import MutableMapping
-from typing import IO, TYPE_CHECKING, Any, Generic, cast
+from typing import IO, TYPE_CHECKING, Any, Generic, Literal, cast
 
 import torch
+import torch.distributed
 from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
@@ -15,45 +16,12 @@ from typing_extensions import Self, TypeVar, override
 from ..util._environment_info import EnvironmentConfig
 from .config import BaseConfig
 from .modules.callback import CallbackModuleMixin
-from .modules.debug import DebugModuleMixin
-from .modules.distributed import DistributedMixin
 from .modules.logger import LoggerLightningModuleMixin
 from .modules.rlp_sanity_checks import RLPSanityCheckModuleMixin
 
 log = logging.getLogger(__name__)
 
 THparams = TypeVar("THparams", bound=BaseConfig, infer_variance=True)
-
-
-class Base(DebugModuleMixin, Generic[THparams]):
-    @torch.jit.unused
-    @property
-    def config(self) -> THparams:
-        return self.hparams
-
-    @torch.jit.unused
-    @property
-    def C(self) -> THparams:
-        return self.hparams
-
-    @property
-    def debug(self) -> bool:
-        if torch.jit.is_scripting():
-            return False
-        return self.config.debug
-
-    @property
-    def dev(self) -> bool:
-        if torch.jit.is_scripting():
-            return False
-        return self.config.debug
-
-    @override
-    def __init__(self, hparams: THparams):
-        super().__init__()
-
-        if not hasattr(self, "hparams"):
-            self.hparams = hparams
 
 
 class DebugFlagCallback(Callback):
@@ -89,16 +57,95 @@ class DebugFlagCallback(Callback):
         hparams.debug = self._debug
 
 
+T = TypeVar("T", infer_variance=True)
+
+ReduceOpStr = Literal[
+    "avg",
+    "mean",
+    "band",
+    "bor",
+    "bxor",
+    "max",
+    "min",
+    "premul_sum",
+    "product",
+    "sum",
+]
+VALID_REDUCE_OPS = (
+    "avg",
+    "mean",
+    "band",
+    "bor",
+    "bxor",
+    "max",
+    "min",
+    "premul_sum",
+    "product",
+    "sum",
+)
+
+
 class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     RLPSanityCheckModuleMixin,
     LoggerLightningModuleMixin,
-    DistributedMixin,
     CallbackModuleMixin,
-    Base[THparams],
     LightningModule,
     ABC,
     Generic[THparams],
 ):
+    # region Config
+    @torch.jit.unused
+    @property
+    def config(self) -> THparams:
+        return self.hparams
+
+    @property
+    def debug(self) -> bool:
+        if torch.jit.is_scripting():
+            return False
+        return self.config.debug
+
+    # endregion
+
+    # region Debug
+
+    @torch.jit.unused
+    def breakpoint(self, rank_zero_only: bool = True):
+        if (
+            not rank_zero_only
+            or not torch.distributed.is_initialized()
+            or torch.distributed.get_rank() == 0
+        ):
+            breakpoint()
+
+        if rank_zero_only and torch.distributed.is_initialized():
+            _ = torch.distributed.barrier()
+
+    @torch.jit.unused
+    def ensure_finite(
+        self,
+        tensor: torch.Tensor,
+        name: str | None = None,
+        throw: bool = False,
+    ):
+        name_parts: list[str] = ["Tensor"]
+        if name is not None:
+            name_parts.append(name)
+        name = " ".join(name_parts)
+
+        not_finite = ~torch.isfinite(tensor)
+        if not_finite.any():
+            msg = f"{name} has {not_finite.sum().item()}/{not_finite.numel()} non-finite values."
+            if throw:
+                raise RuntimeError(msg)
+            else:
+                log.warning(msg)
+            return False
+        return True
+
+    # endregion
+
+    # region Profiler
     @property
     def profiler(self) -> Profiler:
         if (trainer := self._trainer) is None:
@@ -111,6 +158,44 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
             profiler = PassThroughProfiler()
 
         return profiler
+
+    # endregion
+
+    # region Distributed
+    def all_gather_object(
+        self,
+        object: T,
+        group: torch.distributed.ProcessGroup | None = None,
+    ) -> list[T]:
+        if (
+            not torch.distributed.is_available()
+            or not torch.distributed.is_initialized()
+        ):
+            return [object]
+
+        object_list = [cast(T, None) for _ in range(self.trainer.world_size)]
+        torch.distributed.all_gather_object(object_list, object, group=group)
+        return object_list
+
+    def barrier(self, name: str | None = None):
+        self.trainer.strategy.barrier(name=name)
+
+    def reduce(
+        self,
+        tensor: torch.Tensor,
+        reduce_op: torch.distributed.ReduceOp.RedOpType | ReduceOpStr,
+        group: Any | None = None,
+    ) -> torch.Tensor:
+        if isinstance(reduce_op, str):
+            # validate reduce_op
+            if reduce_op not in VALID_REDUCE_OPS:
+                raise ValueError(
+                    f"reduce_op must be one of {VALID_REDUCE_OPS}, got {reduce_op}"
+                )
+
+        return self.trainer.strategy.reduce(tensor, group=group, reduce_op=reduce_op)
+
+    # endregion
 
     # Our own custom __repr__ method.
     # Torch's __repr__ method is too verbose and doesn't provide any useful information.

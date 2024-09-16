@@ -165,7 +165,7 @@ class CallbackModuleMixin(
     CallbackRegistrarModuleMixin,
     mixin_base_type(LightningModule),
 ):
-    def _gather_all_callbacks(self):
+    def _nshtrainer_gather_all_callbacks(self):
         modules: list[Any] = []
         if isinstance(self, CallbackRegistrarModuleMixin):
             modules.append(self)
@@ -189,7 +189,7 @@ class CallbackModuleMixin(
             callbacks = [callbacks]
 
         callbacks = list(callbacks)
-        for callback_fn in self._gather_all_callbacks():
+        for callback_fn in self._nshtrainer_gather_all_callbacks():
             callback_result = callback_fn()
             if callback_result is None:
                 continue
