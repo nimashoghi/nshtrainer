@@ -12,6 +12,8 @@ from .checkpoint import OnExceptionCheckpoint as OnExceptionCheckpoint
 from .checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
+from .directory_setup import DirectorySetupCallback as DirectorySetupCallback
+from .directory_setup import DirectorySetupConfig as DirectorySetupConfig
 from .early_stopping import EarlyStopping as EarlyStopping
 from .early_stopping import EarlyStoppingConfig as EarlyStoppingConfig
 from .ema import EMA as EMA

@@ -2,6 +2,7 @@ from nshconfig._config import Config as Config
 from nshsnap._config import SnapshotConfig as SnapshotConfig
 from nshtrainer._checkpoint.loader import CheckpointLoadingConfig as CheckpointLoadingConfig
 from nshtrainer._checkpoint.metadata import CheckpointMetadata as CheckpointMetadata
+from nshtrainer._directory import DirectoryConfig as DirectoryConfig
 from nshtrainer._hf_hub import HuggingFaceHubAutoCreateConfig as HuggingFaceHubAutoCreateConfig
 from nshtrainer._hf_hub import HuggingFaceHubConfig as HuggingFaceHubConfig
 from nshtrainer.callbacks.actsave import ActSaveConfig as ActSaveConfig
@@ -10,6 +11,7 @@ from nshtrainer.callbacks.checkpoint._base import BaseCheckpointCallbackConfig a
 from nshtrainer.callbacks.checkpoint.best_checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from nshtrainer.callbacks.checkpoint.last_checkpoint import LastCheckpointCallbackConfig as LastCheckpointCallbackConfig
 from nshtrainer.callbacks.checkpoint.on_exception_checkpoint import OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig
+from nshtrainer.callbacks.directory_setup import DirectorySetupConfig as DirectorySetupConfig
 from nshtrainer.callbacks.early_stopping import EarlyStoppingConfig as EarlyStoppingConfig
 from nshtrainer.callbacks.ema import EMAConfig as EMAConfig
 from nshtrainer.callbacks.finite_checks import FiniteChecksConfig as FiniteChecksConfig
@@ -30,7 +32,6 @@ from nshtrainer.lr_scheduler.linear_warmup_cosine import LinearWarmupCosineDecay
 from nshtrainer.lr_scheduler.reduce_lr_on_plateau import ReduceLROnPlateauConfig as ReduceLROnPlateauConfig
 from nshtrainer.metrics._config import MetricConfig as MetricConfig
 from nshtrainer.model.config import BaseConfig as BaseConfig
-from nshtrainer.model.config import DirectoryConfig as DirectoryConfig
 from nshtrainer.nn.mlp import MLPConfig as MLPConfig
 from nshtrainer.nn.nonlinearity import BaseNonlinearityConfig as BaseNonlinearityConfig
 from nshtrainer.nn.nonlinearity import ELUNonlinearityConfig as ELUNonlinearityConfig
