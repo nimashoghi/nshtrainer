@@ -12,6 +12,8 @@ from .checkpoint import OnExceptionCheckpoint as OnExceptionCheckpoint
 from .checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
+from .debug_flag import DebugFlagCallback as DebugFlagCallback
+from .debug_flag import DebugFlagCallbackConfig as DebugFlagCallbackConfig
 from .directory_setup import DirectorySetupCallback as DirectorySetupCallback
 from .directory_setup import DirectorySetupConfig as DirectorySetupConfig
 from .early_stopping import EarlyStopping as EarlyStopping
@@ -41,7 +43,8 @@ from .wandb_watch import WandbWatchCallback as WandbWatchCallback
 from .wandb_watch import WandbWatchConfig as WandbWatchConfig
 
 CallbackConfig = Annotated[
-    EarlyStoppingConfig
+    DebugFlagCallbackConfig
+    | EarlyStoppingConfig
     | ThroughputMonitorConfig
     | EpochTimerConfig
     | PrintTableMetricsConfig
