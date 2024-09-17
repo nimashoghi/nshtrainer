@@ -11,6 +11,7 @@ from nshtrainer.callbacks.checkpoint._base import BaseCheckpointCallbackConfig a
 from nshtrainer.callbacks.checkpoint.best_checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from nshtrainer.callbacks.checkpoint.last_checkpoint import LastCheckpointCallbackConfig as LastCheckpointCallbackConfig
 from nshtrainer.callbacks.checkpoint.on_exception_checkpoint import OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig
+from nshtrainer.callbacks.debug_flag import DebugFlagCallbackConfig as DebugFlagCallbackConfig
 from nshtrainer.callbacks.directory_setup import DirectorySetupConfig as DirectorySetupConfig
 from nshtrainer.callbacks.early_stopping import EarlyStoppingConfig as EarlyStoppingConfig
 from nshtrainer.callbacks.ema import EMAConfig as EMAConfig

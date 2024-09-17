@@ -7,8 +7,8 @@ from lightning.pytorch import Callback, LightningModule, Trainer
 from packaging import version
 from typing_extensions import override
 
-from ..callbacks import WandbWatchConfig
 from ..callbacks.base import CallbackConfigBase
+from ..callbacks.wandb_watch import WandbWatchConfig
 from ._base import BaseLoggerConfig
 
 if TYPE_CHECKING:

@@ -5,8 +5,6 @@ from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
 from typing_extensions import override
 
-from nshtrainer.model.config import BaseConfig
-
 from .base import CallbackConfigBase
 
 if TYPE_CHECKING:
