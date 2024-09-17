@@ -7,8 +7,7 @@ from typing import IO, TYPE_CHECKING, Any, Generic, Literal, cast
 import torch
 import torch.distributed
 from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
-from lightning.pytorch import LightningModule, Trainer
-from lightning.pytorch.callbacks import Callback
+from lightning.pytorch import LightningModule
 from lightning.pytorch.profilers import PassThroughProfiler, Profiler
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from typing_extensions import Self, TypeVar, override
@@ -16,45 +15,11 @@ from typing_extensions import Self, TypeVar, override
 from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
 from ..util._environment_info import EnvironmentConfig
 from .config import BaseConfig
-from .mixins.callback import CallbackModuleMixin
 from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
 
 THparams = TypeVar("THparams", bound=BaseConfig, infer_variance=True)
-
-
-class DebugFlagCallback(Callback):
-    """
-    Sets the debug flag to true in the following circumstances:
-    - fast_dev_run is enabled
-    - sanity check is running
-    """
-
-    @override
-    def setup(self, trainer: Trainer, pl_module: LightningModule, stage: str):
-        if not getattr(trainer, "fast_dev_run", False):
-            return
-
-        hparams = cast(BaseConfig, pl_module.hparams)
-        if not hparams.debug:
-            log.critical("Fast dev run detected, setting debug flag to True.")
-        hparams.debug = True
-
-    @override
-    def on_sanity_check_start(self, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast(BaseConfig, pl_module.hparams)
-        self._debug = hparams.debug
-        if not self._debug:
-            log.critical("Enabling debug flag during sanity check routine.")
-        hparams.debug = True
-
-    @override
-    def on_sanity_check_end(self, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast(BaseConfig, pl_module.hparams)
-        if not self._debug:
-            log.critical("Sanity check routine complete, disabling debug flag.")
-        hparams.debug = self._debug
 
 
 T = TypeVar("T", infer_variance=True)
@@ -88,7 +53,6 @@ VALID_REDUCE_OPS = (
 class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     _RLPSanityCheckModuleMixin,
     LoggerLightningModuleMixin,
-    CallbackModuleMixin,
     LightningModule,
     ABC,
     Generic[THparams],
@@ -288,10 +252,8 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
         hparams.environment = EnvironmentConfig.from_current_environment(hparams, self)
         hparams = self.pre_init_update_hparams(hparams)
 
-        super().__init__(hparams)
-
+        super().__init__()
         self.save_hyperparameters(hparams)
-        self.register_callback(lambda: DebugFlagCallback())
 
     def zero_loss(self):
         """

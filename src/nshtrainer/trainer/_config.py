@@ -35,6 +35,7 @@ from ..callbacks import (
     OnExceptionCheckpointCallbackConfig,
 )
 from ..callbacks.base import CallbackConfigBase
+from ..callbacks.debug_flag import DebugFlagCallbackConfig
 from ..callbacks.rlp_sanity_checks import RLPSanityChecksConfig
 from ..callbacks.shared_parameters import SharedParametersConfig
 from ..loggers import (
@@ -751,6 +752,11 @@ class TrainerConfig(C.Config):
     """If enabled, will automatically set the default root dir to [cwd/lightning_logs/<id>/]. There is basically no reason to disable this."""
     save_checkpoint_metadata: bool = True
     """If enabled, will save additional metadata whenever a checkpoint is saved."""
+    auto_set_debug_flag: DebugFlagCallbackConfig | None = DebugFlagCallbackConfig()
+    """If enabled, will automatically set the debug flag to True if:
+    - The trainer is running in fast_dev_run mode.
+    - The trainer is running a sanity check (which happens before starting the training routine).
+    """
 
     lightning_kwargs: LightningTrainerKwargs = LightningTrainerKwargs()
     """
@@ -775,4 +781,7 @@ class TrainerConfig(C.Config):
         yield self.logging
         yield self.optimizer
         yield self.hf_hub
+        yield self.shared_parameters
+        yield self.reduce_lr_on_plateau_sanity_checking
+        yield self.auto_set_debug_flag
         yield from self.callbacks
