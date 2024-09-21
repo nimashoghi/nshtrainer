@@ -9,5 +9,5 @@ from .simple import SimpleProfilerConfig as SimpleProfilerConfig
 
 ProfilerConfig: TypeAlias = Annotated[
     SimpleProfilerConfig | AdvancedProfilerConfig | PyTorchProfilerConfig,
-    C.Discriminator("name"),
+    C.Field(discriminator="name"),
 ]

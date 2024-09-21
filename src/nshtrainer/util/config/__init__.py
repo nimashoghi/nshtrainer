@@ -1,4 +1,4 @@
 from . import duration as duration
-from .duration import Duration as Duration
-from .duration import Epochs as Epochs
-from .duration import Steps as Steps
+from .duration import DurationConfig as DurationConfig
+from .duration import EpochsConfig as EpochsConfig
+from .duration import StepsConfig as StepsConfig

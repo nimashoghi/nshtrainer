@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 import nshconfig as C
 
 
-class Steps(C.Config):
+class StepsConfig(C.Config):
     kind: Literal["steps"] = "steps"
 
     value: Annotated[int, C.Field(ge=0)]
@@ -14,7 +14,7 @@ class Steps(C.Config):
         return self
 
 
-class Epochs(C.Config):
+class EpochsConfig(C.Config):
     kind: Literal["epochs"] = "epochs"
 
     value: Annotated[int | float, C.Field(ge=0)]
@@ -25,7 +25,7 @@ class Epochs(C.Config):
         if not isinstance(value, int):
             value = int(math.ceil(value))
 
-        return Steps(value=value)
+        return StepsConfig(value=value)
 
 
-Duration = Annotated[Steps | Epochs, C.Field(discriminator="kind")]
+DurationConfig = Annotated[StepsConfig | EpochsConfig, C.Field(discriminator="kind")]

@@ -6,7 +6,7 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from typing_extensions import override
 
-from ..util.config import Duration
+from ..util.config import DurationConfig
 from ._base import LRSchedulerConfigBase, LRSchedulerMetadata
 
 
@@ -91,11 +91,11 @@ class LinearWarmupCosineAnnealingLR(LRScheduler):
 class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
     name: Literal["linear_warmup_cosine_decay"] = "linear_warmup_cosine_decay"
 
-    warmup_duration: Duration
+    warmup_duration: DurationConfig
     r"""The duration for the linear warmup phase.
     The learning rate is linearly increased from `warmup_start_lr` to the initial learning rate over this duration."""
 
-    max_duration: Duration
+    max_duration: DurationConfig
     r"""The total duration.
     The learning rate is decayed to `min_lr` over this duration."""
 
