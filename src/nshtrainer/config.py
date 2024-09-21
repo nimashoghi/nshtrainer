@@ -1,6 +1,3 @@
-from nshconfig._config import Config as Config
-from nshsnap._config import SnapshotConfig as SnapshotConfig
-
 from nshtrainer._checkpoint.loader import (
     BestCheckpointStrategyConfig as BestCheckpointStrategyConfig,
 )
@@ -65,13 +62,13 @@ from nshtrainer.callbacks.throughput_monitor import (
 )
 from nshtrainer.callbacks.timer import EpochTimerConfig as EpochTimerConfig
 from nshtrainer.callbacks.wandb_watch import WandbWatchConfig as WandbWatchConfig
-from nshtrainer.config import LRSchedulerConfig as LRSchedulerConfig
 from nshtrainer.loggers._base import BaseLoggerConfig as BaseLoggerConfig
 from nshtrainer.loggers.csv import CSVLoggerConfig as CSVLoggerConfig
 from nshtrainer.loggers.tensorboard import (
     TensorboardLoggerConfig as TensorboardLoggerConfig,
 )
 from nshtrainer.loggers.wandb import WandbLoggerConfig as WandbLoggerConfig
+from nshtrainer.lr_scheduler import LRSchedulerConfig as LRSchedulerConfig
 from nshtrainer.lr_scheduler._base import LRSchedulerConfigBase as LRSchedulerConfigBase
 from nshtrainer.lr_scheduler.linear_warmup_cosine import (
     DurationConfig as DurationConfig,
