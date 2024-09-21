@@ -1377,13 +1377,13 @@ files = [
 
 [[package]]
 name = "nshconfig"
-version = "0.12.1"
+version = "0.12.3"
 description = "Fully typed configuration management, powered by Pydantic"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "nshconfig-0.12.1-py3-none-any.whl", hash = "sha256:5bde686cb971c09869a8b523479ce714a765d7cc23aa8c22fe173871f86bfeac"},
-    {file = "nshconfig-0.12.1.tar.gz", hash = "sha256:fe70d33110a44a990d3fecf928192952a6e4acef989be4f87aad1520bf6248f2"},
+    {file = "nshconfig-0.12.3-py3-none-any.whl", hash = "sha256:f05680a7fd2f09a03c7acaaddf966687476d8a64f16e123a6cd547a2f41b1d31"},
+    {file = "nshconfig-0.12.3.tar.gz", hash = "sha256:07e2cdbd401e208cbdbdc6deefccce56309cae182c427d1709c1262aecf92eb0"},
 ]
 
 [package.dependencies]
