@@ -18,6 +18,7 @@ from typing_extensions import Unpack, assert_never, override
 
 from .._checkpoint.metadata import _write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
+from ..util.bf16 import is_bf16_supported_no_emulation
 from ._config import (
     AcceleratorConfigProtocol,
     LightningTrainerKwargs,
@@ -31,30 +32,6 @@ if TYPE_CHECKING:
     from ..model.config import BaseConfig
 
 log = logging.getLogger(__name__)
-
-
-def _is_bf16_supported_no_emulation():
-    r"""Return a bool indicating if the current CUDA/ROCm device supports dtype bfloat16."""
-    version = getattr(torch, "version")
-
-    # Check for ROCm, if true return true, no ROCM_VERSION check required,
-    # since it is supported on AMD GPU archs.
-    if version.hip:
-        return True
-
-    device = torch.cuda.current_device()
-
-    # Check for CUDA version and device compute capability.
-    # This is a fast way to check for it.
-    cuda_version = version.cuda
-    if (
-        cuda_version is not None
-        and int(cuda_version.split(".")[0]) >= 11
-        and torch.cuda.get_device_properties(device).major >= 8
-    ):
-        return True
-
-    return False
 
 
 class Trainer(LightningTrainer):
@@ -188,7 +165,7 @@ class Trainer(LightningTrainer):
                     try:
                         resolved_precision = (
                             "bf16-mixed"
-                            if _is_bf16_supported_no_emulation()
+                            if is_bf16_supported_no_emulation()
                             else "16-mixed"
                         )
                     except BaseException:
