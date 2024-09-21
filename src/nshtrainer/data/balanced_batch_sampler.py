@@ -81,6 +81,22 @@ class BalancedBatchSampler(BatchSampler):
     ):
         super().__init__(sampler, batch_size, drop_last=drop_last)
 
+        # Validate the dataset
+        dataset = self._unwrap_dataset(self.distributed_sampler.dataset)
+        # Dataset much either implement `data_sizes`, or we need to provide a custom
+        # implementation of the dataset sizes function.
+        if isinstance(dataset, DatasetWithSizes):
+            log.critical(f"BalancedBatchSampler: Resolved dataset to {type(dataset)}")
+
+        elif self._data_sizes_fn is not None:
+            log.critical("BalancedBatchSampler: Using custom data_sizes_fn")
+        else:
+            raise ValueError(
+                "Dataset must implement the `data_sizes` method, "
+                "or a custom data_sizes_fn must be provided "
+                "to the BalancedBatchSampler."
+            )
+
         self._device = device
         self._data_sizes_fn = data_sizes_fn
 
@@ -97,7 +113,6 @@ class BalancedBatchSampler(BatchSampler):
         # Dataset much either implement `data_sizes`, or we need to provide a custom
         # implementation of the dataset sizes function.
         if isinstance(dataset, DatasetWithSizes):
-            log.critical(f"BalancedBatchSampler: Resolved dataset to {type(dataset)}")
             return dataset.data_sizes(indices)
 
         if (data_sizes_fn := self._data_sizes_fn) is not None:
