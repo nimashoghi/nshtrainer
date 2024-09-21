@@ -1,13 +1,12 @@
 import heapq
 import logging
-from functools import cached_property
 from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 import torch
 import torch.distributed
 from lightning_fabric.utilities.distributed import _DatasetSamplerWrapper
-from torch.utils.data import BatchSampler, Dataset, DistributedSampler
+from torch.utils.data import BatchSampler, DistributedSampler
 from typing_extensions import override
 
 log = logging.getLogger(__name__)
@@ -47,24 +46,16 @@ class DatasetWithSizes(Protocol):
     def data_sizes(self, indices: list[int]) -> np.ndarray: ...
 
 
+@runtime_checkable
+class DataSizesFunction(Protocol):
+    def __call__(self, dataset: Any, indices: list[int]) -> np.ndarray: ...
+
+
 class BalancedBatchSampler(BatchSampler):
     @staticmethod
-    def _ensure_supported(dataset: Any):
-        if not isinstance(dataset, Dataset):
-            raise ValueError(
-                "BalancedBatchSampler requires a dataset that implements `__getitem__`"
-            )
-
-        if not isinstance(dataset, DatasetWithSizes):
-            raise ValueError(
-                "BalancedBatchSampler requires a dataset that implements `data_sizes`"
-            )
-
-        log.critical(f"BalancedBatchSampler: Resolved dataset to {type(dataset)}")
-        return dataset
-
-    @staticmethod
-    def _unwrap_dataset(dataset: Dataset) -> Dataset:
+    def _unwrap_dataset(dataset: Any):
+        # Lightning's DistributedSampler wraps the dataset in a _DatasetSamplerWrapper,
+        # so we need to unwrap it to get the actual dataset.
         if isinstance(dataset, _DatasetSamplerWrapper):
             if (data_source := getattr(dataset._sampler, "data_source", None)) is None:
                 raise ValueError("Could not unwrap dataset from _DatasetSamplerWrapper")
@@ -79,12 +70,6 @@ class BalancedBatchSampler(BatchSampler):
             )
         return self.sampler
 
-    @cached_property
-    def dataset(self):
-        return self._ensure_supported(
-            self._unwrap_dataset(self.distributed_sampler.dataset)
-        )
-
     def __init__(
         self,
         sampler: DistributedSampler,
@@ -92,10 +77,12 @@ class BalancedBatchSampler(BatchSampler):
         batch_size: int,
         device: torch.device,
         drop_last: bool = False,
+        data_sizes_fn: DataSizesFunction | None = None,
     ):
         super().__init__(sampler, batch_size, drop_last=drop_last)
 
         self._device = device
+        self._data_sizes_fn = data_sizes_fn
 
         log.info(
             f"Created BalancedBatchSampler with {sampler=}, {batch_size=}, {drop_last=}"
@@ -105,17 +92,34 @@ class BalancedBatchSampler(BatchSampler):
     def _dist_enabled():
         return torch.distributed.is_available() and torch.distributed.is_initialized()
 
+    def _dataset_sizes(self, indices: list[int]) -> np.ndarray:
+        dataset = self._unwrap_dataset(self.distributed_sampler.dataset)
+        # Dataset much either implement `data_sizes`, or we need to provide a custom
+        # implementation of the dataset sizes function.
+        if isinstance(dataset, DatasetWithSizes):
+            log.critical(f"BalancedBatchSampler: Resolved dataset to {type(dataset)}")
+            return dataset.data_sizes(indices)
+
+        if (data_sizes_fn := self._data_sizes_fn) is not None:
+            return data_sizes_fn(dataset, indices)
+
+        raise ValueError(
+            "Dataset must implement the `data_sizes` method, "
+            "or a custom data_sizes_fn must be provided "
+            "to the BalancedBatchSampler."
+        )
+
     @override
     def __iter__(self):
         if not self._dist_enabled():
             yield from super().__iter__()
             return
 
-        for batch_idx in super().__iter__():
-            sizes = self.dataset.data_sizes(batch_idx)
+        for batch_idxs in super().__iter__():
+            sizes = self._dataset_sizes(batch_idxs)
             idx_sizes = torch.stack(
                 [
-                    torch.tensor(batch_idx, device=self._device),
+                    torch.tensor(batch_idxs, device=self._device),
                     torch.tensor(sizes, device=self._device),
                 ]
             )
