@@ -15,6 +15,7 @@ from typing_extensions import Self, TypeVar, override
 from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
 from ..util._environment_info import EnvironmentConfig
 from .config import BaseConfig
+from .mixins.callback import CallbackModuleMixin
 from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ VALID_REDUCE_OPS = (
 class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     _RLPSanityCheckModuleMixin,
     LoggerLightningModuleMixin,
+    CallbackModuleMixin,
     LightningModule,
     ABC,
     Generic[THparams],
