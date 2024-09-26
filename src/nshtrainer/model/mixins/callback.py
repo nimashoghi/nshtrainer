@@ -13,11 +13,11 @@ CallbackFn: TypeAlias = Callable[[], Callback | Iterable[Callback] | None]
 
 
 class CallbackRegistrarModuleMixin:
-    @override
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._nshtrainer_callbacks: list[CallbackFn] = []
+    @property
+    def _nshtrainer_callbacks(self) -> list[CallbackFn]:
+        if not hasattr(self, "_private_nshtrainer_callbacks_list"):
+            self._private_nshtrainer_callbacks_list = []
+        return self._private_nshtrainer_callbacks_list
 
     def register_callback(
         self,
