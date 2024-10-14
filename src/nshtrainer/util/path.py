@@ -80,10 +80,24 @@ def try_symlink_or_copy(
     link_path: Path,
     target_is_directory: bool = False,
     relative: bool = True,
+    remove_existing: bool = True,
 ):
     """
     Symlinks on Unix, copies on Windows.
     """
+
+    # If the link already exists, remove it
+    if remove_existing:
+        try:
+            if link_path.exists():
+                if link_path.is_dir():
+                    shutil.rmtree(link_path)
+                else:
+                    link_path.unlink(missing_ok=True)
+        except Exception:
+            log.warning(f"Failed to remove {link_path}", exc_info=True)
+        else:
+            log.debug(f"Removed {link_path=}")
 
     symlink_target = get_relative_path(link_path, file_path) if relative else file_path
     try:

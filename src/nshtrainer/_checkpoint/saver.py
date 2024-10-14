@@ -30,6 +30,8 @@ def _link_checkpoint(
                     linkpath.unlink(missing_ok=True)
         except Exception:
             log.warning(f"Failed to remove {linkpath}", exc_info=True)
+        else:
+            log.debug(f"Removed {linkpath=}")
 
         if metadata:
             _remove_checkpoint_metadata(linkpath)
