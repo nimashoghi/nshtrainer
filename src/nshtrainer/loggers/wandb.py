@@ -140,11 +140,28 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
                         f"(expected version >= 0.17.5, found version {wandb.__version__}). "
                         "Please either upgrade to a newer version of WandB or disable the `use_wandb_core` option."
                     )
-                else:
+                # W&B versions 0.18.0 use wandb-core by default
+                elif wandb_version < version.parse("0.18.0"):
                     wandb.require("core")  # type: ignore
                     log.critical("Using the `wandb-core` backend for WandB.")
             except ImportError:
                 pass
+        else:
+            # W&B versions 0.18.0 use wandb-core by default,
+            #   so if `use_wandb_core` is False, we should use the old backend
+            #   explicitly.
+            wandb_version = version.parse(importlib.metadata.version("wandb"))
+            if wandb_version >= version.parse("0.18.0"):
+                log.warning(
+                    "Explicitly using the old backend for WandB. "
+                    "If you want to use the new `wandb-core` backend, set `use_wandb_core=True`."
+                )
+                try:
+                    import wandb  # type: ignore
+
+                    wandb.require("legacy-service")  # type: ignore
+                except ImportError:
+                    pass
 
         from lightning.pytorch.loggers.wandb import WandbLogger
 
