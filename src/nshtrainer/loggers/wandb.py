@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 import nshconfig as C
 from lightning.pytorch import Callback, LightningModule, Trainer
 from packaging import version
-from typing_extensions import override
+from typing_extensions import assert_never, override
 
 from ..callbacks.base import CallbackConfigBase
 from ..callbacks.wandb_watch import WandbWatchConfig
@@ -82,13 +82,13 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     project: str | None = None
     """WandB project name to use for the logger. If None, will use the root config's project name."""
 
-    log_model: bool | Literal["all"] = False
+    log_model: Literal["all", "latest", "none"] | bool = False
     """
     Whether to log the model checkpoints to wandb.
     Valid values are:
-        - False: Do not log the model checkpoints.
-        - True: Log the latest model checkpoint.
-        - "all": Log all model checkpoints.
+    - "all": Log all checkpoints.
+    - "latest" or True: Log only the latest checkpoint.
+    - "none" or False: Do not log any checkpoints
     """
 
     watch: WandbWatchConfig | None = WandbWatchConfig()
@@ -109,6 +109,18 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     def core_(self, value: bool = True):
         self.use_wandb_core = value
         return self
+
+    @property
+    def _lightning_log_model(self) -> Literal["all"] | bool:
+        match self.log_model:
+            case "all":
+                return "all"
+            case "latest" | True:
+                return True
+            case "none" | False:
+                return False
+            case _:
+                assert_never(self.log_model)
 
     @override
     def create_logger(self, root_config):
@@ -145,7 +157,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
             project=self.project or _project_name(root_config),
             name=root_config.run_name,
             version=root_config.id,
-            log_model=self.log_model,
+            log_model=self._lightning_log_model,
             notes=(
                 "\n".join(f"- {note}" for note in root_config.notes)
                 if root_config.notes
