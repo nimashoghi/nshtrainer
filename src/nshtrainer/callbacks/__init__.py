@@ -39,6 +39,8 @@ from .shared_parameters import SharedParametersConfig as SharedParametersConfig
 from .throughput_monitor import ThroughputMonitorConfig as ThroughputMonitorConfig
 from .timer import EpochTimer as EpochTimer
 from .timer import EpochTimerConfig as EpochTimerConfig
+from .wandb_upload_code import WandbUploadCodeCallback as WandbUploadCodeCallback
+from .wandb_upload_code import WandbUploadCodeConfig as WandbUploadCodeConfig
 from .wandb_watch import WandbWatchCallback as WandbWatchCallback
 from .wandb_watch import WandbWatchConfig as WandbWatchConfig
 
@@ -57,6 +59,7 @@ CallbackConfig = Annotated[
     | OnExceptionCheckpointCallbackConfig
     | SharedParametersConfig
     | RLPSanityChecksConfig
-    | WandbWatchConfig,
+    | WandbWatchConfig
+    | WandbUploadCodeConfig,
     C.Field(discriminator="name"),
 ]

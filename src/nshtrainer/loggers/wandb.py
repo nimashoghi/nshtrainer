@@ -8,6 +8,7 @@ from packaging import version
 from typing_extensions import assert_never, override
 
 from ..callbacks.base import CallbackConfigBase
+from ..callbacks.wandb_upload_code import WandbUploadCodeConfig
 from ..callbacks.wandb_watch import WandbWatchConfig
 from ._base import BaseLoggerConfig
 
@@ -90,6 +91,9 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     - "latest" or True: Log only the latest checkpoint.
     - "none" or False: Do not log any checkpoints
     """
+
+    log_code: WandbUploadCodeConfig | None = None
+    """WandB code upload configuration. Used to upload code to WandB."""
 
     watch: WandbWatchConfig | None = WandbWatchConfig()
     """WandB model watch configuration. Used to log model architecture, gradients, and parameters."""
@@ -190,3 +194,6 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
 
         if self.watch:
             yield from self.watch.create_callbacks(root_config)
+
+        if self.log_code:
+            yield from self.log_code.create_callbacks(root_config)
