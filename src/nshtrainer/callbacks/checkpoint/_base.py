@@ -41,7 +41,7 @@ class BaseCheckpointCallbackConfig(CallbackConfigBase, ABC):
         self,
         root_config: "BaseConfig",
         dirpath: Path,
-    ) -> "CheckpointBase": ...
+    ) -> "CheckpointBase | None": ...
 
     @override
     def create_callbacks(self, root_config):
@@ -50,7 +50,8 @@ class BaseCheckpointCallbackConfig(CallbackConfigBase, ABC):
             or root_config.directory.resolve_subdirectory(root_config.id, "checkpoint")
         )
 
-        yield self.create_checkpoint(root_config, dirpath)
+        if (callback := self.create_checkpoint(root_config, dirpath)) is not None:
+            yield callback
 
 
 TConfig = TypeVar("TConfig", bound=BaseCheckpointCallbackConfig, infer_variance=True)

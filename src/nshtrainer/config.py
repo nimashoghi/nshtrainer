@@ -95,10 +95,10 @@ from nshtrainer.nn.nonlinearity import MishNonlinearityConfig as MishNonlinearit
 from nshtrainer.nn.nonlinearity import NonlinearityConfig as NonlinearityConfig
 from nshtrainer.nn.nonlinearity import PReLUConfig as PReLUConfig
 from nshtrainer.nn.nonlinearity import ReLUNonlinearityConfig as ReLUNonlinearityConfig
-from nshtrainer.nn.nonlinearity import SiLUNonlinearityConfig as SiLUNonlinearityConfig
 from nshtrainer.nn.nonlinearity import (
     SigmoidNonlinearityConfig as SigmoidNonlinearityConfig,
 )
+from nshtrainer.nn.nonlinearity import SiLUNonlinearityConfig as SiLUNonlinearityConfig
 from nshtrainer.nn.nonlinearity import (
     SoftmaxNonlinearityConfig as SoftmaxNonlinearityConfig,
 )
@@ -138,12 +138,12 @@ from nshtrainer.trainer._config import ReproducibilityConfig as ReproducibilityC
 from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
 from nshtrainer.trainer._config import TrainerConfig as TrainerConfig
 from nshtrainer.util._environment_info import (
-    EnvironmentCUDAConfig as EnvironmentCUDAConfig,
-)
-from nshtrainer.util._environment_info import (
     EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
 )
 from nshtrainer.util._environment_info import EnvironmentConfig as EnvironmentConfig
+from nshtrainer.util._environment_info import (
+    EnvironmentCUDAConfig as EnvironmentCUDAConfig,
+)
 from nshtrainer.util._environment_info import (
     EnvironmentGPUConfig as EnvironmentGPUConfig,
 )
@@ -151,10 +151,10 @@ from nshtrainer.util._environment_info import (
     EnvironmentHardwareConfig as EnvironmentHardwareConfig,
 )
 from nshtrainer.util._environment_info import (
-    EnvironmentLSFInformationConfig as EnvironmentLSFInformationConfig,
+    EnvironmentLinuxEnvironmentConfig as EnvironmentLinuxEnvironmentConfig,
 )
 from nshtrainer.util._environment_info import (
-    EnvironmentLinuxEnvironmentConfig as EnvironmentLinuxEnvironmentConfig,
+    EnvironmentLSFInformationConfig as EnvironmentLSFInformationConfig,
 )
 from nshtrainer.util._environment_info import (
     EnvironmentPackageConfig as EnvironmentPackageConfig,

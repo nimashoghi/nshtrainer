@@ -51,7 +51,7 @@ class EarlyStoppingConfig(CallbackConfigBase):
             metric := root_config.primary_metric
         ) is None:
             raise ValueError(
-                "Either `metric` or `root_config.primary_metric` must be set."
+                "Either `metric` or `root_config.primary_metric` must be set to use EarlyStopping."
             )
 
         yield EarlyStopping(self, metric)

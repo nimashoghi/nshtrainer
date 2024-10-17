@@ -263,7 +263,7 @@ class CheckpointSavingConfig(CallbackConfigBase):
     """Enable checkpoint saving."""
 
     checkpoint_callbacks: Sequence[CheckpointCallbackConfig] = [
-        BestCheckpointCallbackConfig(),
+        BestCheckpointCallbackConfig(throw_on_no_metric=False),
         LastCheckpointCallbackConfig(),
         OnExceptionCheckpointCallbackConfig(),
     ]

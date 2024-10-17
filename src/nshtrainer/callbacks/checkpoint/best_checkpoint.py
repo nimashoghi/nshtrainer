@@ -20,15 +20,26 @@ class BestCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     metric: MetricConfig | None = None
     """Metric to monitor, or `None` to use the default metric."""
 
+    throw_on_no_metric: bool = True
+    """
+    Whether to throw an error if no metric is provided and no primary metric is found in the root config.
+    """
+
     @override
     def create_checkpoint(self, root_config, dirpath):
         # Resolve metric
         if (metric := self.metric) is None and (
             metric := root_config.primary_metric
         ) is None:
-            raise ValueError(
-                "No metric provided and no primary metric found in the root config"
+            error_msg = (
+                "No metric provided and no primary metric found in the root config. "
+                "Cannot create BestCheckpointCallback."
             )
+            if self.throw_on_no_metric:
+                raise ValueError(error_msg)
+            else:
+                log.warning(error_msg)
+                return None
 
         return BestCheckpoint(self, dirpath, metric)
 
