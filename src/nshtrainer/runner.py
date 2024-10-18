@@ -6,7 +6,7 @@ from typing import Generic
 from nshrunner import RunInfo, Snapshot
 from nshrunner import Runner as _Runner
 from nshrunner._submit import screen
-from typing_extensions import TypeVar, TypeVarTuple, Unpack, override
+from typing_extensions import TypeVar, TypeVarTuple, Unpack, deprecated, override
 
 from .model.config import BaseConfig
 
@@ -15,6 +15,7 @@ TArguments = TypeVarTuple("TArguments", default=Unpack[tuple[()]])
 TReturn = TypeVar("TReturn", infer_variance=True)
 
 
+@deprecated("Use nshrunner.Runner instead.")
 class Runner(
     _Runner[TReturn, TConfig, Unpack[TArguments]],
     Generic[TReturn, TConfig, Unpack[TArguments]],
