@@ -8,6 +8,7 @@ from . import model as model
 from . import nn as nn
 from . import optimizer as optimizer
 from . import profiler as profiler
+from .data import LightningDataModuleBase as LightningDataModuleBase
 from .metrics import MetricConfig as MetricConfig
 from .model import BaseConfig as BaseConfig
 from .model import LightningModuleBase as LightningModuleBase
