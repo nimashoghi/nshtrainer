@@ -77,7 +77,7 @@ class BaseConfig(C.Config):
         return self.directory.resolve_subdirectory(self.id, subdirectory)
 
     # region Helper methods
-    def fast_dev_run(self, value: int | bool, /):
+    def fast_dev_run(self, value: int | bool = True, /):
         """
         Enables fast_dev_run mode for the trainer.
         This will run the training loop for a specified number of batches,
