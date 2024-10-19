@@ -59,10 +59,12 @@ class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
 
         if not (filename := self.filename):
             filename = f"on_exception_{root_config.id}"
-        yield OnExceptionCheckpoint(self, dirpath=Path(dirpath), filename=filename)
+        yield OnExceptionCheckpointCallback(
+            self, dirpath=Path(dirpath), filename=filename
+        )
 
 
-class OnExceptionCheckpoint(_OnExceptionCheckpoint):
+class OnExceptionCheckpointCallback(_OnExceptionCheckpoint):
     @override
     def __init__(
         self,

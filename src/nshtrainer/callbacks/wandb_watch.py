@@ -12,7 +12,7 @@ from .base import CallbackConfigBase
 log = logging.getLogger(__name__)
 
 
-class WandbWatchConfig(CallbackConfigBase):
+class WandbWatchCallbackConfig(CallbackConfigBase):
     name: Literal["wandb_watch"] = "wandb_watch"
 
     enabled: bool = True
@@ -41,7 +41,7 @@ class _HasWandbLogModuleProtocol(Protocol):
 
 
 class WandbWatchCallback(Callback):
-    def __init__(self, config: WandbWatchConfig):
+    def __init__(self, config: WandbWatchCallbackConfig):
         super().__init__()
 
         self.config = config

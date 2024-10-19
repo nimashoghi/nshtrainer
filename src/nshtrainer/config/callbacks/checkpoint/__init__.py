@@ -33,10 +33,6 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "LastCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint"
-            ).LastCheckpointCallbackConfig
         if name == "CheckpointMetadata":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"
@@ -45,6 +41,10 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"
             ).BaseCheckpointCallbackConfig
+        if name == "LastCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint"
+            ).LastCheckpointCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"

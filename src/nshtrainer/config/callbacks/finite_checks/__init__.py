@@ -9,7 +9,7 @@ if TYPE_CHECKING:
         CallbackConfigBase as CallbackConfigBase,
     )
     from nshtrainer.callbacks.finite_checks import (
-        FiniteChecksConfig as FiniteChecksConfig,
+        FiniteChecksCallbackConfig as FiniteChecksCallbackConfig,
     )
 else:
 
@@ -18,14 +18,14 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "FiniteChecksCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.finite_checks"
+            ).FiniteChecksCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.finite_checks"
             ).CallbackConfigBase
-        if name == "FiniteChecksConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.finite_checks"
-            ).FiniteChecksConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

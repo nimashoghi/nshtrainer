@@ -43,30 +43,30 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "EnvironmentPackageConfig":
-            return importlib.import_module(
-                "nshtrainer.util._environment_info"
-            ).EnvironmentPackageConfig
-        if name == "EnvironmentSnapshotConfig":
-            return importlib.import_module(
-                "nshtrainer.util._environment_info"
-            ).EnvironmentSnapshotConfig
-        if name == "EnvironmentLSFInformationConfig":
-            return importlib.import_module(
-                "nshtrainer.util._environment_info"
-            ).EnvironmentLSFInformationConfig
         if name == "EnvironmentLinuxEnvironmentConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
             ).EnvironmentLinuxEnvironmentConfig
-        if name == "EnvironmentSLURMInformationConfig":
+        if name == "EnvironmentLSFInformationConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
-            ).EnvironmentSLURMInformationConfig
-        if name == "EnvironmentConfig":
+            ).EnvironmentLSFInformationConfig
+        if name == "EnvironmentGPUConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
-            ).EnvironmentConfig
+            ).EnvironmentGPUConfig
+        if name == "EnvironmentPackageConfig":
+            return importlib.import_module(
+                "nshtrainer.util._environment_info"
+            ).EnvironmentPackageConfig
+        if name == "EnvironmentHardwareConfig":
+            return importlib.import_module(
+                "nshtrainer.util._environment_info"
+            ).EnvironmentHardwareConfig
+        if name == "EnvironmentSnapshotConfig":
+            return importlib.import_module(
+                "nshtrainer.util._environment_info"
+            ).EnvironmentSnapshotConfig
         if name == "EnvironmentClassInformationConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
@@ -75,18 +75,18 @@ else:
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
             ).GitRepositoryConfig
+        if name == "EnvironmentConfig":
+            return importlib.import_module(
+                "nshtrainer.util._environment_info"
+            ).EnvironmentConfig
         if name == "EnvironmentCUDAConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
             ).EnvironmentCUDAConfig
-        if name == "EnvironmentGPUConfig":
+        if name == "EnvironmentSLURMInformationConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
-            ).EnvironmentGPUConfig
-        if name == "EnvironmentHardwareConfig":
-            return importlib.import_module(
-                "nshtrainer.util._environment_info"
-            ).EnvironmentHardwareConfig
+            ).EnvironmentSLURMInformationConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

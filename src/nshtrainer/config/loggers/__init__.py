@@ -11,8 +11,12 @@ if TYPE_CHECKING:
     from nshtrainer.loggers import TensorboardLoggerConfig as TensorboardLoggerConfig
     from nshtrainer.loggers import WandbLoggerConfig as WandbLoggerConfig
     from nshtrainer.loggers.wandb import CallbackConfigBase as CallbackConfigBase
-    from nshtrainer.loggers.wandb import WandbUploadCodeConfig as WandbUploadCodeConfig
-    from nshtrainer.loggers.wandb import WandbWatchConfig as WandbWatchConfig
+    from nshtrainer.loggers.wandb import (
+        WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
+    )
+    from nshtrainer.loggers.wandb import (
+        WandbWatchCallbackConfig as WandbWatchCallbackConfig,
+    )
 else:
 
     def __getattr__(name):
@@ -24,18 +28,20 @@ else:
             return importlib.import_module("nshtrainer.loggers").BaseLoggerConfig
         if name == "TensorboardLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").TensorboardLoggerConfig
+        if name == "WandbLoggerConfig":
+            return importlib.import_module("nshtrainer.loggers").WandbLoggerConfig
+        if name == "WandbUploadCodeCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.loggers.wandb"
+            ).WandbUploadCodeCallbackConfig
+        if name == "WandbWatchCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.loggers.wandb"
+            ).WandbWatchCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.loggers.wandb"
             ).CallbackConfigBase
-        if name == "WandbLoggerConfig":
-            return importlib.import_module("nshtrainer.loggers").WandbLoggerConfig
-        if name == "WandbUploadCodeConfig":
-            return importlib.import_module(
-                "nshtrainer.loggers.wandb"
-            ).WandbUploadCodeConfig
-        if name == "WandbWatchConfig":
-            return importlib.import_module("nshtrainer.loggers.wandb").WandbWatchConfig
         if name == "CSVLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").CSVLoggerConfig
         if name == "LoggerConfig":

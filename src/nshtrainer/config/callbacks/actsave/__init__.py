@@ -14,12 +14,12 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "ActSaveConfig":
+            return importlib.import_module("nshtrainer.callbacks.actsave").ActSaveConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.actsave"
             ).CallbackConfigBase
-        if name == "ActSaveConfig":
-            return importlib.import_module("nshtrainer.callbacks.actsave").ActSaveConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

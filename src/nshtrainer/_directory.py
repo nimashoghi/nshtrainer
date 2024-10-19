@@ -3,7 +3,7 @@ from pathlib import Path
 
 import nshconfig as C
 
-from .callbacks.directory_setup import DirectorySetupConfig
+from .callbacks.directory_setup import DirectorySetupCallbackConfig
 from .loggers import LoggerConfig
 
 log = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class DirectoryConfig(C.Config):
     profile: Path | None = None
     """Directory to save profiling information to. If None, will use nshtrainer/{id}/profile/."""
 
-    setup_callback: DirectorySetupConfig = DirectorySetupConfig()
+    setup_callback: DirectorySetupCallbackConfig = DirectorySetupCallbackConfig()
     """Configuration for the directory setup PyTorch Lightning callback."""
 
     def resolve_run_root_directory(self, run_id: str) -> Path:

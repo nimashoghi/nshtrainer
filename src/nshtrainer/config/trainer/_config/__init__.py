@@ -23,7 +23,9 @@ if TYPE_CHECKING:
     from nshtrainer.trainer._config import (
         DebugFlagCallbackConfig as DebugFlagCallbackConfig,
     )
-    from nshtrainer.trainer._config import EarlyStoppingConfig as EarlyStoppingConfig
+    from nshtrainer.trainer._config import (
+        EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig,
+    )
     from nshtrainer.trainer._config import (
         GradientClippingConfig as GradientClippingConfig,
     )
@@ -42,11 +44,11 @@ if TYPE_CHECKING:
         ReproducibilityConfig as ReproducibilityConfig,
     )
     from nshtrainer.trainer._config import (
-        RLPSanityChecksConfig as RLPSanityChecksConfig,
+        RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
     )
     from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
     from nshtrainer.trainer._config import (
-        SharedParametersConfig as SharedParametersConfig,
+        SharedParametersCallbackConfig as SharedParametersCallbackConfig,
     )
     from nshtrainer.trainer._config import (
         TensorboardLoggerConfig as TensorboardLoggerConfig,
@@ -60,80 +62,80 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "HuggingFaceHubConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).HuggingFaceHubConfig
-        if name == "OptimizationConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).OptimizationConfig
-        if name == "TrainerConfig":
-            return importlib.import_module("nshtrainer.trainer._config").TrainerConfig
-        if name == "TensorboardLoggerConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).TensorboardLoggerConfig
-        if name == "GradientClippingConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).GradientClippingConfig
-        if name == "CallbackConfigBase":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).CallbackConfigBase
-        if name == "CSVLoggerConfig":
-            return importlib.import_module("nshtrainer.trainer._config").CSVLoggerConfig
-        if name == "LastCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).LastCheckpointCallbackConfig
-        if name == "OnExceptionCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).OnExceptionCheckpointCallbackConfig
-        if name == "RLPSanityChecksConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).RLPSanityChecksConfig
-        if name == "EarlyStoppingConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).EarlyStoppingConfig
-        if name == "DebugFlagCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).DebugFlagCallbackConfig
-        if name == "WandbLoggerConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).WandbLoggerConfig
-        if name == "CheckpointSavingConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).CheckpointSavingConfig
-        if name == "CheckpointLoadingConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).CheckpointLoadingConfig
-        if name == "BestCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).BestCheckpointCallbackConfig
-        if name == "LoggingConfig":
-            return importlib.import_module("nshtrainer.trainer._config").LoggingConfig
         if name == "SanityCheckingConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).SanityCheckingConfig
-        if name == "SharedParametersConfig":
+        if name == "TrainerConfig":
+            return importlib.import_module("nshtrainer.trainer._config").TrainerConfig
+        if name == "OnExceptionCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
-            ).SharedParametersConfig
+            ).OnExceptionCheckpointCallbackConfig
+        if name == "GradientClippingConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).GradientClippingConfig
+        if name == "WandbLoggerConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).WandbLoggerConfig
+        if name == "LoggingConfig":
+            return importlib.import_module("nshtrainer.trainer._config").LoggingConfig
+        if name == "TensorboardLoggerConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).TensorboardLoggerConfig
+        if name == "RLPSanityChecksCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).RLPSanityChecksCallbackConfig
+        if name == "CheckpointSavingConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).CheckpointSavingConfig
+        if name == "CSVLoggerConfig":
+            return importlib.import_module("nshtrainer.trainer._config").CSVLoggerConfig
+        if name == "HuggingFaceHubConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).HuggingFaceHubConfig
+        if name == "CheckpointLoadingConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).CheckpointLoadingConfig
+        if name == "DebugFlagCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).DebugFlagCallbackConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).CallbackConfigBase
+        if name == "LastCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).LastCheckpointCallbackConfig
+        if name == "SharedParametersCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).SharedParametersCallbackConfig
         if name == "ReproducibilityConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).ReproducibilityConfig
+        if name == "EarlyStoppingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).EarlyStoppingCallbackConfig
+        if name == "OptimizationConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).OptimizationConfig
+        if name == "BestCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).BestCheckpointCallbackConfig
         if name == "CallbackConfig":
             return importlib.import_module("nshtrainer.trainer._config").CallbackConfig
         if name == "CheckpointCallbackConfig":

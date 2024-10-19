@@ -12,7 +12,7 @@ from .base import CallbackConfigBase
 log = logging.getLogger(__name__)
 
 
-class EpochTimer(Callback):
+class EpochTimerCallback(Callback):
     def __init__(self):
         super().__init__()
 
@@ -149,9 +149,9 @@ class EpochTimer(Callback):
         self._total_batches = state_dict["total_batches"]
 
 
-class EpochTimerConfig(CallbackConfigBase):
+class EpochTimerCallbackConfig(CallbackConfigBase):
     name: Literal["epoch_timer"] = "epoch_timer"
 
     @override
     def create_callbacks(self, root_config):
-        yield EpochTimer()
+        yield EpochTimerCallback()

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
         CallbackConfigBase as CallbackConfigBase,
     )
     from nshtrainer.callbacks.directory_setup import (
-        DirectorySetupConfig as DirectorySetupConfig,
+        DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
     )
 else:
 
@@ -18,14 +18,14 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "DirectorySetupCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.directory_setup"
+            ).DirectorySetupCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.directory_setup"
             ).CallbackConfigBase
-        if name == "DirectorySetupConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.directory_setup"
-            ).DirectorySetupConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

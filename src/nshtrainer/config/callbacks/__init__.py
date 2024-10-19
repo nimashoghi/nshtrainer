@@ -11,25 +11,47 @@ if TYPE_CHECKING:
     from nshtrainer.callbacks import CallbackConfig as CallbackConfig
     from nshtrainer.callbacks import CallbackConfigBase as CallbackConfigBase
     from nshtrainer.callbacks import DebugFlagCallbackConfig as DebugFlagCallbackConfig
-    from nshtrainer.callbacks import DirectorySetupConfig as DirectorySetupConfig
-    from nshtrainer.callbacks import EarlyStoppingConfig as EarlyStoppingConfig
-    from nshtrainer.callbacks import EMAConfig as EMAConfig
-    from nshtrainer.callbacks import EpochTimerConfig as EpochTimerConfig
-    from nshtrainer.callbacks import FiniteChecksConfig as FiniteChecksConfig
-    from nshtrainer.callbacks import GradientSkippingConfig as GradientSkippingConfig
+    from nshtrainer.callbacks import (
+        DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
+    )
+    from nshtrainer.callbacks import (
+        EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig,
+    )
+    from nshtrainer.callbacks import EMACallbackConfig as EMACallbackConfig
+    from nshtrainer.callbacks import (
+        EpochTimerCallbackConfig as EpochTimerCallbackConfig,
+    )
+    from nshtrainer.callbacks import (
+        FiniteChecksCallbackConfig as FiniteChecksCallbackConfig,
+    )
+    from nshtrainer.callbacks import (
+        GradientSkippingCallbackConfig as GradientSkippingCallbackConfig,
+    )
     from nshtrainer.callbacks import (
         LastCheckpointCallbackConfig as LastCheckpointCallbackConfig,
     )
-    from nshtrainer.callbacks import NormLoggingConfig as NormLoggingConfig
+    from nshtrainer.callbacks import (
+        NormLoggingCallbackConfig as NormLoggingCallbackConfig,
+    )
     from nshtrainer.callbacks import (
         OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
     )
-    from nshtrainer.callbacks import PrintTableMetricsConfig as PrintTableMetricsConfig
-    from nshtrainer.callbacks import RLPSanityChecksConfig as RLPSanityChecksConfig
-    from nshtrainer.callbacks import SharedParametersConfig as SharedParametersConfig
+    from nshtrainer.callbacks import (
+        PrintTableMetricsCallbackConfig as PrintTableMetricsCallbackConfig,
+    )
+    from nshtrainer.callbacks import (
+        RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
+    )
+    from nshtrainer.callbacks import (
+        SharedParametersCallbackConfig as SharedParametersCallbackConfig,
+    )
     from nshtrainer.callbacks import ThroughputMonitorConfig as ThroughputMonitorConfig
-    from nshtrainer.callbacks import WandbUploadCodeConfig as WandbUploadCodeConfig
-    from nshtrainer.callbacks import WandbWatchConfig as WandbWatchConfig
+    from nshtrainer.callbacks import (
+        WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
+    )
+    from nshtrainer.callbacks import (
+        WandbWatchCallbackConfig as WandbWatchCallbackConfig,
+    )
     from nshtrainer.callbacks.actsave import ActSaveConfig as ActSaveConfig
     from nshtrainer.callbacks.checkpoint._base import (
         BaseCheckpointCallbackConfig as BaseCheckpointCallbackConfig,
@@ -45,12 +67,12 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CallbackConfigBase":
-            return importlib.import_module("nshtrainer.callbacks").CallbackConfigBase
-        if name == "PrintTableMetricsConfig":
+        if name == "PrintTableMetricsCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
-            ).PrintTableMetricsConfig
+            ).PrintTableMetricsCallbackConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module("nshtrainer.callbacks").CallbackConfigBase
         if name == "DebugFlagCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
@@ -59,50 +81,66 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks"
             ).ThroughputMonitorConfig
-        if name == "GradientSkippingConfig":
+        if name == "GradientSkippingCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
-            ).GradientSkippingConfig
-        if name == "RLPSanityChecksConfig":
-            return importlib.import_module("nshtrainer.callbacks").RLPSanityChecksConfig
-        if name == "WandbUploadCodeConfig":
-            return importlib.import_module("nshtrainer.callbacks").WandbUploadCodeConfig
+            ).GradientSkippingCallbackConfig
+        if name == "RLPSanityChecksCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).RLPSanityChecksCallbackConfig
+        if name == "WandbUploadCodeCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).WandbUploadCodeCallbackConfig
         if name == "MetricConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.early_stopping"
             ).MetricConfig
-        if name == "EarlyStoppingConfig":
-            return importlib.import_module("nshtrainer.callbacks").EarlyStoppingConfig
-        if name == "WandbWatchConfig":
-            return importlib.import_module("nshtrainer.callbacks").WandbWatchConfig
-        if name == "EMAConfig":
-            return importlib.import_module("nshtrainer.callbacks").EMAConfig
-        if name == "DirectorySetupConfig":
-            return importlib.import_module("nshtrainer.callbacks").DirectorySetupConfig
+        if name == "EarlyStoppingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).EarlyStoppingCallbackConfig
+        if name == "WandbWatchCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).WandbWatchCallbackConfig
+        if name == "EMACallbackConfig":
+            return importlib.import_module("nshtrainer.callbacks").EMACallbackConfig
+        if name == "DirectorySetupCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).DirectorySetupCallbackConfig
         if name == "ActSaveConfig":
             return importlib.import_module("nshtrainer.callbacks.actsave").ActSaveConfig
-        if name == "FiniteChecksConfig":
-            return importlib.import_module("nshtrainer.callbacks").FiniteChecksConfig
-        if name == "NormLoggingConfig":
-            return importlib.import_module("nshtrainer.callbacks").NormLoggingConfig
-        if name == "LastCheckpointCallbackConfig":
+        if name == "FiniteChecksCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
-            ).LastCheckpointCallbackConfig
-        if name == "BestCheckpointCallbackConfig":
+            ).FiniteChecksCallbackConfig
+        if name == "NormLoggingCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
-            ).BestCheckpointCallbackConfig
+            ).NormLoggingCallbackConfig
+        if name == "EpochTimerCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).EpochTimerCallbackConfig
         if name == "OnExceptionCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
             ).OnExceptionCheckpointCallbackConfig
-        if name == "EpochTimerConfig":
-            return importlib.import_module("nshtrainer.callbacks").EpochTimerConfig
-        if name == "SharedParametersConfig":
+        if name == "LastCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
-            ).SharedParametersConfig
+            ).LastCheckpointCallbackConfig
+        if name == "SharedParametersCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).SharedParametersCallbackConfig
+        if name == "BestCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).BestCheckpointCallbackConfig
         if name == "CheckpointMetadata":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"

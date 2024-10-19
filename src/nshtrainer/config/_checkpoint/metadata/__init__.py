@@ -14,14 +14,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "EnvironmentConfig":
-            return importlib.import_module(
-                "nshtrainer._checkpoint.metadata"
-            ).EnvironmentConfig
         if name == "CheckpointMetadata":
             return importlib.import_module(
                 "nshtrainer._checkpoint.metadata"
             ).CheckpointMetadata
+        if name == "EnvironmentConfig":
+            return importlib.import_module(
+                "nshtrainer._checkpoint.metadata"
+            ).EnvironmentConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

@@ -58,7 +58,7 @@ class FiniteChecksCallback(Callback):
         )
 
 
-class FiniteChecksConfig(CallbackConfigBase):
+class FiniteChecksCallbackConfig(CallbackConfigBase):
     name: Literal["finite_checks"] = "finite_checks"
 
     nonfinite_grads: bool = True

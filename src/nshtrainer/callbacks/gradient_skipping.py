@@ -18,8 +18,8 @@ class HasGradSkippedSteps(Protocol):
     grad_skipped_steps: Any
 
 
-class GradientSkipping(Callback):
-    def __init__(self, config: "GradientSkippingConfig"):
+class GradientSkippingCallback(Callback):
+    def __init__(self, config: "GradientSkippingCallbackConfig"):
         super().__init__()
         self.config = config
 
@@ -73,7 +73,7 @@ class GradientSkipping(Callback):
         )
 
 
-class GradientSkippingConfig(CallbackConfigBase):
+class GradientSkippingCallbackConfig(CallbackConfigBase):
     name: Literal["gradient_skipping"] = "gradient_skipping"
 
     threshold: float
@@ -94,4 +94,4 @@ class GradientSkippingConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
-        yield GradientSkipping(self)
+        yield GradientSkippingCallback(self)

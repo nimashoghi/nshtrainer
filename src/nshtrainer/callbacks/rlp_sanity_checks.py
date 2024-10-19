@@ -16,7 +16,7 @@ from .base import CallbackConfigBase
 log = logging.getLogger(__name__)
 
 
-class RLPSanityChecksConfig(CallbackConfigBase):
+class RLPSanityChecksCallbackConfig(CallbackConfigBase):
     """
     If enabled, will do some sanity checks if the `ReduceLROnPlateau` scheduler is used:
         - If the ``interval`` is step, it makes sure that validation is called every ``frequency`` steps.
@@ -43,7 +43,7 @@ class RLPSanityChecksConfig(CallbackConfigBase):
 
 class RLPSanityChecksCallback(Callback):
     @override
-    def __init__(self, config: RLPSanityChecksConfig):
+    def __init__(self, config: RLPSanityChecksCallbackConfig):
         super().__init__()
 
         self.config = config

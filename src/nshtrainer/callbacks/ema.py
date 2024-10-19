@@ -13,7 +13,7 @@ from typing_extensions import override
 from .base import CallbackConfigBase
 
 
-class EMA(Callback):
+class EMACallback(Callback):
     """
     Implements Exponential Moving Averaging (EMA).
 
@@ -358,7 +358,7 @@ class EMAOptimizer(torch.optim.Optimizer):
         self.rebuild_ema_params = True
 
 
-class EMAConfig(CallbackConfigBase):
+class EMACallbackConfig(CallbackConfigBase):
     name: Literal["ema"] = "ema"
 
     decay: float
@@ -375,7 +375,7 @@ class EMAConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
-        yield EMA(
+        yield EMACallback(
             decay=self.decay,
             validate_original_weights=self.validate_original_weights,
             every_n_steps=self.every_n_steps,

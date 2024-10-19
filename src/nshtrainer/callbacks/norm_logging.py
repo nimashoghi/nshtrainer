@@ -96,7 +96,7 @@ def compute_norm(
 
 
 class NormLoggingCallback(Callback):
-    def __init__(self, config: "NormLoggingConfig"):
+    def __init__(self, config: "NormLoggingCallbackConfig"):
         super().__init__()
 
         self.config = config
@@ -155,7 +155,7 @@ class NormLoggingCallback(Callback):
                 )
 
 
-class NormLoggingConfig(CallbackConfigBase):
+class NormLoggingCallbackConfig(CallbackConfigBase):
     name: Literal["norm_logging"] = "norm_logging"
 
     log_grad_norm: bool | str | float = False

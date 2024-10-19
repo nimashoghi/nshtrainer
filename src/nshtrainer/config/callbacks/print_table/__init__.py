@@ -9,7 +9,7 @@ if TYPE_CHECKING:
         CallbackConfigBase as CallbackConfigBase,
     )
     from nshtrainer.callbacks.print_table import (
-        PrintTableMetricsConfig as PrintTableMetricsConfig,
+        PrintTableMetricsCallbackConfig as PrintTableMetricsCallbackConfig,
     )
 else:
 
@@ -18,14 +18,14 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "PrintTableMetricsCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.print_table"
+            ).PrintTableMetricsCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.print_table"
             ).CallbackConfigBase
-        if name == "PrintTableMetricsConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.print_table"
-            ).PrintTableMetricsConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

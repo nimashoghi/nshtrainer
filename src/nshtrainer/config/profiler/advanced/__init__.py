@@ -16,14 +16,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "BaseProfilerConfig":
-            return importlib.import_module(
-                "nshtrainer.profiler.advanced"
-            ).BaseProfilerConfig
         if name == "AdvancedProfilerConfig":
             return importlib.import_module(
                 "nshtrainer.profiler.advanced"
             ).AdvancedProfilerConfig
+        if name == "BaseProfilerConfig":
+            return importlib.import_module(
+                "nshtrainer.profiler.advanced"
+            ).BaseProfilerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

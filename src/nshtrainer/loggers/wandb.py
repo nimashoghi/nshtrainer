@@ -8,8 +8,8 @@ from packaging import version
 from typing_extensions import assert_never, override
 
 from ..callbacks.base import CallbackConfigBase
-from ..callbacks.wandb_upload_code import WandbUploadCodeConfig
-from ..callbacks.wandb_watch import WandbWatchConfig
+from ..callbacks.wandb_upload_code import WandbUploadCodeCallbackConfig
+from ..callbacks.wandb_watch import WandbWatchCallbackConfig
 from ._base import BaseLoggerConfig
 
 if TYPE_CHECKING:
@@ -92,10 +92,10 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     - "none" or False: Do not log any checkpoints
     """
 
-    log_code: WandbUploadCodeConfig | None = WandbUploadCodeConfig()
+    log_code: WandbUploadCodeCallbackConfig | None = WandbUploadCodeCallbackConfig()
     """WandB code upload configuration. Used to upload code to WandB."""
 
-    watch: WandbWatchConfig | None = WandbWatchConfig()
+    watch: WandbWatchCallbackConfig | None = WandbWatchCallbackConfig()
     """WandB model watch configuration. Used to log model architecture, gradients, and parameters."""
 
     offline: bool = False

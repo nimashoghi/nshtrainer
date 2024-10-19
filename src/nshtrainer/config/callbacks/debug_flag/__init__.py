@@ -16,14 +16,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CallbackConfigBase":
-            return importlib.import_module(
-                "nshtrainer.callbacks.debug_flag"
-            ).CallbackConfigBase
         if name == "DebugFlagCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.debug_flag"
             ).DebugFlagCallbackConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.callbacks.debug_flag"
+            ).CallbackConfigBase
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

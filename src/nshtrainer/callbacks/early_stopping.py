@@ -14,7 +14,7 @@ from .base import CallbackConfigBase
 log = logging.getLogger(__name__)
 
 
-class EarlyStoppingConfig(CallbackConfigBase):
+class EarlyStoppingCallbackConfig(CallbackConfigBase):
     name: Literal["early_stopping"] = "early_stopping"
 
     metric: MetricConfig | None = None
@@ -54,11 +54,11 @@ class EarlyStoppingConfig(CallbackConfigBase):
                 "Either `metric` or `root_config.primary_metric` must be set to use EarlyStopping."
             )
 
-        yield EarlyStopping(self, metric)
+        yield EarlyStoppingCallback(self, metric)
 
 
-class EarlyStopping(_EarlyStopping):
-    def __init__(self, config: EarlyStoppingConfig, metric: MetricConfig):
+class EarlyStoppingCallback(_EarlyStopping):
+    def __init__(self, config: EarlyStoppingCallbackConfig, metric: MetricConfig):
         self.config = config
         self.metric = metric
         del config, metric

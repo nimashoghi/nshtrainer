@@ -14,10 +14,10 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "EnvironmentConfig":
-            return importlib.import_module("nshtrainer.model.base").EnvironmentConfig
         if name == "BaseConfig":
             return importlib.import_module("nshtrainer.model.base").BaseConfig
+        if name == "EnvironmentConfig":
+            return importlib.import_module("nshtrainer.model.base").EnvironmentConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

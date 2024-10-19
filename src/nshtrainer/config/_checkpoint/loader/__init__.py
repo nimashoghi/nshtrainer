@@ -29,24 +29,24 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CheckpointLoadingConfig":
-            return importlib.import_module(
-                "nshtrainer._checkpoint.loader"
-            ).CheckpointLoadingConfig
-        if name == "CheckpointMetadata":
-            return importlib.import_module(
-                "nshtrainer._checkpoint.loader"
-            ).CheckpointMetadata
         if name == "MetricConfig":
             return importlib.import_module("nshtrainer._checkpoint.loader").MetricConfig
         if name == "BestCheckpointStrategyConfig":
             return importlib.import_module(
                 "nshtrainer._checkpoint.loader"
             ).BestCheckpointStrategyConfig
+        if name == "CheckpointMetadata":
+            return importlib.import_module(
+                "nshtrainer._checkpoint.loader"
+            ).CheckpointMetadata
         if name == "LastCheckpointStrategyConfig":
             return importlib.import_module(
                 "nshtrainer._checkpoint.loader"
             ).LastCheckpointStrategyConfig
+        if name == "CheckpointLoadingConfig":
+            return importlib.import_module(
+                "nshtrainer._checkpoint.loader"
+            ).CheckpointLoadingConfig
         if name == "UserProvidedPathCheckpointStrategyConfig":
             return importlib.import_module(
                 "nshtrainer._checkpoint.loader"

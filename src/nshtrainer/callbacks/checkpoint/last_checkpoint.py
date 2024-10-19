@@ -17,11 +17,11 @@ class LastCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
 
     @override
     def create_checkpoint(self, root_config, dirpath):
-        return LastCheckpoint(self, dirpath)
+        return LastCheckpointCallback(self, dirpath)
 
 
 @final
-class LastCheckpoint(CheckpointBase[LastCheckpointCallbackConfig]):
+class LastCheckpointCallback(CheckpointBase[LastCheckpointCallbackConfig]):
     @override
     def name(self):
         return "last"

@@ -14,7 +14,7 @@ from .base import CallbackConfigBase
 log = logging.getLogger(__name__)
 
 
-class WandbUploadCodeConfig(CallbackConfigBase):
+class WandbUploadCodeCallbackConfig(CallbackConfigBase):
     name: Literal["wandb_upload_code"] = "wandb_upload_code"
 
     enabled: bool = True
@@ -32,7 +32,7 @@ class WandbUploadCodeConfig(CallbackConfigBase):
 
 
 class WandbUploadCodeCallback(Callback):
-    def __init__(self, config: WandbUploadCodeConfig):
+    def __init__(self, config: WandbUploadCodeCallbackConfig):
         super().__init__()
 
         self.config = config

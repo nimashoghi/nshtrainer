@@ -17,7 +17,7 @@ def _parameters_to_names(parameters: Iterable[nn.Parameter], model: nn.Module):
     return [mapping[id(p)] for p in parameters]
 
 
-class SharedParametersConfig(CallbackConfigBase):
+class SharedParametersCallbackConfig(CallbackConfigBase):
     """A callback that allows scaling the gradients of shared parameters that
     are registered in the ``self.shared_parameters`` list of the root module.
 
@@ -43,7 +43,7 @@ class ModuleWithSharedParameters(Protocol):
 
 class SharedParametersCallback(Callback):
     @override
-    def __init__(self, config: SharedParametersConfig):
+    def __init__(self, config: SharedParametersCallbackConfig):
         super().__init__()
 
         self.config = config

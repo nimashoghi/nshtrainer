@@ -9,7 +9,7 @@ if TYPE_CHECKING:
         CallbackConfigBase as CallbackConfigBase,
     )
     from nshtrainer.callbacks.wandb_upload_code import (
-        WandbUploadCodeConfig as WandbUploadCodeConfig,
+        WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
     )
 else:
 
@@ -18,14 +18,14 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "WandbUploadCodeCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.wandb_upload_code"
+            ).WandbUploadCodeCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.wandb_upload_code"
             ).CallbackConfigBase
-        if name == "WandbUploadCodeConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.wandb_upload_code"
-            ).WandbUploadCodeConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

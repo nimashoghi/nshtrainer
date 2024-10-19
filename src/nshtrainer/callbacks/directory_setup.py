@@ -41,7 +41,7 @@ def _create_symlink_to_nshrunner(base_dir: Path):
     symlink_path.symlink_to(session_dir)
 
 
-class DirectorySetupConfig(CallbackConfigBase):
+class DirectorySetupCallbackConfig(CallbackConfigBase):
     name: Literal["directory_setup"] = "directory_setup"
 
     enabled: bool = True
@@ -62,7 +62,7 @@ class DirectorySetupConfig(CallbackConfigBase):
 
 class DirectorySetupCallback(Callback):
     @override
-    def __init__(self, config: DirectorySetupConfig):
+    def __init__(self, config: DirectorySetupCallbackConfig):
         super().__init__()
 
         self.config = config

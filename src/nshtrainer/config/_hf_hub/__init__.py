@@ -17,14 +17,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CallbackConfigBase":
-            return importlib.import_module("nshtrainer._hf_hub").CallbackConfigBase
-        if name == "HuggingFaceHubConfig":
-            return importlib.import_module("nshtrainer._hf_hub").HuggingFaceHubConfig
         if name == "HuggingFaceHubAutoCreateConfig":
             return importlib.import_module(
                 "nshtrainer._hf_hub"
             ).HuggingFaceHubAutoCreateConfig
+        if name == "HuggingFaceHubConfig":
+            return importlib.import_module("nshtrainer._hf_hub").HuggingFaceHubConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module("nshtrainer._hf_hub").CallbackConfigBase
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

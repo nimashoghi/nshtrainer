@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nshtrainer.callbacks.timer import CallbackConfigBase as CallbackConfigBase
-    from nshtrainer.callbacks.timer import EpochTimerConfig as EpochTimerConfig
+    from nshtrainer.callbacks.timer import (
+        EpochTimerCallbackConfig as EpochTimerCallbackConfig,
+    )
 else:
 
     def __getattr__(name):
@@ -14,14 +16,14 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "EpochTimerCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.timer"
+            ).EpochTimerCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.timer"
             ).CallbackConfigBase
-        if name == "EpochTimerConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.timer"
-            ).EpochTimerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

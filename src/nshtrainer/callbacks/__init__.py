@@ -6,60 +6,72 @@ from . import checkpoint as checkpoint
 from .base import CallbackConfigBase as CallbackConfigBase
 from .checkpoint import BestCheckpoint as BestCheckpoint
 from .checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
-from .checkpoint import LastCheckpoint as LastCheckpoint
+from .checkpoint import LastCheckpointCallback as LastCheckpointCallback
 from .checkpoint import LastCheckpointCallbackConfig as LastCheckpointCallbackConfig
-from .checkpoint import OnExceptionCheckpoint as OnExceptionCheckpoint
+from .checkpoint import OnExceptionCheckpointCallback as OnExceptionCheckpointCallback
 from .checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
 from .debug_flag import DebugFlagCallback as DebugFlagCallback
 from .debug_flag import DebugFlagCallbackConfig as DebugFlagCallbackConfig
 from .directory_setup import DirectorySetupCallback as DirectorySetupCallback
-from .directory_setup import DirectorySetupConfig as DirectorySetupConfig
-from .early_stopping import EarlyStopping as EarlyStopping
-from .early_stopping import EarlyStoppingConfig as EarlyStoppingConfig
-from .ema import EMA as EMA
-from .ema import EMAConfig as EMAConfig
+from .directory_setup import (
+    DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
+)
+from .early_stopping import EarlyStoppingCallback as EarlyStoppingCallback
+from .early_stopping import EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig
+from .ema import EMACallback as EMACallback
+from .ema import EMACallbackConfig as EMACallbackConfig
 from .finite_checks import FiniteChecksCallback as FiniteChecksCallback
-from .finite_checks import FiniteChecksConfig as FiniteChecksConfig
-from .gradient_skipping import GradientSkipping as GradientSkipping
-from .gradient_skipping import GradientSkippingConfig as GradientSkippingConfig
+from .finite_checks import FiniteChecksCallbackConfig as FiniteChecksCallbackConfig
+from .gradient_skipping import GradientSkippingCallback as GradientSkippingCallback
+from .gradient_skipping import (
+    GradientSkippingCallbackConfig as GradientSkippingCallbackConfig,
+)
 from .interval import EpochIntervalCallback as EpochIntervalCallback
 from .interval import IntervalCallback as IntervalCallback
 from .interval import StepIntervalCallback as StepIntervalCallback
 from .log_epoch import LogEpochCallback as LogEpochCallback
 from .norm_logging import NormLoggingCallback as NormLoggingCallback
-from .norm_logging import NormLoggingConfig as NormLoggingConfig
+from .norm_logging import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from .print_table import PrintTableMetricsCallback as PrintTableMetricsCallback
-from .print_table import PrintTableMetricsConfig as PrintTableMetricsConfig
+from .print_table import (
+    PrintTableMetricsCallbackConfig as PrintTableMetricsCallbackConfig,
+)
 from .rlp_sanity_checks import RLPSanityChecksCallback as RLPSanityChecksCallback
-from .rlp_sanity_checks import RLPSanityChecksConfig as RLPSanityChecksConfig
+from .rlp_sanity_checks import (
+    RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
+)
 from .shared_parameters import SharedParametersCallback as SharedParametersCallback
-from .shared_parameters import SharedParametersConfig as SharedParametersConfig
+from .shared_parameters import (
+    SharedParametersCallbackConfig as SharedParametersCallbackConfig,
+)
 from .throughput_monitor import ThroughputMonitorConfig as ThroughputMonitorConfig
-from .timer import EpochTimer as EpochTimer
-from .timer import EpochTimerConfig as EpochTimerConfig
+from .timer import EpochTimerCallback as EpochTimerCallback
+from .timer import EpochTimerCallbackConfig as EpochTimerCallbackConfig
 from .wandb_upload_code import WandbUploadCodeCallback as WandbUploadCodeCallback
-from .wandb_upload_code import WandbUploadCodeConfig as WandbUploadCodeConfig
+from .wandb_upload_code import (
+    WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
+)
 from .wandb_watch import WandbWatchCallback as WandbWatchCallback
-from .wandb_watch import WandbWatchConfig as WandbWatchConfig
+from .wandb_watch import WandbWatchCallbackConfig as WandbWatchCallbackConfig
 
 CallbackConfig = Annotated[
     DebugFlagCallbackConfig
-    | EarlyStoppingConfig
+    | EarlyStoppingCallbackConfig
     | ThroughputMonitorConfig
-    | EpochTimerConfig
-    | PrintTableMetricsConfig
-    | FiniteChecksConfig
-    | NormLoggingConfig
-    | GradientSkippingConfig
-    | EMAConfig
+    | EpochTimerCallbackConfig
+    | PrintTableMetricsCallbackConfig
+    | FiniteChecksCallbackConfig
+    | NormLoggingCallbackConfig
+    | GradientSkippingCallbackConfig
+    | EMACallbackConfig
     | BestCheckpointCallbackConfig
     | LastCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig
-    | SharedParametersConfig
-    | RLPSanityChecksConfig
-    | WandbWatchConfig
-    | WandbUploadCodeConfig,
+    | SharedParametersCallbackConfig
+    | RLPSanityChecksCallbackConfig
+    | WandbWatchCallbackConfig
+    | WandbUploadCodeCallbackConfig,
     C.Field(discriminator="name"),
 ]

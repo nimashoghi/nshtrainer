@@ -74,7 +74,7 @@ class PrintTableMetricsCallback(Callback):
         return table
 
 
-class PrintTableMetricsConfig(CallbackConfigBase):
+class PrintTableMetricsCallbackConfig(CallbackConfigBase):
     """Configuration class for PrintTableMetricsCallback."""
 
     name: Literal["print_table_metrics"] = "print_table_metrics"

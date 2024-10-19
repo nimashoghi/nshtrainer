@@ -9,7 +9,7 @@ if TYPE_CHECKING:
         CallbackConfigBase as CallbackConfigBase,
     )
     from nshtrainer.callbacks.rlp_sanity_checks import (
-        RLPSanityChecksConfig as RLPSanityChecksConfig,
+        RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
     )
 else:
 
@@ -18,14 +18,14 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "RLPSanityChecksCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.rlp_sanity_checks"
+            ).RLPSanityChecksCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.rlp_sanity_checks"
             ).CallbackConfigBase
-        if name == "RLPSanityChecksConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.rlp_sanity_checks"
-            ).RLPSanityChecksConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
         CallbackConfigBase as CallbackConfigBase,
     )
     from nshtrainer.callbacks.early_stopping import (
-        EarlyStoppingConfig as EarlyStoppingConfig,
+        EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig,
     )
     from nshtrainer.callbacks.early_stopping import MetricConfig as MetricConfig
 else:
@@ -19,18 +19,18 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CallbackConfigBase":
-            return importlib.import_module(
-                "nshtrainer.callbacks.early_stopping"
-            ).CallbackConfigBase
         if name == "MetricConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.early_stopping"
             ).MetricConfig
-        if name == "EarlyStoppingConfig":
+        if name == "EarlyStoppingCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.early_stopping"
-            ).EarlyStoppingConfig
+            ).EarlyStoppingCallbackConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.callbacks.early_stopping"
+            ).CallbackConfigBase
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

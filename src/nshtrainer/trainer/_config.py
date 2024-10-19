@@ -30,14 +30,14 @@ from .._hf_hub import HuggingFaceHubConfig
 from ..callbacks import (
     BestCheckpointCallbackConfig,
     CallbackConfig,
-    EarlyStoppingConfig,
+    EarlyStoppingCallbackConfig,
     LastCheckpointCallbackConfig,
     OnExceptionCheckpointCallbackConfig,
 )
 from ..callbacks.base import CallbackConfigBase
 from ..callbacks.debug_flag import DebugFlagCallbackConfig
-from ..callbacks.rlp_sanity_checks import RLPSanityChecksConfig
-from ..callbacks.shared_parameters import SharedParametersConfig
+from ..callbacks.rlp_sanity_checks import RLPSanityChecksCallbackConfig
+from ..callbacks.shared_parameters import SharedParametersCallbackConfig
 from ..loggers import (
     CSVLoggerConfig,
     LoggerConfig,
@@ -172,9 +172,9 @@ class OptimizationConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
-        from ..callbacks.norm_logging import NormLoggingConfig
+        from ..callbacks.norm_logging import NormLoggingCallbackConfig
 
-        yield from NormLoggingConfig(
+        yield from NormLoggingCallbackConfig(
             log_grad_norm=self.log_grad_norm,
             log_grad_norm_per_param=self.log_grad_norm_per_param,
             log_param_norm=self.log_param_norm,
@@ -564,8 +564,8 @@ class TrainerConfig(C.Config):
     reproducibility: ReproducibilityConfig = ReproducibilityConfig()
     """Reproducibility configuration options."""
 
-    reduce_lr_on_plateau_sanity_checking: RLPSanityChecksConfig | None = (
-        RLPSanityChecksConfig()
+    reduce_lr_on_plateau_sanity_checking: RLPSanityChecksCallbackConfig | None = (
+        RLPSanityChecksCallbackConfig()
     )
     """
     If enabled, will do some sanity checks if the `ReduceLROnPlateau` scheduler is used:
@@ -573,7 +573,7 @@ class TrainerConfig(C.Config):
         - If the `interval` is epoch, it makes sure that validation is called every `frequency` epochs.
     """
 
-    early_stopping: EarlyStoppingConfig | None = None
+    early_stopping: EarlyStoppingCallbackConfig | None = None
     """Early stopping configuration options."""
 
     profiler: ProfilerConfig | None = None
@@ -741,7 +741,9 @@ class TrainerConfig(C.Config):
     automatic selection based on the chosen accelerator. Default: ``"auto"``.
     """
 
-    shared_parameters: SharedParametersConfig | None = SharedParametersConfig()
+    shared_parameters: SharedParametersCallbackConfig | None = (
+        SharedParametersCallbackConfig()
+    )
     """If enabled, the model supports scaling the gradients of shared parameters that
     are registered in the self.shared_parameters list. This is useful for models that
     share parameters across multiple modules (e.g., in a GPT model) and want to

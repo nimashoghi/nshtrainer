@@ -21,6 +21,10 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "LRSchedulerConfigBase":
+            return importlib.import_module(
+                "nshtrainer.lr_scheduler.reduce_lr_on_plateau"
+            ).LRSchedulerConfigBase
         if name == "MetricConfig":
             return importlib.import_module(
                 "nshtrainer.lr_scheduler.reduce_lr_on_plateau"
@@ -29,10 +33,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.lr_scheduler.reduce_lr_on_plateau"
             ).ReduceLROnPlateauConfig
-        if name == "LRSchedulerConfigBase":
-            return importlib.import_module(
-                "nshtrainer.lr_scheduler.reduce_lr_on_plateau"
-            ).LRSchedulerConfigBase
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

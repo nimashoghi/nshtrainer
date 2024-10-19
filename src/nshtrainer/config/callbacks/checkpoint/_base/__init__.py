@@ -21,10 +21,6 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CallbackConfigBase":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint._base"
-            ).CallbackConfigBase
         if name == "CheckpointMetadata":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"
@@ -33,6 +29,10 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"
             ).BaseCheckpointCallbackConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint._base"
+            ).CallbackConfigBase
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

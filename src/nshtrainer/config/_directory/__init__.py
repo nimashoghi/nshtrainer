@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nshtrainer._directory import DirectoryConfig as DirectoryConfig
-    from nshtrainer._directory import DirectorySetupConfig as DirectorySetupConfig
+    from nshtrainer._directory import (
+        DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
+    )
     from nshtrainer._directory import LoggerConfig as LoggerConfig
 else:
 
@@ -15,10 +17,12 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "DirectorySetupCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer._directory"
+            ).DirectorySetupCallbackConfig
         if name == "DirectoryConfig":
             return importlib.import_module("nshtrainer._directory").DirectoryConfig
-        if name == "DirectorySetupConfig":
-            return importlib.import_module("nshtrainer._directory").DirectorySetupConfig
         if name == "LoggerConfig":
             return importlib.import_module("nshtrainer._directory").LoggerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
