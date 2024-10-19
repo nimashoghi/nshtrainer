@@ -92,7 +92,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
     - "none" or False: Do not log any checkpoints
     """
 
-    log_code: WandbUploadCodeConfig | None = None
+    log_code: WandbUploadCodeConfig | None = WandbUploadCodeConfig()
     """WandB code upload configuration. Used to upload code to WandB."""
 
     watch: WandbWatchConfig | None = WandbWatchConfig()
