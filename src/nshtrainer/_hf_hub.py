@@ -5,11 +5,11 @@ import re
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import nshconfig as C
 from nshrunner._env import SNAPSHOT_DIR
-from typing_extensions import override
+from typing_extensions import assert_never, override
 
 from ._callback import NTCallbackBase
 from .callbacks.base import CallbackConfigBase
@@ -65,6 +65,9 @@ class HuggingFaceHubConfig(CallbackConfigBase):
     """Whether to save to the Hugging Face Hub in the background.
     This corresponds to setting `run_as_future=True` in the HFApi upload methods."""
 
+    on_login_error: Literal["warn", "error", "ignore"] = "warn"
+    """What to do when an error occurs during login."""
+
     def enable_(self):
         self.enabled = True
         return self
@@ -78,6 +81,30 @@ class HuggingFaceHubConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, root_config):
+        # Attempt to login. If it fails, we'll log a warning or error based on the configuration.
+        try:
+            api = _api(self.token)
+            if api is None:
+                raise ValueError("Failed to create Hugging Face Hub API instance.")
+        except Exception as e:
+            match self.on_login_error:
+                case "warn":
+                    log.warning(
+                        "Failed to create Hugging Face Hub API instance. Disabling Hugging Face Hub integration.",
+                        exc_info=e,
+                    )
+                    return
+                case "error":
+                    raise
+                case "ignore":
+                    log.debug(
+                        "Failed to create Hugging Face Hub API instance. Disabling Hugging Face Hub integration.",
+                        exc_info=e,
+                    )
+                    return
+                case _:
+                    assert_never(self.on_login_error)
+
         yield self.with_metadata(HFHubCallback(self), ignore_if_exists=True)
 
 
