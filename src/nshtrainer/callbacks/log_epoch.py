@@ -1,12 +1,22 @@
 import logging
 import math
-from typing import Any
+from typing import Any, Literal
 
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
 from typing_extensions import override
 
+from .base import CallbackConfigBase
+
 log = logging.getLogger(__name__)
+
+
+class LogEpochCallbackConfig(CallbackConfigBase):
+    name: Literal["log_epoch"] = "log_epoch"
+
+    @override
+    def create_callbacks(self, root_config):
+        yield LogEpochCallback()
 
 
 class LogEpochCallback(Callback):

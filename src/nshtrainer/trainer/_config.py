@@ -36,6 +36,7 @@ from ..callbacks import (
 )
 from ..callbacks.base import CallbackConfigBase
 from ..callbacks.debug_flag import DebugFlagCallbackConfig
+from ..callbacks.log_epoch import LogEpochCallbackConfig
 from ..callbacks.rlp_sanity_checks import RLPSanityChecksCallbackConfig
 from ..callbacks.shared_parameters import SharedParametersCallbackConfig
 from ..loggers import (
@@ -65,7 +66,7 @@ class LoggingConfig(CallbackConfigBase):
 
     log_lr: bool | Literal["step", "epoch"] = True
     """If enabled, will register a `LearningRateMonitor` callback to log the learning rate to the logger."""
-    log_epoch: bool = True
+    log_epoch: LogEpochCallbackConfig | None = LogEpochCallbackConfig()
     """If enabled, will log the fractional epoch number to the logger."""
 
     actsave_logged_metrics: bool = False
@@ -136,9 +137,7 @@ class LoggingConfig(CallbackConfigBase):
             yield LearningRateMonitor(logging_interval=logging_interval)
 
         if self.log_epoch:
-            from ..callbacks.log_epoch import LogEpochCallback
-
-            yield LogEpochCallback()
+            yield from self.log_epoch.create_callbacks(root_config)
 
         for logger in self.loggers:
             if not logger or not isinstance(logger, CallbackConfigBase):

@@ -32,6 +32,7 @@ from .interval import EpochIntervalCallback as EpochIntervalCallback
 from .interval import IntervalCallback as IntervalCallback
 from .interval import StepIntervalCallback as StepIntervalCallback
 from .log_epoch import LogEpochCallback as LogEpochCallback
+from .log_epoch import LogEpochCallbackConfig as LogEpochCallbackConfig
 from .norm_logging import NormLoggingCallback as NormLoggingCallback
 from .norm_logging import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from .print_table import PrintTableMetricsCallback as PrintTableMetricsCallback
@@ -65,6 +66,7 @@ CallbackConfig = Annotated[
     | FiniteChecksCallbackConfig
     | NormLoggingCallbackConfig
     | GradientSkippingCallbackConfig
+    | LogEpochCallbackConfig
     | EMACallbackConfig
     | BestCheckpointCallbackConfig
     | LastCheckpointCallbackConfig
