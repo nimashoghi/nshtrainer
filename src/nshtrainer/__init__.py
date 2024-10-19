@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from . import _experimental as _experimental
 from . import callbacks as callbacks
 from . import config as config

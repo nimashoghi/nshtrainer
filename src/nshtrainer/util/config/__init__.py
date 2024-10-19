@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from . import duration as duration
 from .dtype import DTypeConfig as DTypeConfig
 from .duration import DurationConfig as DurationConfig

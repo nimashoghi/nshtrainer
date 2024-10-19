@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from nshtrainer.model import *  # noqa: F403
 
 from ..trainer._config import CheckpointLoadingConfig as CheckpointLoadingConfig

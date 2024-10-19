@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .mlp import MLP as MLP
 from .mlp import MLPConfig as MLPConfig
 from .mlp import MLPConfigDict as MLPConfigDict
