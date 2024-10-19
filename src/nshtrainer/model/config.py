@@ -77,6 +77,16 @@ class BaseConfig(C.Config):
         return self.directory.resolve_subdirectory(self.id, subdirectory)
 
     # region Helper methods
+    def fast_dev_run(self, value: int | bool, /):
+        """
+        Enables fast_dev_run mode for the trainer.
+        This will run the training loop for a specified number of batches,
+        if an integer is provided, or for a single batch if True is provided.
+        """
+        config = copy.deepcopy(self)
+        config.trainer.fast_dev_run = value
+        return config
+
     def with_project_root_(self, project_root: str | Path | os.PathLike) -> Self:
         """
         Set the project root directory for the trainer.
