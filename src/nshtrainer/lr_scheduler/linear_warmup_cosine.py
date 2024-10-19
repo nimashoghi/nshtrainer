@@ -20,21 +20,21 @@ class LinearWarmupCosineAnnealingLR(LRScheduler):
         optimizer: Optimizer,
         warmup_epochs: int,
         max_epochs: int,
-        warmup_start_lr: float = 0.0,
-        eta_min: float = 0.0,
+        warmup_start_lr_factor: float = 0.0,
+        eta_min_factor: float = 0.0,
         last_epoch: int = -1,
         should_restart: bool = True,
     ) -> None:
         self.warmup_epochs = warmup_epochs
         self.max_epochs = max_epochs
-        self.warmup_start_lr = warmup_start_lr
-        self.eta_min = eta_min
+        self.warmup_start_lr_factor = warmup_start_lr_factor
+        self.eta_min_factor = eta_min_factor
         self.should_restart = should_restart
 
         super().__init__(optimizer, last_epoch)
 
     @override
-    def get_lr(self) -> list[float]:  # pyright: ignore[reportIncompatibleMethodOverride]
+    def get_lr(self) -> list[float]:
         if not self._get_lr_called_within_step:
             warnings.warn(
                 "To get the last learning rate computed by the scheduler, "
@@ -43,25 +43,26 @@ class LinearWarmupCosineAnnealingLR(LRScheduler):
             )
 
         if self.last_epoch == 0:
-            return [self.warmup_start_lr] * len(self.base_lrs)
+            return [self.warmup_start_lr_factor * base_lr for base_lr in self.base_lrs]
         if self.last_epoch < self.warmup_epochs:
             return [
                 group["lr"]
-                + (base_lr - self.warmup_start_lr) / (self.warmup_epochs - 1)
+                + (base_lr - self.warmup_start_lr_factor * base_lr)
+                / (self.warmup_epochs - 1)
                 for base_lr, group in zip(self.base_lrs, self.optimizer.param_groups)
             ]
         if self.last_epoch == self.warmup_epochs:
             return self.base_lrs
 
         if not self.should_restart and self.last_epoch >= self.max_epochs:
-            return [self.eta_min] * len(self.base_lrs)
+            return [self.eta_min_factor * base_lr for base_lr in self.base_lrs]
 
         if (self.last_epoch - 1 - self.max_epochs) % (
             2 * (self.max_epochs - self.warmup_epochs)
         ) == 0:
             return [
                 group["lr"]
-                + (base_lr - self.eta_min)
+                + (base_lr - self.eta_min_factor * base_lr)
                 * (1 - math.cos(math.pi / (self.max_epochs - self.warmup_epochs)))
                 / 2
                 for base_lr, group in zip(self.base_lrs, self.optimizer.param_groups)
@@ -84,9 +85,9 @@ class LinearWarmupCosineAnnealingLR(LRScheduler):
                     / (self.max_epochs - self.warmup_epochs)
                 )
             )
-            * (group["lr"] - self.eta_min)
-            + self.eta_min
-            for group in self.optimizer.param_groups
+            * (group["lr"] - self.eta_min_factor * base_lr)
+            + self.eta_min_factor * base_lr
+            for base_lr, group in zip(self.base_lrs, self.optimizer.param_groups)
         ]
 
 
@@ -121,12 +122,10 @@ class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
         }
 
     @override
-    def create_scheduler_impl(self, optimizer, lightning_module, lr):
+    def create_scheduler_impl(self, optimizer, lightning_module):
         num_steps_per_epoch = self.compute_num_steps_per_epoch(lightning_module)
         warmup_steps = self.warmup_duration.to_steps(num_steps_per_epoch).value
         max_steps = self.max_duration.to_steps(num_steps_per_epoch).value
-        warmup_start_lr = self.warmup_start_lr_factor * lr
-        min_lr = self.min_lr_factor * lr
 
         # Warmup and max steps should be at least 1.
         warmup_steps = max(warmup_steps, 1)
@@ -137,8 +136,8 @@ class LinearWarmupCosineDecayLRSchedulerConfig(LRSchedulerConfigBase):
             optimizer=optimizer,
             warmup_epochs=warmup_steps,
             max_epochs=max_steps,
-            warmup_start_lr=warmup_start_lr,
-            eta_min=min_lr,
+            warmup_start_lr_factor=self.warmup_start_lr_factor,
+            eta_min_factor=self.min_lr_factor,
             should_restart=self.annealing,
         )
         return scheduler

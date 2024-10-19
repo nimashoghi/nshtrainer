@@ -22,20 +22,20 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
     """Metric to monitor.
     If not provided, the primary metric of the runner will be used."""
 
-    patience: int = 10
+    patience: int
     r"""Number of epochs with no improvement after which learning rate will be reduced."""
 
-    factor: float = 0.1
+    factor: float
     r"""Factor by which the learning rate will be reduced. new_lr = lr * factor."""
+
+    cooldown: int = 0
+    r"""Number of epochs to wait before resuming normal operation after lr has been reduced."""
 
     min_lr: float | list[float] = 0.0
     r"""A scalar or a list of scalars. A lower bound on the learning rate of all param groups or each group respectively."""
 
     eps: float = 1.0e-8
     r"""Minimal decay applied to lr. If the difference between new and old lr is smaller than eps, the update is ignored."""
-
-    cooldown: int = 0
-    r"""Number of epochs to wait before resuming normal operation after lr has been reduced."""
 
     threshold: float = 1.0e-4
     r"""Threshold for measuring the new optimum, to only focus on significant changes."""
@@ -45,7 +45,7 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
 
     @override
     def create_scheduler_impl(
-        self, optimizer, lightning_module, lr
+        self, optimizer, lightning_module
     ) -> LRSchedulerConfigType:
         if (metric := self.metric) is None:
             lm_config = cast("BaseConfig", lightning_module.config)

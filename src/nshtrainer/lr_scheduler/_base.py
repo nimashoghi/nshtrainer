@@ -11,7 +11,7 @@ from lightning.pytorch.utilities.types import (
     LRSchedulerTypeUnion,
 )
 from torch.optim import Optimizer
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import Never, NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from ..model.base import LightningModuleBase
@@ -44,20 +44,17 @@ class LRSchedulerConfigBase(C.Config, ABC):
 
     @abstractmethod
     def create_scheduler_impl(
-        self,
-        optimizer: Optimizer,
-        lightning_module: "LightningModuleBase",
-        lr: float,
+        self, optimizer: Optimizer, lightning_module: LightningModuleBase
     ) -> LRSchedulerTypeUnion | LRSchedulerConfigType: ...
 
     def create_scheduler(
         self,
         optimizer: Optimizer,
-        lightning_module: "LightningModuleBase",
-        lr: float,
+        lightning_module: LightningModuleBase,
+        lr: Never,  # Backward compatibility, should be removed in the future
     ) -> LRSchedulerConfigType:
         # Create the scheduler.
-        scheduler = self.create_scheduler_impl(optimizer, lightning_module, lr)
+        scheduler = self.create_scheduler_impl(optimizer, lightning_module)
 
         # If the scheduler is not a `LRSchedulerConfigType`, then make it one.
         if not isinstance(scheduler, Mapping):
@@ -89,9 +86,7 @@ class LRSchedulerConfigBase(C.Config, ABC):
 
         return scheduler
 
-    def compute_num_steps_per_epoch(
-        self, lightning_module: "LightningModuleBase"
-    ) -> int:
+    def compute_num_steps_per_epoch(self, lightning_module: LightningModuleBase) -> int:
         trainer = lightning_module.trainer
         # Use the Lightning trainer to convert the epoch-based values to step-based values
         _ = trainer.estimated_stepping_batches
