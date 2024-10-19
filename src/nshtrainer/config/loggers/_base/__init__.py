@@ -1,12 +1,20 @@
-# fmt: off
-# ruff: noqa
-# type: ignore
-
 __codegen__ = True
 
-# Config classes
-from nshtrainer.loggers._base import BaseLoggerConfig as BaseLoggerConfig
+from typing import TYPE_CHECKING
 
-# Type aliases
+# Config/alias imports
+
+if TYPE_CHECKING:
+    from nshtrainer.loggers._base import BaseLoggerConfig as BaseLoggerConfig
+else:
+
+    def __getattr__(name):
+        import importlib
+
+        if name in globals():
+            return globals()[name]
+        if name == "BaseLoggerConfig":
+            return importlib.import_module("nshtrainer.loggers._base").BaseLoggerConfig
+        raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

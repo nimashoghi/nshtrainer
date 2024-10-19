@@ -1,13 +1,25 @@
-# fmt: off
-# ruff: noqa
-# type: ignore
-
 __codegen__ = True
 
-# Config classes
-from nshtrainer.callbacks.ema import EMAConfig as EMAConfig
-from nshtrainer.callbacks.ema import CallbackConfigBase as CallbackConfigBase
+from typing import TYPE_CHECKING
 
-# Type aliases
+# Config/alias imports
+
+if TYPE_CHECKING:
+    from nshtrainer.callbacks.ema import CallbackConfigBase as CallbackConfigBase
+    from nshtrainer.callbacks.ema import EMAConfig as EMAConfig
+else:
+
+    def __getattr__(name):
+        import importlib
+
+        if name in globals():
+            return globals()[name]
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.callbacks.ema"
+            ).CallbackConfigBase
+        if name == "EMAConfig":
+            return importlib.import_module("nshtrainer.callbacks.ema").EMAConfig
+        raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

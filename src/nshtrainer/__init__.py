@@ -1,7 +1,6 @@
 from . import _experimental as _experimental
 from . import callbacks as callbacks
-
-# from . import config as config
+from . import config as config
 from . import data as data
 from . import lr_scheduler as lr_scheduler
 from . import metrics as metrics

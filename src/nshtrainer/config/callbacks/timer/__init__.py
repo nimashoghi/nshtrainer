@@ -1,13 +1,27 @@
-# fmt: off
-# ruff: noqa
-# type: ignore
-
 __codegen__ = True
 
-# Config classes
-from nshtrainer.callbacks.timer import CallbackConfigBase as CallbackConfigBase
-from nshtrainer.callbacks.timer import EpochTimerConfig as EpochTimerConfig
+from typing import TYPE_CHECKING
 
-# Type aliases
+# Config/alias imports
+
+if TYPE_CHECKING:
+    from nshtrainer.callbacks.timer import CallbackConfigBase as CallbackConfigBase
+    from nshtrainer.callbacks.timer import EpochTimerConfig as EpochTimerConfig
+else:
+
+    def __getattr__(name):
+        import importlib
+
+        if name in globals():
+            return globals()[name]
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.callbacks.timer"
+            ).CallbackConfigBase
+        if name == "EpochTimerConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.timer"
+            ).EpochTimerConfig
+        raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports
