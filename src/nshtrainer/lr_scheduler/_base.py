@@ -51,7 +51,8 @@ class LRSchedulerConfigBase(C.Config, ABC):
         self,
         optimizer: Optimizer,
         lightning_module: LightningModuleBase,
-        lr: Never,  # Backward compatibility, should be removed in the future
+        lr: Never
+        | None = None,  # Backward compatibility, should be removed in the future
     ) -> LRSchedulerConfigType:
         # Create the scheduler.
         scheduler = self.create_scheduler_impl(optimizer, lightning_module)
