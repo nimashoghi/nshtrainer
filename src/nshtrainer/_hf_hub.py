@@ -7,14 +7,14 @@ import re
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
 import nshconfig as C
 from nshrunner._env import SNAPSHOT_DIR
 from typing_extensions import assert_never, override
 
 from ._callback import NTCallbackBase
-from .callbacks.base import CallbackConfigBase
+from .callbacks.base import CallbackConfigBase, CallbackMetadataConfig
 
 if TYPE_CHECKING:
     from huggingface_hub import HfApi  # noqa: F401
@@ -41,6 +41,8 @@ class HuggingFaceHubAutoCreateConfig(C.Config):
 
 class HuggingFaceHubConfig(CallbackConfigBase):
     """Configuration options for Hugging Face Hub integration."""
+
+    metadata: ClassVar[CallbackMetadataConfig] = {"ignore_if_exists": True}
 
     enabled: bool = False
     """Enable Hugging Face Hub integration."""
@@ -107,7 +109,7 @@ class HuggingFaceHubConfig(CallbackConfigBase):
                 case _:
                     assert_never(self.on_login_error)
 
-        yield self.with_metadata(HFHubCallback(self), ignore_if_exists=True)
+        yield HFHubCallback(self)
 
 
 def _api(token: str | None = None):
