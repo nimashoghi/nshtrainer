@@ -4,17 +4,14 @@ from collections import deque
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
-import torchmetrics
 from lightning.pytorch import LightningModule
 from lightning.pytorch.utilities.types import _METRIC
 from lightning_utilities.core.rank_zero import rank_zero_warn
 from typing_extensions import override
 
 from ...util.typing_utils import mixin_base_type
-from ..config import BaseConfig
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -24,37 +21,7 @@ class _LogContext:
     kwargs: dict[str, Any] = field(default_factory=dict)
 
 
-class LoggerModuleMixin(mixin_base_type(LightningModule)):
-    @property
-    def log_dir(self):
-        """
-        The directory where logs are saved.
-        """
-        if (trainer := self._trainer) is None:
-            raise RuntimeError("trainer is not defined")
-
-        if (logger := trainer.logger) is None:
-            raise RuntimeError("trainer.logger is not defined")
-
-        if (log_dir := logger.log_dir) is None:
-            raise RuntimeError("trainer.logger.log_dir is not defined")
-
-        return Path(log_dir)
-
-    @property
-    def should_update_logs(self):
-        """
-        Whether logs should be updated. This is true once every `log_every_n_steps` steps.
-        """
-        if self._trainer is None:
-            raise RuntimeError(
-                "`should_update_logs` can only be used after the module is attached to a trainer"
-            )
-
-        return self._trainer._logger_connector.should_update_logs
-
-
-class LoggerLightningModuleMixin(LoggerModuleMixin, mixin_base_type(LightningModule)):
+class LoggerLightningModuleMixin(mixin_base_type(LightningModule)):
     @override
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -147,21 +114,4 @@ class LoggerLightningModuleMixin(LoggerModuleMixin, mixin_base_type(LightningMod
                 fn_kwargs.update(c.kwargs)
             fn_kwargs.update(kwargs)
 
-            self._logger_actsave(name, value)
-
             return super().log(name, value, **fn_kwargs)
-
-    def _logger_actsave(self, name: str, value: _METRIC) -> None:
-        hparams = cast(BaseConfig, self.hparams)
-        if not hparams.trainer.logging.actsave_logged_metrics:
-            return
-
-        from nshutils import ActSave
-
-        ActSave.save(
-            lambda: {
-                f"logger.{name}": lambda: value.compute()
-                if isinstance(value, torchmetrics.Metric)
-                else value
-            }
-        )

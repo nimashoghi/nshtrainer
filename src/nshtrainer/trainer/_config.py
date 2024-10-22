@@ -47,6 +47,7 @@ from ..loggers import (
     TensorboardLoggerConfig,
     WandbLoggerConfig,
 )
+from ..loggers.actsave import ActSaveLoggerConfig
 from ..profiler import ProfilerConfig
 
 if TYPE_CHECKING:
@@ -71,7 +72,7 @@ class LoggingConfig(CallbackConfigBase):
     log_epoch: LogEpochCallbackConfig | None = LogEpochCallbackConfig()
     """If enabled, will log the fractional epoch number to the logger."""
 
-    actsave_logged_metrics: bool = False
+    actsave_logger: ActSaveLoggerConfig | None = None
     """If enabled, will automatically save logged metrics using ActSave (if nshutils is installed)."""
 
     @property
@@ -126,6 +127,10 @@ class LoggingConfig(CallbackConfigBase):
             if (logger := logger_config.create_logger(root_config)) is None:
                 continue
             yield logger
+
+        # If the actsave_metrics is enabled, add the ActSave logger
+        if self.actsave_logger:
+            yield self.actsave_logger.create_logger(root_config)
 
     @override
     def create_callbacks(self, root_config):

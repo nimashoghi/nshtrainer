@@ -26,3 +26,6 @@ class BaseLoggerConfig(C.Config, ABC):
     def disable_(self):
         self.enabled = False
         return self
+
+    def __bool__(self):
+        return self.enabled
