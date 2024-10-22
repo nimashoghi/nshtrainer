@@ -6,7 +6,7 @@ import nshconfig as C
 
 from . import checkpoint as checkpoint
 from .base import CallbackConfigBase as CallbackConfigBase
-from .checkpoint import BestCheckpoint as BestCheckpoint
+from .checkpoint import BestCheckpointCallback as BestCheckpointCallback
 from .checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from .checkpoint import LastCheckpointCallback as LastCheckpointCallback
 from .checkpoint import LastCheckpointCallbackConfig as LastCheckpointCallbackConfig

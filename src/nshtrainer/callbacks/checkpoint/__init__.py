@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .best_checkpoint import BestCheckpoint as BestCheckpoint
+from .best_checkpoint import BestCheckpointCallback as BestCheckpointCallback
 from .best_checkpoint import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
 )

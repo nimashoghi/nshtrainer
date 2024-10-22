@@ -43,11 +43,11 @@ class BestCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
                 log.warning(error_msg)
                 return None
 
-        return BestCheckpoint(self, dirpath, metric)
+        return BestCheckpointCallback(self, dirpath, metric)
 
 
 @final
-class BestCheckpoint(CheckpointBase[BestCheckpointCallbackConfig]):
+class BestCheckpointCallback(CheckpointBase[BestCheckpointCallbackConfig]):
     @property
     def _metric_name_normalized(self):
         return self.metric.name.replace("/", "_").replace(" ", "_").replace(".", "_")
