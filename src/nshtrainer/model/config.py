@@ -37,8 +37,6 @@ class BaseConfig(C.Config):
     notes: list[str] = []
     """Human readable notes for the run."""
 
-    debug: bool = False
-    """Whether to run in debug mode. This will enable debug logging and enable debug code paths."""
     environment: Annotated[EnvironmentConfig, C.Field(repr=False)] = (
         EnvironmentConfig.empty()
     )

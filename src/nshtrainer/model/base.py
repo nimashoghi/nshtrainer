@@ -71,7 +71,31 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     def debug(self) -> bool:
         if torch.jit.is_scripting():
             return False
-        return self.config.debug
+
+        if (trainer := self._trainer) is None:
+            return False
+
+        from ..trainer import Trainer
+
+        if not isinstance(trainer, Trainer):
+            return False
+
+        return trainer.debug
+
+    @debug.setter
+    def debug(self, value: bool):
+        if torch.jit.is_scripting():
+            return
+
+        if (trainer := self._trainer) is None:
+            return
+
+        from ..trainer import Trainer
+
+        if not isinstance(trainer, Trainer):
+            return
+
+        trainer.debug = value
 
     # endregion
 

@@ -268,6 +268,7 @@ class Trainer(LightningTrainer):
         kwargs = self._update_kwargs(config, kwargs)
         log.critical(f"LightningTrainer.__init__ with {kwargs=}.")
 
+        self.debug = config.trainer.debug
         super().__init__(**kwargs)
 
         # Add our own start time callback to measure the start time.

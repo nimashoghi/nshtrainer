@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Literal, cast
+from typing import Literal
 
-from lightning.pytorch import LightningModule, Trainer
-from lightning.pytorch.callbacks import Callback
 from typing_extensions import override
 
+from .._callback import NTCallbackBase
 from .base import CallbackConfigBase
-
-if TYPE_CHECKING:
-    from ..model.config import BaseConfig
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +28,7 @@ class DebugFlagCallbackConfig(CallbackConfigBase):
         yield DebugFlagCallback(self)
 
 
-class DebugFlagCallback(Callback):
+class DebugFlagCallback(NTCallbackBase):
     """
     Sets the debug flag to true in the following circumstances:
     - fast_dev_run is enabled
@@ -46,27 +42,26 @@ class DebugFlagCallback(Callback):
         self.config = config
         del config
 
+        self._debug = False
+
     @override
-    def setup(self, trainer: Trainer, pl_module: LightningModule, stage: str):
+    def setup(self, trainer, pl_module, stage):
         if not getattr(trainer, "fast_dev_run", False):
             return
 
-        hparams = cast("BaseConfig", pl_module.hparams)
-        if not hparams.debug:
+        if not trainer.debug:
             log.critical("Fast dev run detected, setting debug flag to True.")
-        hparams.debug = True
+        trainer.debug = True
 
     @override
-    def on_sanity_check_start(self, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast("BaseConfig", pl_module.hparams)
-        self._debug = hparams.debug
+    def on_sanity_check_start(self, trainer, pl_module):
+        self._debug = trainer.debug
         if not self._debug:
             log.critical("Enabling debug flag during sanity check routine.")
-        hparams.debug = True
+        trainer.debug = True
 
     @override
-    def on_sanity_check_end(self, trainer: Trainer, pl_module: LightningModule):
-        hparams = cast("BaseConfig", pl_module.hparams)
+    def on_sanity_check_end(self, trainer, pl_module):
         if not self._debug:
             log.critical("Sanity check routine complete, disabling debug flag.")
-        hparams.debug = self._debug
+        trainer.debug = self._debug

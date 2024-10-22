@@ -541,6 +541,9 @@ class SanityCheckingConfig(C.Config):
 
 
 class TrainerConfig(C.Config):
+    debug: bool = False
+    """Whether to run in debug mode. This will enable debug logging and enable debug code paths."""
+
     ckpt_path: Literal["none"] | str | Path | None = None
     """Path to a checkpoint to load and resume training from. If ``"none"``, will not load a checkpoint."""
 
