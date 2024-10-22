@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.10"
 nshrunner = "*"
 nshconfig = "*"
-nshutils = "*"
+nshutils = { version = "*", optional = true }
 psutil = "*"
 numpy = "*"
 torch = "*"
@@ -50,4 +50,11 @@ ignore = ["F722", "F821", "E731", "E741"]
 required-imports = ["from __future__ import annotations"]
 
 [tool.poetry.extras]
-extra = ["wrapt", "GitPython", "wandb", "tensorboard", "huggingface-hub"]
+extra = [
+    "wrapt",
+    "GitPython",
+    "wandb",
+    "tensorboard",
+    "huggingface-hub",
+    "nshutils",
+]

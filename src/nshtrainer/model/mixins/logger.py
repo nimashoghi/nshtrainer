@@ -11,7 +11,6 @@ import torchmetrics
 from lightning.pytorch import LightningModule
 from lightning.pytorch.utilities.types import _METRIC
 from lightning_utilities.core.rank_zero import rank_zero_warn
-from nshutils import ActSave
 from typing_extensions import override
 
 from ...util.typing_utils import mixin_base_type
@@ -156,6 +155,8 @@ class LoggerLightningModuleMixin(LoggerModuleMixin, mixin_base_type(LightningMod
         hparams = cast(BaseConfig, self.hparams)
         if not hparams.trainer.logging.actsave_logged_metrics:
             return
+
+        from nshutils import ActSave
 
         ActSave.save(
             lambda: {

@@ -6,7 +6,6 @@ from typing import Literal
 
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks.callback import Callback
-from nshutils import ActSave
 from typing_extensions import TypeAlias, override
 
 from .base import CallbackConfigBase
@@ -49,6 +48,8 @@ class ActSaveCallback(Callback):
         if not self.config:
             return
 
+        from nshutils import ActSave
+
         context = ActSave.enabled(self.save_dir)
         context.__enter__()
         self._enabled_context = context
@@ -69,6 +70,8 @@ class ActSaveCallback(Callback):
     def _on_start(self, stage: Stage, trainer: Trainer, pl_module: LightningModule):
         if not self.config:
             return
+
+        from nshutils import ActSave
 
         # If we have an active context manager for this stage, exit it
         if active_contexts := self._active_contexts.get(stage):
