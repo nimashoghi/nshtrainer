@@ -28,10 +28,10 @@ class BestCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     """
 
     @override
-    def create_checkpoint(self, root_config, dirpath):
+    def create_checkpoint(self, trainer_config, dirpath):
         # Resolve metric
         if (metric := self.metric) is None and (
-            metric := root_config.primary_metric
+            metric := trainer_config.primary_metric
         ) is None:
             error_msg = (
                 "No metric provided and no primary metric found in the root config. "

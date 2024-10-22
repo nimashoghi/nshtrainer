@@ -54,13 +54,13 @@ class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
     """Checkpoint filename. This must not include the extension. If `None`, `on_exception_{id}_{timestamp}` is used."""
 
     @override
-    def create_callbacks(self, root_config):
-        dirpath = self.dirpath or root_config.directory.resolve_subdirectory(
-            root_config.id, "checkpoint"
+    def create_callbacks(self, trainer_config):
+        dirpath = self.dirpath or trainer_config.directory.resolve_subdirectory(
+            trainer_config.id, "checkpoint"
         )
 
         if not (filename := self.filename):
-            filename = f"on_exception_{root_config.id}"
+            filename = f"on_exception_{trainer_config.id}"
         yield OnExceptionCheckpointCallback(
             self, dirpath=Path(dirpath), filename=filename
         )

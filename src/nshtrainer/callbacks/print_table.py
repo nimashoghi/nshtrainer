@@ -88,5 +88,5 @@ class PrintTableMetricsCallbackConfig(CallbackConfigBase):
     """List of patterns to filter the metrics to be displayed. If None, all metrics are displayed."""
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield PrintTableMetricsCallback(metric_patterns=self.metric_patterns)

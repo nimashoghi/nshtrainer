@@ -18,7 +18,7 @@ class LastCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     name: Literal["last_checkpoint"] = "last_checkpoint"
 
     @override
-    def create_checkpoint(self, root_config, dirpath):
+    def create_checkpoint(self, trainer_config, dirpath):
         return LastCheckpointCallback(self, dirpath)
 
 

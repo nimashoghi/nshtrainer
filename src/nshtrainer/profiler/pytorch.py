@@ -60,16 +60,16 @@ class PyTorchProfilerConfig(BaseProfilerConfig):
     """Keyword arguments for the PyTorch profiler. This depends on your PyTorch version"""
 
     @override
-    def create_profiler(self, root_config):
+    def create_profiler(self, trainer_config):
         from lightning.pytorch.profilers.pytorch import PyTorchProfiler
 
         if (dirpath := self.dirpath) is None:
-            dirpath = root_config.directory.resolve_subdirectory(
-                root_config.id, "profile"
+            dirpath = trainer_config.directory.resolve_subdirectory(
+                trainer_config.id, "profile"
             )
 
         if (filename := self.filename) is None:
-            filename = f"{root_config.id}_profile.txt"
+            filename = f"{trainer_config.id}_profile.txt"
 
         return PyTorchProfiler(
             group_by_input_shapes=self.group_by_input_shapes,

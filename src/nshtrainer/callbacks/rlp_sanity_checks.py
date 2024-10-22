@@ -36,7 +36,7 @@ class RLPSanityChecksCallbackConfig(CallbackConfigBase):
     def __bool__(self):
         return self.enabled
 
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         if not self:
             return
 

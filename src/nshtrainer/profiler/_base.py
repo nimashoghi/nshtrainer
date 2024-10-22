@@ -9,7 +9,7 @@ import nshconfig as C
 from lightning.pytorch.profilers import Profiler
 
 if TYPE_CHECKING:
-    from ..model import BaseConfig
+    from ..trainer._config import TrainerConfig
 
 log = logging.getLogger(__name__)
 
@@ -28,4 +28,4 @@ class BaseProfilerConfig(C.Config, ABC):
     """
 
     @abstractmethod
-    def create_profiler(self, root_config: "BaseConfig") -> Profiler | None: ...
+    def create_profiler(self, trainer_config: TrainerConfig) -> Profiler | None: ...

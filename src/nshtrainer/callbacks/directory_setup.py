@@ -5,9 +5,9 @@ import os
 from pathlib import Path
 from typing import Literal
 
-from lightning.pytorch import Callback
 from typing_extensions import override
 
+from .._callback import NTCallbackBase
 from .base import CallbackConfigBase
 
 log = logging.getLogger(__name__)
@@ -55,14 +55,14 @@ class DirectorySetupCallbackConfig(CallbackConfigBase):
     def __bool__(self):
         return self.enabled
 
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         if not self:
             return
 
         yield DirectorySetupCallback(self)
 
 
-class DirectorySetupCallback(Callback):
+class DirectorySetupCallback(NTCallbackBase):
     @override
     def __init__(self, config: DirectorySetupCallbackConfig):
         super().__init__()
@@ -76,12 +76,7 @@ class DirectorySetupCallback(Callback):
 
         # Create a symlink to the root folder for the Runner
         if self.config.create_symlink_to_nshrunner_root:
-            # Resolve the base dir
-            from ..model.config import BaseConfig
-
-            assert isinstance(
-                config := pl_module.hparams, BaseConfig
-            ), f"Expected a BaseConfig, got {type(config)}"
-
-            base_dir = config.directory.resolve_run_root_directory(config.id)
+            base_dir = trainer.config.directory.resolve_run_root_directory(
+                trainer.config.id
+            )
             _create_symlink_to_nshrunner(base_dir)

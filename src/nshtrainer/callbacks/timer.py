@@ -155,5 +155,5 @@ class EpochTimerCallbackConfig(CallbackConfigBase):
     name: Literal["epoch_timer"] = "epoch_timer"
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield EpochTimerCallback()

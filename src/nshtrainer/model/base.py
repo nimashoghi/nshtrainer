@@ -3,19 +3,17 @@ from __future__ import annotations
 import inspect
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import MutableMapping
-from typing import IO, TYPE_CHECKING, Any, Generic, Literal, cast
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Generic, Literal, cast
 
 import torch
 import torch.distributed
-from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
 from lightning.pytorch import LightningModule
 from lightning.pytorch.profilers import PassThroughProfiler, Profiler
 from lightning.pytorch.utilities.types import STEP_OUTPUT
-from typing_extensions import Self, TypeVar, override
+from typing_extensions import Never, TypeVar, override
 
 from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
-from ..util._environment_info import EnvironmentConfig
 from .config import BaseConfig
 from .mixins.callback import CallbackModuleMixin
 from .mixins.logger import LoggerLightningModuleMixin
@@ -65,7 +63,7 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     @torch.jit.unused
     @property
     def config(self) -> THparams:
-        return self.hparams
+        return cast(THparams, self.hparams)
 
     @property
     def debug(self) -> bool:
@@ -170,7 +168,7 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
         return object_list
 
     def barrier(self, name: str | None = None):
-        self.trainer.strategy.barrier(name=name)
+        return self.trainer.strategy.barrier(name=name)
 
     def reduce(
         self,
@@ -194,7 +192,7 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     @override
     def __repr__(self):
         parts: list[str] = []
-        parts.append(f"config={self.hparams.concise_repr()}")
+        parts.append(f"config={self.config.concise_repr()}")
         parts.append(f"device={self.device}")
         if self.debug:
             parts.append("debug=True")
@@ -224,61 +222,23 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
                 f"__init__'s argument must be named 'hparams', got {parameters}"
             )
 
-    hparams: THparams  # pyright: ignore[reportIncompatibleMethodOverride]
-    hparams_initial: THparams  # pyright: ignore[reportIncompatibleMethodOverride]
+    hparams: Never  # pyright: ignore[reportIncompatibleMethodOverride]
+    hparams_initial: Never  # pyright: ignore[reportIncompatibleMethodOverride]
 
     @classmethod
     @abstractmethod
     def config_cls(cls) -> type[THparams]: ...
 
-    @classmethod
-    def load_checkpoint(
-        cls,
-        checkpoint_path: _PATH | IO,
-        hparams: THparams | MutableMapping[str, Any] | None = None,
-        map_location: _MAP_LOCATION_TYPE = None,
-        strict: bool = True,
-    ) -> Self:
-        if strict:
-            cls._validate_class_for_ckpt_loading()
-
-        kwargs: dict[str, Any] = {}
-        if hparams is not None:
-            kwargs["hparams"] = hparams
-
-        return super().load_from_checkpoint(
-            checkpoint_path,
-            map_location=map_location,
-            hparams_file=None,
-            strict=strict,
-            **kwargs,
-        )
-
-    def pre_init_update_hparams_dict(self, hparams: MutableMapping[str, Any]):
-        """
-        Override this method to update the hparams dictionary before it is used to create the hparams object.
-        Mapping-based parameters are passed to the constructor of the hparams object when we're loading the model from a checkpoint.
-        """
-        return hparams
-
-    def pre_init_update_hparams(self, hparams: THparams):
-        """
-        Override this method to update the hparams object before it is used to create the hparams_initial object.
-        """
-        return hparams
-
     @override
-    def __init__(self, hparams: THparams | MutableMapping[str, Any]):
-        if not isinstance(hparams, BaseConfig):
-            if not isinstance(hparams, MutableMapping):
+    def __init__(self, hparams: THparams | Mapping[str, Any]):
+        config_cls = self.config_cls()
+        if not isinstance(hparams, config_cls):
+            if not isinstance(hparams, Mapping):
                 raise TypeError(
-                    f"hparams must be a BaseConfig or a MutableMapping: {type(hparams)}"
+                    f"hparams must be a BaseConfig or a Mapping: {type(hparams)}"
                 )
-
-            hparams = self.pre_init_update_hparams_dict(hparams)
-            hparams = self.config_cls().model_validate(hparams)
-        hparams.environment = EnvironmentConfig.from_current_environment(hparams, self)
-        hparams = self.pre_init_update_hparams(hparams)
+            hparams = config_cls.model_validate(hparams)
+        hparams = config_cls.model_validate(hparams)
 
         super().__init__()
         self.save_hyperparameters(hparams)

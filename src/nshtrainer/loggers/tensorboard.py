@@ -56,20 +56,20 @@ class TensorboardLoggerConfig(BaseLoggerConfig):
     """A string to put at the beginning of metric keys."""
 
     @override
-    def create_logger(self, root_config):
+    def create_logger(self, trainer_config):
         if not self.enabled:
             return None
 
         from lightning.pytorch.loggers.tensorboard import TensorBoardLogger
 
-        save_dir = root_config.directory._resolve_log_directory_for_logger(
-            root_config.id,
+        save_dir = trainer_config.directory._resolve_log_directory_for_logger(
+            trainer_config.id,
             self,
         )
         return TensorBoardLogger(
             save_dir=save_dir,
-            name=root_config.run_name,
-            version=root_config.id,
+            name=trainer_config.name,
+            version=trainer_config.id,
             log_graph=self.log_graph,
             default_hp_metric=self.default_hp_metric,
         )

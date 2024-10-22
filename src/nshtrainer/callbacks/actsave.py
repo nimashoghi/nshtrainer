@@ -4,10 +4,9 @@ import contextlib
 from pathlib import Path
 from typing import Literal
 
-from lightning.pytorch import LightningModule, Trainer
-from lightning.pytorch.callbacks.callback import Callback
 from typing_extensions import TypeAlias, override
 
+from .._callback import NTCallbackBase
 from .base import CallbackConfigBase
 
 Stage: TypeAlias = Literal["train", "validation", "test", "predict"]
@@ -24,15 +23,17 @@ class ActSaveConfig(CallbackConfigBase):
         return self.enabled
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield ActSaveCallback(
             self,
             self.save_dir
-            or root_config.directory.resolve_subdirectory(root_config.id, "activation"),
+            or trainer_config.directory.resolve_subdirectory(
+                trainer_config.id, "activation"
+            ),
         )
 
 
-class ActSaveCallback(Callback):
+class ActSaveCallback(NTCallbackBase):
     def __init__(self, config: ActSaveConfig, save_dir: Path):
         super().__init__()
 
@@ -42,7 +43,7 @@ class ActSaveCallback(Callback):
         self._active_contexts: dict[Stage, contextlib._GeneratorContextManager] = {}
 
     @override
-    def setup(self, trainer: Trainer, pl_module: LightningModule, stage: str) -> None:
+    def setup(self, trainer, pl_module, stage) -> None:
         super().setup(trainer, pl_module, stage)
 
         if not self.config:
@@ -55,9 +56,7 @@ class ActSaveCallback(Callback):
         self._enabled_context = context
 
     @override
-    def teardown(
-        self, trainer: Trainer, pl_module: LightningModule, stage: str
-    ) -> None:
+    def teardown(self, trainer, pl_module, stage) -> None:
         super().teardown(trainer, pl_module, stage)
 
         if not self.config:
@@ -67,7 +66,7 @@ class ActSaveCallback(Callback):
             self._enabled_context.__exit__(None, None, None)
             self._enabled_context = None
 
-    def _on_start(self, stage: Stage, trainer: Trainer, pl_module: LightningModule):
+    def _on_start(self, stage: Stage, trainer, pl_module):
         if not self.config:
             return
 
@@ -82,7 +81,7 @@ class ActSaveCallback(Callback):
         context.__enter__()
         self._active_contexts[stage] = context
 
-    def _on_end(self, stage: Stage, trainer: Trainer, pl_module: LightningModule):
+    def _on_end(self, stage: Stage, trainer, pl_module):
         if not self.config:
             return
 
@@ -91,33 +90,33 @@ class ActSaveCallback(Callback):
             active_contexts.__exit__(None, None, None)
 
     @override
-    def on_train_epoch_start(self, trainer: Trainer, pl_module: LightningModule):
+    def on_train_epoch_start(self, trainer, pl_module):
         return self._on_start("train", trainer, pl_module)
 
     @override
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
+    def on_train_epoch_end(self, trainer, pl_module):
         return self._on_end("train", trainer, pl_module)
 
     @override
-    def on_validation_epoch_start(self, trainer: Trainer, pl_module: LightningModule):
+    def on_validation_epoch_start(self, trainer, pl_module):
         return self._on_start("validation", trainer, pl_module)
 
     @override
-    def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
+    def on_validation_epoch_end(self, trainer, pl_module):
         return self._on_end("validation", trainer, pl_module)
 
     @override
-    def on_test_epoch_start(self, trainer: Trainer, pl_module: LightningModule):
+    def on_test_epoch_start(self, trainer, pl_module):
         return self._on_start("test", trainer, pl_module)
 
     @override
-    def on_test_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
+    def on_test_epoch_end(self, trainer, pl_module):
         return self._on_end("test", trainer, pl_module)
 
     @override
-    def on_predict_epoch_start(self, trainer: Trainer, pl_module: LightningModule):
+    def on_predict_epoch_start(self, trainer, pl_module):
         return self._on_start("predict", trainer, pl_module)
 
     @override
-    def on_predict_epoch_end(self, trainer: Trainer, pl_module: LightningModule):
+    def on_predict_epoch_end(self, trainer, pl_module):
         return self._on_end("predict", trainer, pl_module)

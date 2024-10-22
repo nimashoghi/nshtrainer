@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import string
+import time
 from collections.abc import Iterable, Sequence
 from datetime import timedelta
 from pathlib import Path
@@ -8,6 +10,7 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
+    ClassVar,
     Literal,
     Protocol,
     TypeAlias,
@@ -15,6 +18,7 @@ from typing import (
 )
 
 import nshconfig as C
+import numpy as np
 from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
 from lightning.pytorch.accelerators import Accelerator
@@ -28,6 +32,7 @@ from lightning.pytorch.strategies.strategy import Strategy
 from typing_extensions import TypedDict, TypeVar, override
 
 from .._checkpoint.loader import CheckpointLoadingConfig
+from .._directory import DirectoryConfig
 from .._hf_hub import HuggingFaceHubConfig
 from ..callbacks import (
     BestCheckpointCallbackConfig,
@@ -48,7 +53,9 @@ from ..loggers import (
     WandbLoggerConfig,
 )
 from ..loggers.actsave import ActSaveLoggerConfig
+from ..metrics._config import MetricConfig
 from ..profiler import ProfilerConfig
+from ..util._environment_info import EnvironmentConfig
 
 if TYPE_CHECKING:
     from ..model.config import BaseConfig
@@ -104,12 +111,12 @@ class LoggingConfig(CallbackConfigBase):
             None,
         )
 
-    def create_loggers(self, root_config: "BaseConfig"):
+    def create_loggers(self, trainer_config: TrainerConfig):
         """
         Constructs and returns a list of loggers based on the provided root configuration.
 
         Args:
-            root_config (BaseConfig): The root configuration object.
+            trainer_config (BaseConfig): The root configuration object.
 
         Returns:
             list[Logger]: A list of constructed loggers.
@@ -124,16 +131,16 @@ class LoggingConfig(CallbackConfigBase):
         ):
             if not logger_config.enabled:
                 continue
-            if (logger := logger_config.create_logger(root_config)) is None:
+            if (logger := logger_config.create_logger(trainer_config)) is None:
                 continue
             yield logger
 
         # If the actsave_metrics is enabled, add the ActSave logger
         if self.actsave_logger:
-            yield self.actsave_logger.create_logger(root_config)
+            yield self.actsave_logger.create_logger(trainer_config)
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         if self.log_lr:
             from lightning.pytorch.callbacks import LearningRateMonitor
 
@@ -144,13 +151,13 @@ class LoggingConfig(CallbackConfigBase):
             yield LearningRateMonitor(logging_interval=logging_interval)
 
         if self.log_epoch:
-            yield from self.log_epoch.create_callbacks(root_config)
+            yield from self.log_epoch.create_callbacks(trainer_config)
 
         for logger in self.loggers:
             if not logger or not isinstance(logger, CallbackConfigBase):
                 continue
 
-            yield from logger.create_callbacks(root_config)
+            yield from logger.create_callbacks(trainer_config)
 
 
 class GradientClippingConfig(C.Config):
@@ -177,7 +184,7 @@ class OptimizationConfig(CallbackConfigBase):
     """Gradient clipping configuration, or None to disable gradient clipping."""
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         from ..callbacks.norm_logging import NormLoggingCallbackConfig
 
         yield from NormLoggingCallbackConfig(
@@ -185,7 +192,7 @@ class OptimizationConfig(CallbackConfigBase):
             log_grad_norm_per_param=self.log_grad_norm_per_param,
             log_param_norm=self.log_param_norm,
             log_param_norm_per_param=self.log_param_norm_per_param,
-        ).create_callbacks(root_config)
+        ).create_callbacks(trainer_config)
 
 
 TPlugin = TypeVar(
@@ -279,22 +286,22 @@ class CheckpointSavingConfig(CallbackConfigBase):
         self.enabled = False
         return self
 
-    def should_save_checkpoints(self, root_config: "BaseConfig"):
+    def should_save_checkpoints(self, trainer_config: TrainerConfig):
         if not self.enabled:
             return False
 
-        if root_config.trainer.fast_dev_run:
+        if trainer_config.fast_dev_run:
             return False
 
         return True
 
     @override
-    def create_callbacks(self, root_config: "BaseConfig"):
-        if not self.should_save_checkpoints(root_config):
+    def create_callbacks(self, trainer_config: TrainerConfig):
+        if not self.should_save_checkpoints(trainer_config):
             return
 
         for callback_config in self.checkpoint_callbacks:
-            yield from callback_config.create_callbacks(root_config)
+            yield from callback_config.create_callbacks(trainer_config)
 
 
 class LightningTrainerKwargs(TypedDict, total=False):
@@ -546,8 +553,65 @@ class SanityCheckingConfig(C.Config):
 
 
 class TrainerConfig(C.Config):
+    # region Active Run Configuration
+    id: str = C.Field(default_factory=lambda: TrainerConfig.generate_id())
+    """ID of the run."""
+    name: str | None = None
+    """Run name."""
+    project: str | None = None
+    """Project name."""
+    tags: list[str] = []
+    """Tags for the run."""
+    notes: list[str] = []
+    """Human readable notes for the run."""
+
     debug: bool = False
     """Whether to run in debug mode. This will enable debug logging and enable debug code paths."""
+
+    environment: Annotated[EnvironmentConfig, C.Field(repr=False)] = (
+        EnvironmentConfig.empty()
+    )
+    """A snapshot of the current environment information (e.g. python version, slurm info, etc.). This is automatically populated by the run script."""
+
+    directory: DirectoryConfig = DirectoryConfig()
+    """Directory configuration options."""
+
+    _rng: ClassVar[np.random.Generator | None] = None
+
+    @classmethod
+    def generate_id(cls, *, length: int = 8) -> str:
+        """
+        Generate a random ID of specified length.
+
+        """
+        if (rng := cls._rng) is None:
+            rng = np.random.default_rng()
+
+        alphabet = list(string.ascii_lowercase + string.digits)
+
+        id = "".join(rng.choice(alphabet) for _ in range(length))
+        return id
+
+    @classmethod
+    def set_seed(cls, seed: int | None = None) -> None:
+        """
+        Set the seed for the random number generator.
+
+        Args:
+            seed (int | None, optional): The seed value to set. If None, a seed based on the current time will be used. Defaults to None.
+
+        Returns:
+            None
+        """
+        if seed is None:
+            seed = int(time.time() * 1000)
+        log.critical(f"Seeding {cls.__name__} with seed {seed}")
+        cls._rng = np.random.default_rng(seed)
+
+    # endregion
+
+    primary_metric: MetricConfig | None = None
+    """The primary metric to use for checkpointing and early stopping."""
 
     ckpt_path: Literal["none"] | str | Path | None = None
     """Path to a checkpoint to load and resume training from. If ``"none"``, will not load a checkpoint."""

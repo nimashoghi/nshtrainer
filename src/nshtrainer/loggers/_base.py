@@ -7,7 +7,7 @@ import nshconfig as C
 from lightning.pytorch.loggers import Logger
 
 if TYPE_CHECKING:
-    from ..model import BaseConfig
+    from ..trainer._config import TrainerConfig
 
 
 class BaseLoggerConfig(C.Config, ABC):
@@ -21,7 +21,7 @@ class BaseLoggerConfig(C.Config, ABC):
     """Directory to save the logs to. If None, will use the default log directory for the trainer."""
 
     @abstractmethod
-    def create_logger(self, root_config: "BaseConfig") -> Logger | None: ...
+    def create_logger(self, trainer_config: TrainerConfig) -> Logger | None: ...
 
     def disable_(self):
         self.enabled = False

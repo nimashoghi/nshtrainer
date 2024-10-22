@@ -19,7 +19,7 @@ from .callbacks.base import CallbackConfigBase, CallbackMetadataConfig
 if TYPE_CHECKING:
     from huggingface_hub import HfApi  # noqa: F401
 
-    from .model.base import BaseConfig
+    from .trainer._config import TrainerConfig
 
 
 log = logging.getLogger(__name__)
@@ -84,7 +84,7 @@ class HuggingFaceHubConfig(CallbackConfigBase):
         return self.enabled
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         # Attempt to login. If it fails, we'll log a warning or error based on the configuration.
         try:
             api = _api(self.token)
@@ -140,19 +140,19 @@ def _api(token: str | None = None):
     return api
 
 
-def _repo_name(api: "HfApi", root_config: "BaseConfig"):
+def _repo_name(api: HfApi, trainer_config: TrainerConfig):
     username = None
-    if (ac := root_config.trainer.hf_hub.auto_create) and ac.namespace:
+    if (ac := trainer_config.hf_hub.auto_create) and ac.namespace:
         username = ac.namespace
     elif (username := api.whoami().get("name", None)) is None:
         raise ValueError("Could not get username from Hugging Face Hub.")
 
     # Sanitize the project (if it exists), run_name, and id
     parts = []
-    if root_config.project:
-        parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", root_config.project))
-    parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", root_config.run_name))
-    parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", root_config.id))
+    if trainer_config.project:
+        parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", trainer_config.project))
+    parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", trainer_config.run_name))
+    parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", trainer_config.id))
 
     # Combine parts and ensure it starts and ends with alphanumeric characters
     repo_name = "-".join(parts)
@@ -181,14 +181,10 @@ class _Upload:
     path_in_repo: Path
 
     @classmethod
-    def from_local_path(
-        cls,
-        local_path: Path,
-        root_config: "BaseConfig",
-    ):
+    def from_local_path(cls, local_path: Path, trainer_config: TrainerConfig):
         # Resolve the checkpoint directory
-        checkpoint_dir = root_config.directory.resolve_subdirectory(
-            root_config.id, "checkpoint"
+        checkpoint_dir = trainer_config.directory.resolve_subdirectory(
+            trainer_config.id, "checkpoint"
         )
 
         try:
@@ -226,8 +222,7 @@ class HFHubCallback(NTCallbackBase):
 
     @override
     def setup(self, trainer, pl_module, stage):
-        root_config = cast("BaseConfig", pl_module.hparams)
-        self._repo_id = _repo_name(self.api, root_config)
+        self._repo_id = _repo_name(self.api, trainer.config)
 
         if not self.config or not trainer.is_global_zero:
             return
@@ -236,7 +231,7 @@ class HFHubCallback(NTCallbackBase):
         self._create_repo_if_not_exists()
 
         # Upload the config and code
-        self._save_config(root_config)
+        self._save_config(trainer.config)
         self._save_code()
 
     @override
@@ -250,10 +245,9 @@ class HFHubCallback(NTCallbackBase):
             return
 
         with self._with_error_handling("save checkpoints"):
-            root_config = cast("BaseConfig", pl_module.hparams)
             self._save_checkpoint(
-                _Upload.from_local_path(ckpt_path, root_config),
-                _Upload.from_local_path(metadata_path, root_config)
+                _Upload.from_local_path(ckpt_path, trainer.config),
+                _Upload.from_local_path(metadata_path, trainer.config)
                 if metadata_path is not None
                 else None,
             )
@@ -302,10 +296,12 @@ class HFHubCallback(NTCallbackBase):
                     f"Error checking repository '{self.repo_id}'", exc_info=True
                 )
 
-    def _save_config(self, root_config: "BaseConfig"):
+    def _save_config(self, trainer_config: TrainerConfig):
         with self._with_error_handling("upload config"):
             self.api.upload_file(
-                path_or_fileobj=root_config.model_dump_json(indent=4).encode("utf-8"),
+                path_or_fileobj=trainer_config.model_dump_json(indent=4).encode(
+                    "utf-8"
+                ),
                 path_in_repo="config.json",
                 repo_id=self.repo_id,
                 repo_type="model",

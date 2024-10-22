@@ -17,7 +17,7 @@ class LogEpochCallbackConfig(CallbackConfigBase):
     name: Literal["log_epoch"] = "log_epoch"
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield LogEpochCallback()
 
 

@@ -5,7 +5,7 @@ import datetime
 import logging
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import nshconfig as C
 import numpy as np
@@ -15,7 +15,6 @@ from ..util._environment_info import EnvironmentConfig
 from ..util.path import compute_file_checksum, try_symlink_or_copy
 
 if TYPE_CHECKING:
-    from ..model import BaseConfig, LightningModuleBase
     from ..trainer.trainer import Trainer
 
 log = logging.getLogger(__name__)
@@ -59,8 +58,7 @@ class CheckpointMetadata(C.Config):
 
 
 def _generate_checkpoint_metadata(
-    config: "BaseConfig",
-    trainer: "Trainer",
+    trainer: Trainer,
     checkpoint_path: Path,
     metadata_path: Path,
 ):
@@ -84,9 +82,9 @@ def _generate_checkpoint_metadata(
         checkpoint_path=checkpoint_path.relative_to(metadata_path.parent),
         checkpoint_filename=checkpoint_path.name,
         checkpoint_checksum=compute_file_checksum(checkpoint_path),
-        run_id=config.id,
-        name=config.run_name,
-        project=config.project,
+        run_id=trainer.config.id,
+        name=trainer.config.name or "",
+        project=trainer.config.project,
         checkpoint_timestamp=checkpoint_timestamp,
         start_timestamp=start_timestamp.datetime
         if start_timestamp is not None
@@ -95,8 +93,8 @@ def _generate_checkpoint_metadata(
         global_step=trainer.global_step,
         training_time=training_time,
         metrics=metrics,
-        environment=config.environment,
-        hparams=config.model_dump(),
+        environment=trainer.config.environment,
+        hparams=trainer.full_hparams_dict(),
     )
 
 
@@ -104,16 +102,9 @@ def _metadata_path(checkpoint_path: Path):
     return checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
 
 
-def _write_checkpoint_metadata(
-    trainer: "Trainer",
-    model: "LightningModuleBase",
-    checkpoint_path: Path,
-):
-    config = cast("BaseConfig", model.config)
+def _write_checkpoint_metadata(trainer: Trainer, checkpoint_path: Path):
     metadata_path = _metadata_path(checkpoint_path)
-    metadata = _generate_checkpoint_metadata(
-        config, trainer, checkpoint_path, metadata_path
-    )
+    metadata = _generate_checkpoint_metadata(trainer, checkpoint_path, metadata_path)
 
     # Write the metadata to the checkpoint directory
     try:

@@ -30,7 +30,7 @@ class SharedParametersCallbackConfig(CallbackConfigBase):
     name: Literal["shared_parameters"] = "shared_parameters"
 
     @override
-    def create_callbacks(self, root_config):
+    def create_callbacks(self, trainer_config):
         yield SharedParametersCallback(self)
 
 

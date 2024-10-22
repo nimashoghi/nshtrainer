@@ -15,14 +15,14 @@ from typing import TYPE_CHECKING, Any, cast
 import nshconfig as C
 import psutil
 import torch
+from lightning.pytorch import LightningDataModule, LightningModule
 from packaging import version
 from typing_extensions import Self
 
 from .slurm import parse_slurm_node_list
 
 if TYPE_CHECKING:
-    from ..model.base import LightningModuleBase
-    from ..model.config import BaseConfig
+    from ..trainer._config import TrainerConfig
 
 
 log = logging.getLogger(__name__)
@@ -708,6 +708,9 @@ class EnvironmentConfig(C.Config):
     model: EnvironmentClassInformationConfig | None = None
     """The Lightning module class information."""
 
+    datamodule: EnvironmentClassInformationConfig | None = None
+    """The Lightning data module class information."""
+
     linux: EnvironmentLinuxEnvironmentConfig | None = None
     """The Linux environment information."""
 
@@ -768,8 +771,9 @@ class EnvironmentConfig(C.Config):
     @classmethod
     def from_current_environment(
         cls,
-        root_config: "BaseConfig",
-        model: "LightningModuleBase",
+        trainer_config: TrainerConfig,
+        model: LightningModule,
+        datamodule: LightningDataModule | None = None,
     ):
         draft = cls.draft()
         draft.cwd = Path(os.getcwd())
@@ -777,23 +781,27 @@ class EnvironmentConfig(C.Config):
         draft.python_path = [Path(path) for path in sys.path]
         draft.python_version = sys.version
         draft.python_packages = EnvironmentPackageConfig.from_current_environment()
-        draft.config = EnvironmentClassInformationConfig.from_instance(root_config)
+        draft.config = EnvironmentClassInformationConfig.from_instance(trainer_config)
         draft.model = EnvironmentClassInformationConfig.from_instance(model)
+        if datamodule is not None:
+            draft.datamodule = EnvironmentClassInformationConfig.from_instance(
+                datamodule
+            )
         draft.linux = EnvironmentLinuxEnvironmentConfig.from_current_environment()
         draft.hardware = EnvironmentHardwareConfig.from_current_environment()
         draft.slurm = EnvironmentSLURMInformationConfig.from_current_environment()
         draft.lsf = EnvironmentLSFInformationConfig.from_current_environment()
-        draft.base_dir = root_config.directory.resolve_run_root_directory(
-            root_config.id
+        draft.base_dir = trainer_config.directory.resolve_run_root_directory(
+            trainer_config.id
         )
-        draft.log_dir = root_config.directory.resolve_subdirectory(
-            root_config.id, "log"
+        draft.log_dir = trainer_config.directory.resolve_subdirectory(
+            trainer_config.id, "log"
         )
-        draft.checkpoint_dir = root_config.directory.resolve_subdirectory(
-            root_config.id, "checkpoint"
+        draft.checkpoint_dir = trainer_config.directory.resolve_subdirectory(
+            trainer_config.id, "checkpoint"
         )
-        draft.stdio_dir = root_config.directory.resolve_subdirectory(
-            root_config.id, "stdio"
+        draft.stdio_dir = trainer_config.directory.resolve_subdirectory(
+            trainer_config.id, "stdio"
         )
         draft.seed = (
             int(seed_str) if (seed_str := os.environ.get("PL_GLOBAL_SEED")) else None

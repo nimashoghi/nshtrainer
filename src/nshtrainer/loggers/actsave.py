@@ -6,15 +6,13 @@ from typing import Any, Literal
 import numpy as np
 from lightning.pytorch.loggers import Logger
 
-from nshtrainer.model import BaseConfig
-
 from ._base import BaseLoggerConfig
 
 
 class ActSaveLoggerConfig(BaseLoggerConfig):
     name: Literal["actsave"] = "actsave"
 
-    def create_logger(self, root_config: BaseConfig):
+    def create_logger(self, trainer_config):
         if not self.enabled:
             return None
 

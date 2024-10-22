@@ -21,16 +21,16 @@ class AdvancedProfilerConfig(BaseProfilerConfig):
     """
 
     @override
-    def create_profiler(self, root_config):
+    def create_profiler(self, trainer_config):
         from lightning.pytorch.profilers.advanced import AdvancedProfiler
 
         if (dirpath := self.dirpath) is None:
-            dirpath = root_config.directory.resolve_subdirectory(
-                root_config.id, "profile"
+            dirpath = trainer_config.directory.resolve_subdirectory(
+                trainer_config.id, "profile"
             )
 
         if (filename := self.filename) is None:
-            filename = f"{root_config.id}_profile.txt"
+            filename = f"{trainer_config.id}_profile.txt"
 
         return AdvancedProfiler(
             line_count_restriction=self.line_count_restriction,
