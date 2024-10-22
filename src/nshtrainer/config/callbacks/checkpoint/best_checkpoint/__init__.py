@@ -26,22 +26,22 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CheckpointMetadata":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint.best_checkpoint"
-            ).CheckpointMetadata
         if name == "BaseCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint.best_checkpoint"
             ).BaseCheckpointCallbackConfig
-        if name == "MetricConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint.best_checkpoint"
-            ).MetricConfig
         if name == "BestCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint.best_checkpoint"
             ).BestCheckpointCallbackConfig
+        if name == "CheckpointMetadata":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint.best_checkpoint"
+            ).CheckpointMetadata
+        if name == "MetricConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint.best_checkpoint"
+            ).MetricConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

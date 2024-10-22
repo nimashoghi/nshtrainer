@@ -28,6 +28,12 @@ else:
             return globals()[name]
         if name == "BaseLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").BaseLoggerConfig
+        if name == "CSVLoggerConfig":
+            return importlib.import_module("nshtrainer.loggers").CSVLoggerConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.loggers.wandb"
+            ).CallbackConfigBase
         if name == "TensorboardLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").TensorboardLoggerConfig
         if name == "WandbLoggerConfig":
@@ -40,12 +46,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.loggers.wandb"
             ).WandbWatchCallbackConfig
-        if name == "CallbackConfigBase":
-            return importlib.import_module(
-                "nshtrainer.loggers.wandb"
-            ).CallbackConfigBase
-        if name == "CSVLoggerConfig":
-            return importlib.import_module("nshtrainer.loggers").CSVLoggerConfig
         if name == "LoggerConfig":
             return importlib.import_module("nshtrainer.loggers").LoggerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

@@ -7,11 +7,9 @@ from typing import TYPE_CHECKING
 # Config/alias imports
 
 if TYPE_CHECKING:
-    from nshtrainer.callbacks.throughput_monitor import (
-        CallbackConfigBase as CallbackConfigBase,
-    )
-    from nshtrainer.callbacks.throughput_monitor import (
-        ThroughputMonitorConfig as ThroughputMonitorConfig,
+    from nshtrainer.callbacks.log_epoch import CallbackConfigBase as CallbackConfigBase
+    from nshtrainer.callbacks.log_epoch import (
+        LogEpochCallbackConfig as LogEpochCallbackConfig,
     )
 else:
 
@@ -20,14 +18,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "ThroughputMonitorConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.throughput_monitor"
-            ).ThroughputMonitorConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
-                "nshtrainer.callbacks.throughput_monitor"
+                "nshtrainer.callbacks.log_epoch"
             ).CallbackConfigBase
+        if name == "LogEpochCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.log_epoch"
+            ).LogEpochCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

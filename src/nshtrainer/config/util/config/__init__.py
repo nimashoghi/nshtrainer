@@ -18,12 +18,12 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "DTypeConfig":
+            return importlib.import_module("nshtrainer.util.config").DTypeConfig
         if name == "EpochsConfig":
             return importlib.import_module("nshtrainer.util.config").EpochsConfig
         if name == "StepsConfig":
             return importlib.import_module("nshtrainer.util.config").StepsConfig
-        if name == "DTypeConfig":
-            return importlib.import_module("nshtrainer.util.config").DTypeConfig
         if name == "DurationConfig":
             return importlib.import_module("nshtrainer.util.config").DurationConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

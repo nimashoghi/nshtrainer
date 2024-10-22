@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from nshtrainer.callbacks import (
         LastCheckpointCallbackConfig as LastCheckpointCallbackConfig,
     )
+    from nshtrainer.callbacks import LogEpochCallbackConfig as LogEpochCallbackConfig
     from nshtrainer.callbacks import (
         NormLoggingCallbackConfig as NormLoggingCallbackConfig,
     )
@@ -47,7 +48,6 @@ if TYPE_CHECKING:
     from nshtrainer.callbacks import (
         SharedParametersCallbackConfig as SharedParametersCallbackConfig,
     )
-    from nshtrainer.callbacks import ThroughputMonitorConfig as ThroughputMonitorConfig
     from nshtrainer.callbacks import (
         WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
     )
@@ -69,88 +69,88 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "PrintTableMetricsCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).PrintTableMetricsCallbackConfig
-        if name == "CallbackConfigBase":
-            return importlib.import_module("nshtrainer.callbacks").CallbackConfigBase
-        if name == "DebugFlagCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).DebugFlagCallbackConfig
-        if name == "ThroughputMonitorConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).ThroughputMonitorConfig
-        if name == "GradientSkippingCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).GradientSkippingCallbackConfig
-        if name == "RLPSanityChecksCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).RLPSanityChecksCallbackConfig
-        if name == "WandbUploadCodeCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).WandbUploadCodeCallbackConfig
-        if name == "MetricConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.early_stopping"
-            ).MetricConfig
-        if name == "EarlyStoppingCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).EarlyStoppingCallbackConfig
-        if name == "WandbWatchCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).WandbWatchCallbackConfig
-        if name == "EMACallbackConfig":
-            return importlib.import_module("nshtrainer.callbacks").EMACallbackConfig
-        if name == "DirectorySetupCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).DirectorySetupCallbackConfig
         if name == "ActSaveConfig":
             return importlib.import_module("nshtrainer.callbacks.actsave").ActSaveConfig
-        if name == "FiniteChecksCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).FiniteChecksCallbackConfig
-        if name == "NormLoggingCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).NormLoggingCallbackConfig
-        if name == "EpochTimerCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).EpochTimerCallbackConfig
-        if name == "OnExceptionCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).OnExceptionCheckpointCallbackConfig
-        if name == "LastCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).LastCheckpointCallbackConfig
-        if name == "SharedParametersCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).SharedParametersCallbackConfig
-        if name == "BestCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks"
-            ).BestCheckpointCallbackConfig
-        if name == "CheckpointMetadata":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint._base"
-            ).CheckpointMetadata
         if name == "BaseCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"
             ).BaseCheckpointCallbackConfig
+        if name == "BestCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).BestCheckpointCallbackConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module("nshtrainer.callbacks").CallbackConfigBase
+        if name == "CheckpointMetadata":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint._base"
+            ).CheckpointMetadata
+        if name == "DebugFlagCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).DebugFlagCallbackConfig
+        if name == "DirectorySetupCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).DirectorySetupCallbackConfig
+        if name == "EMACallbackConfig":
+            return importlib.import_module("nshtrainer.callbacks").EMACallbackConfig
+        if name == "EarlyStoppingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).EarlyStoppingCallbackConfig
+        if name == "EpochTimerCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).EpochTimerCallbackConfig
+        if name == "FiniteChecksCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).FiniteChecksCallbackConfig
+        if name == "GradientSkippingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).GradientSkippingCallbackConfig
+        if name == "LastCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).LastCheckpointCallbackConfig
+        if name == "LogEpochCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).LogEpochCallbackConfig
+        if name == "MetricConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.early_stopping"
+            ).MetricConfig
+        if name == "NormLoggingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).NormLoggingCallbackConfig
+        if name == "OnExceptionCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).OnExceptionCheckpointCallbackConfig
+        if name == "PrintTableMetricsCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).PrintTableMetricsCallbackConfig
+        if name == "RLPSanityChecksCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).RLPSanityChecksCallbackConfig
+        if name == "SharedParametersCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).SharedParametersCallbackConfig
+        if name == "WandbUploadCodeCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).WandbUploadCodeCallbackConfig
+        if name == "WandbWatchCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks"
+            ).WandbWatchCallbackConfig
         if name == "CallbackConfig":
             return importlib.import_module("nshtrainer.callbacks").CallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
@@ -166,11 +166,11 @@ from . import early_stopping as early_stopping
 from . import ema as ema
 from . import finite_checks as finite_checks
 from . import gradient_skipping as gradient_skipping
+from . import log_epoch as log_epoch
 from . import norm_logging as norm_logging
 from . import print_table as print_table
 from . import rlp_sanity_checks as rlp_sanity_checks
 from . import shared_parameters as shared_parameters
-from . import throughput_monitor as throughput_monitor
 from . import timer as timer
 from . import wandb_upload_code as wandb_upload_code
 from . import wandb_watch as wandb_watch

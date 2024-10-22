@@ -20,14 +20,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "WandbUploadCodeCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.wandb_upload_code"
-            ).WandbUploadCodeCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.wandb_upload_code"
             ).CallbackConfigBase
+        if name == "WandbUploadCodeCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.wandb_upload_code"
+            ).WandbUploadCodeCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

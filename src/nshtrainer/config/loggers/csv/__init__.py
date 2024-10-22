@@ -16,10 +16,10 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CSVLoggerConfig":
-            return importlib.import_module("nshtrainer.loggers.csv").CSVLoggerConfig
         if name == "BaseLoggerConfig":
             return importlib.import_module("nshtrainer.loggers.csv").BaseLoggerConfig
+        if name == "CSVLoggerConfig":
+            return importlib.import_module("nshtrainer.loggers.csv").CSVLoggerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from nshtrainer._checkpoint.loader import (
         UserProvidedPathCheckpointStrategyConfig as UserProvidedPathCheckpointStrategyConfig,
     )
+    from nshtrainer._checkpoint.metadata import EnvironmentConfig as EnvironmentConfig
 else:
 
     def __getattr__(name):
@@ -43,6 +44,10 @@ else:
             return importlib.import_module(
                 "nshtrainer._checkpoint.loader"
             ).CheckpointMetadata
+        if name == "EnvironmentConfig":
+            return importlib.import_module(
+                "nshtrainer._checkpoint.metadata"
+            ).EnvironmentConfig
         if name == "LastCheckpointStrategyConfig":
             return importlib.import_module(
                 "nshtrainer._checkpoint.loader"
@@ -59,4 +64,7 @@ else:
             ).CheckpointLoadingStrategyConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
+
 # Submodule exports
+from . import loader as loader
+from . import metadata as metadata

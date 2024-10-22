@@ -16,12 +16,12 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "EMACallbackConfig":
-            return importlib.import_module("nshtrainer.callbacks.ema").EMACallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.ema"
             ).CallbackConfigBase
+        if name == "EMACallbackConfig":
+            return importlib.import_module("nshtrainer.callbacks.ema").EMACallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

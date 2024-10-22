@@ -49,7 +49,6 @@ from .shared_parameters import SharedParametersCallback as SharedParametersCallb
 from .shared_parameters import (
     SharedParametersCallbackConfig as SharedParametersCallbackConfig,
 )
-from .throughput_monitor import ThroughputMonitorConfig as ThroughputMonitorConfig
 from .timer import EpochTimerCallback as EpochTimerCallback
 from .timer import EpochTimerCallbackConfig as EpochTimerCallbackConfig
 from .wandb_upload_code import WandbUploadCodeCallback as WandbUploadCodeCallback
@@ -62,7 +61,6 @@ from .wandb_watch import WandbWatchCallbackConfig as WandbWatchCallbackConfig
 CallbackConfig = Annotated[
     DebugFlagCallbackConfig
     | EarlyStoppingCallbackConfig
-    | ThroughputMonitorConfig
     | EpochTimerCallbackConfig
     | PrintTableMetricsCallbackConfig
     | FiniteChecksCallbackConfig

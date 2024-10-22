@@ -19,12 +19,12 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "AdvancedProfilerConfig":
+            return importlib.import_module("nshtrainer.profiler").AdvancedProfilerConfig
         if name == "BaseProfilerConfig":
             return importlib.import_module("nshtrainer.profiler").BaseProfilerConfig
         if name == "PyTorchProfilerConfig":
             return importlib.import_module("nshtrainer.profiler").PyTorchProfilerConfig
-        if name == "AdvancedProfilerConfig":
-            return importlib.import_module("nshtrainer.profiler").AdvancedProfilerConfig
         if name == "SimpleProfilerConfig":
             return importlib.import_module("nshtrainer.profiler").SimpleProfilerConfig
         if name == "ProfilerConfig":

@@ -157,4 +157,7 @@ else:
             return importlib.import_module("nshtrainer.trainer._config").ProfilerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
+
 # Submodule exports
+from . import _config as _config
+from . import checkpoint_connector as checkpoint_connector

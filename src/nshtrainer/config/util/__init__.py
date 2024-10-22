@@ -38,6 +38,10 @@ if TYPE_CHECKING:
     from nshtrainer.util._environment_info import (
         GitRepositoryConfig as GitRepositoryConfig,
     )
+    from nshtrainer.util.config import DTypeConfig as DTypeConfig
+    from nshtrainer.util.config import DurationConfig as DurationConfig
+    from nshtrainer.util.config import EpochsConfig as EpochsConfig
+    from nshtrainer.util.config import StepsConfig as StepsConfig
 else:
 
     def __getattr__(name):
@@ -45,6 +49,8 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "DTypeConfig":
+            return importlib.import_module("nshtrainer.util.config").DTypeConfig
         if name == "EnvironmentCUDAConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
@@ -85,10 +91,19 @@ else:
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
             ).EnvironmentSnapshotConfig
+        if name == "EpochsConfig":
+            return importlib.import_module("nshtrainer.util.config").EpochsConfig
         if name == "GitRepositoryConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
             ).GitRepositoryConfig
+        if name == "StepsConfig":
+            return importlib.import_module("nshtrainer.util.config").StepsConfig
+        if name == "DurationConfig":
+            return importlib.import_module("nshtrainer.util.config").DurationConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
+
 # Submodule exports
+from . import _environment_info as _environment_info
+from . import config as config

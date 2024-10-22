@@ -20,14 +20,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "SharedParametersCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.shared_parameters"
-            ).SharedParametersCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.shared_parameters"
             ).CallbackConfigBase
+        if name == "SharedParametersCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.shared_parameters"
+            ).SharedParametersCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

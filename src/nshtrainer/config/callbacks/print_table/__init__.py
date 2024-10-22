@@ -20,14 +20,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "PrintTableMetricsCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.print_table"
-            ).PrintTableMetricsCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.print_table"
             ).CallbackConfigBase
+        if name == "PrintTableMetricsCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.print_table"
+            ).PrintTableMetricsCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

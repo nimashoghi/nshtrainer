@@ -20,14 +20,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "GradientSkippingCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.gradient_skipping"
-            ).GradientSkippingCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.gradient_skipping"
             ).CallbackConfigBase
+        if name == "GradientSkippingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.gradient_skipping"
+            ).GradientSkippingCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

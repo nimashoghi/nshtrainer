@@ -23,6 +23,12 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "BaseLoggerConfig":
+            return importlib.import_module("nshtrainer.loggers.wandb").BaseLoggerConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.loggers.wandb"
+            ).CallbackConfigBase
         if name == "WandbLoggerConfig":
             return importlib.import_module("nshtrainer.loggers.wandb").WandbLoggerConfig
         if name == "WandbUploadCodeCallbackConfig":
@@ -33,12 +39,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.loggers.wandb"
             ).WandbWatchCallbackConfig
-        if name == "BaseLoggerConfig":
-            return importlib.import_module("nshtrainer.loggers.wandb").BaseLoggerConfig
-        if name == "CallbackConfigBase":
-            return importlib.import_module(
-                "nshtrainer.loggers.wandb"
-            ).CallbackConfigBase
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

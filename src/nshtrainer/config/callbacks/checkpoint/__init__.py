@@ -35,34 +35,34 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "CheckpointMetadata":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint._base"
-            ).CheckpointMetadata
         if name == "BaseCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"
             ).BaseCheckpointCallbackConfig
-        if name == "LastCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint"
-            ).LastCheckpointCallbackConfig
-        if name == "CallbackConfigBase":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint._base"
-            ).CallbackConfigBase
-        if name == "OnExceptionCheckpointCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.checkpoint"
-            ).OnExceptionCheckpointCallbackConfig
         if name == "BestCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint"
             ).BestCheckpointCallbackConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint._base"
+            ).CallbackConfigBase
+        if name == "CheckpointMetadata":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint._base"
+            ).CheckpointMetadata
+        if name == "LastCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint"
+            ).LastCheckpointCallbackConfig
         if name == "MetricConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint.best_checkpoint"
             ).MetricConfig
+        if name == "OnExceptionCheckpointCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.checkpoint"
+            ).OnExceptionCheckpointCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 

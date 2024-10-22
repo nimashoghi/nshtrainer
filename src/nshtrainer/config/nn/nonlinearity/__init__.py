@@ -58,20 +58,32 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "PReLUConfig":
-            return importlib.import_module("nshtrainer.nn.nonlinearity").PReLUConfig
+        if name == "BaseNonlinearityConfig":
+            return importlib.import_module(
+                "nshtrainer.nn.nonlinearity"
+            ).BaseNonlinearityConfig
+        if name == "ELUNonlinearityConfig":
+            return importlib.import_module(
+                "nshtrainer.nn.nonlinearity"
+            ).ELUNonlinearityConfig
+        if name == "GELUNonlinearityConfig":
+            return importlib.import_module(
+                "nshtrainer.nn.nonlinearity"
+            ).GELUNonlinearityConfig
         if name == "LeakyReLUNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
             ).LeakyReLUNonlinearityConfig
-        if name == "SwiGLUNonlinearityConfig":
+        if name == "MishNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
-            ).SwiGLUNonlinearityConfig
-        if name == "SoftsignNonlinearityConfig":
+            ).MishNonlinearityConfig
+        if name == "PReLUConfig":
+            return importlib.import_module("nshtrainer.nn.nonlinearity").PReLUConfig
+        if name == "ReLUNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
-            ).SoftsignNonlinearityConfig
+            ).ReLUNonlinearityConfig
         if name == "SiLUNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
@@ -80,42 +92,30 @@ else:
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
             ).SigmoidNonlinearityConfig
-        if name == "SoftplusNonlinearityConfig":
-            return importlib.import_module(
-                "nshtrainer.nn.nonlinearity"
-            ).SoftplusNonlinearityConfig
-        if name == "ELUNonlinearityConfig":
-            return importlib.import_module(
-                "nshtrainer.nn.nonlinearity"
-            ).ELUNonlinearityConfig
         if name == "SoftmaxNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
             ).SoftmaxNonlinearityConfig
-        if name == "GELUNonlinearityConfig":
+        if name == "SoftplusNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
-            ).GELUNonlinearityConfig
+            ).SoftplusNonlinearityConfig
+        if name == "SoftsignNonlinearityConfig":
+            return importlib.import_module(
+                "nshtrainer.nn.nonlinearity"
+            ).SoftsignNonlinearityConfig
+        if name == "SwiGLUNonlinearityConfig":
+            return importlib.import_module(
+                "nshtrainer.nn.nonlinearity"
+            ).SwiGLUNonlinearityConfig
         if name == "SwishNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
             ).SwishNonlinearityConfig
-        if name == "MishNonlinearityConfig":
-            return importlib.import_module(
-                "nshtrainer.nn.nonlinearity"
-            ).MishNonlinearityConfig
         if name == "TanhNonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"
             ).TanhNonlinearityConfig
-        if name == "ReLUNonlinearityConfig":
-            return importlib.import_module(
-                "nshtrainer.nn.nonlinearity"
-            ).ReLUNonlinearityConfig
-        if name == "BaseNonlinearityConfig":
-            return importlib.import_module(
-                "nshtrainer.nn.nonlinearity"
-            ).BaseNonlinearityConfig
         if name == "NonlinearityConfig":
             return importlib.import_module(
                 "nshtrainer.nn.nonlinearity"

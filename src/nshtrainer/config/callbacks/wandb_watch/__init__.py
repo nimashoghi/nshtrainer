@@ -20,14 +20,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "WandbWatchCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.wandb_watch"
-            ).WandbWatchCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.wandb_watch"
             ).CallbackConfigBase
+        if name == "WandbWatchCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.wandb_watch"
+            ).WandbWatchCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

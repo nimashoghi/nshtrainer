@@ -20,14 +20,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "RLPSanityChecksCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.rlp_sanity_checks"
-            ).RLPSanityChecksCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.rlp_sanity_checks"
             ).CallbackConfigBase
+        if name == "RLPSanityChecksCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.rlp_sanity_checks"
+            ).RLPSanityChecksCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

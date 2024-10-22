@@ -18,14 +18,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "EpochTimerCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.timer"
-            ).EpochTimerCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.timer"
             ).CallbackConfigBase
+        if name == "EpochTimerCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.timer"
+            ).EpochTimerCallbackConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

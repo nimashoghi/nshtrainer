@@ -17,10 +17,10 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "OptimizerConfigBase":
-            return importlib.import_module("nshtrainer.optimizer").OptimizerConfigBase
         if name == "AdamWConfig":
             return importlib.import_module("nshtrainer.optimizer").AdamWConfig
+        if name == "OptimizerConfigBase":
+            return importlib.import_module("nshtrainer.optimizer").OptimizerConfigBase
         if name == "OptimizerConfig":
             return importlib.import_module("nshtrainer.optimizer").OptimizerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

@@ -20,18 +20,18 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "BaseConfig":
+            return importlib.import_module("nshtrainer.model.config").BaseConfig
+        if name == "CallbackConfigBase":
+            return importlib.import_module("nshtrainer.model.config").CallbackConfigBase
+        if name == "DirectoryConfig":
+            return importlib.import_module("nshtrainer.model.config").DirectoryConfig
+        if name == "EnvironmentConfig":
+            return importlib.import_module("nshtrainer.model.config").EnvironmentConfig
         if name == "MetricConfig":
             return importlib.import_module("nshtrainer.model.config").MetricConfig
         if name == "TrainerConfig":
             return importlib.import_module("nshtrainer.model.config").TrainerConfig
-        if name == "BaseConfig":
-            return importlib.import_module("nshtrainer.model.config").BaseConfig
-        if name == "EnvironmentConfig":
-            return importlib.import_module("nshtrainer.model.config").EnvironmentConfig
-        if name == "DirectoryConfig":
-            return importlib.import_module("nshtrainer.model.config").DirectoryConfig
-        if name == "CallbackConfigBase":
-            return importlib.import_module("nshtrainer.model.config").CallbackConfigBase
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

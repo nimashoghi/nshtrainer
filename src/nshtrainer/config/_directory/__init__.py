@@ -19,12 +19,12 @@ else:
 
         if name in globals():
             return globals()[name]
+        if name == "DirectoryConfig":
+            return importlib.import_module("nshtrainer._directory").DirectoryConfig
         if name == "DirectorySetupCallbackConfig":
             return importlib.import_module(
                 "nshtrainer._directory"
             ).DirectorySetupCallbackConfig
-        if name == "DirectoryConfig":
-            return importlib.import_module("nshtrainer._directory").DirectoryConfig
         if name == "LoggerConfig":
             return importlib.import_module("nshtrainer._directory").LoggerConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

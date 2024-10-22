@@ -21,18 +21,18 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "MetricConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.early_stopping"
-            ).MetricConfig
-        if name == "EarlyStoppingCallbackConfig":
-            return importlib.import_module(
-                "nshtrainer.callbacks.early_stopping"
-            ).EarlyStoppingCallbackConfig
         if name == "CallbackConfigBase":
             return importlib.import_module(
                 "nshtrainer.callbacks.early_stopping"
             ).CallbackConfigBase
+        if name == "EarlyStoppingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.early_stopping"
+            ).EarlyStoppingCallbackConfig
+        if name == "MetricConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.early_stopping"
+            ).MetricConfig
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Submodule exports

@@ -23,14 +23,14 @@ else:
 
         if name in globals():
             return globals()[name]
-        if name == "LinearWarmupCosineDecayLRSchedulerConfig":
-            return importlib.import_module(
-                "nshtrainer.lr_scheduler.linear_warmup_cosine"
-            ).LinearWarmupCosineDecayLRSchedulerConfig
         if name == "LRSchedulerConfigBase":
             return importlib.import_module(
                 "nshtrainer.lr_scheduler.linear_warmup_cosine"
             ).LRSchedulerConfigBase
+        if name == "LinearWarmupCosineDecayLRSchedulerConfig":
+            return importlib.import_module(
+                "nshtrainer.lr_scheduler.linear_warmup_cosine"
+            ).LinearWarmupCosineDecayLRSchedulerConfig
         if name == "DurationConfig":
             return importlib.import_module(
                 "nshtrainer.lr_scheduler.linear_warmup_cosine"
