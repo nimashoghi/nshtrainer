@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from nshtrainer import BaseConfig as BaseConfig
     from nshtrainer import MetricConfig as MetricConfig
+    from nshtrainer import TrainerConfig as TrainerConfig
     from nshtrainer._checkpoint.loader import (
         BestCheckpointStrategyConfig as BestCheckpointStrategyConfig,
     )
@@ -138,7 +139,6 @@ if TYPE_CHECKING:
         ReproducibilityConfig as ReproducibilityConfig,
     )
     from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
-    from nshtrainer.trainer._config import TrainerConfig as TrainerConfig
     from nshtrainer.util._environment_info import (
         EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
     )
@@ -413,7 +413,7 @@ else:
         if name == "TensorboardLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").TensorboardLoggerConfig
         if name == "TrainerConfig":
-            return importlib.import_module("nshtrainer.trainer._config").TrainerConfig
+            return importlib.import_module("nshtrainer").TrainerConfig
         if name == "UserProvidedPathCheckpointStrategyConfig":
             return importlib.import_module(
                 "nshtrainer._checkpoint.loader"

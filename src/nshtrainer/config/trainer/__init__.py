@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 # Config/alias imports
 
 if TYPE_CHECKING:
+    from nshtrainer.trainer import TrainerConfig as TrainerConfig
     from nshtrainer.trainer._config import ActSaveLoggerConfig as ActSaveLoggerConfig
     from nshtrainer.trainer._config import (
         BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
@@ -62,7 +63,6 @@ if TYPE_CHECKING:
     from nshtrainer.trainer._config import (
         TensorboardLoggerConfig as TensorboardLoggerConfig,
     )
-    from nshtrainer.trainer._config import TrainerConfig as TrainerConfig
     from nshtrainer.trainer._config import WandbLoggerConfig as WandbLoggerConfig
 else:
 
@@ -156,7 +156,7 @@ else:
                 "nshtrainer.trainer._config"
             ).TensorboardLoggerConfig
         if name == "TrainerConfig":
-            return importlib.import_module("nshtrainer.trainer._config").TrainerConfig
+            return importlib.import_module("nshtrainer.trainer").TrainerConfig
         if name == "WandbLoggerConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"

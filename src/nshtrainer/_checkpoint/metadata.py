@@ -83,7 +83,7 @@ def _generate_checkpoint_metadata(
         checkpoint_filename=checkpoint_path.name,
         checkpoint_checksum=compute_file_checksum(checkpoint_path),
         run_id=trainer.config.id,
-        name=trainer.config.name or "",
+        name=trainer.config.full_name,
         project=trainer.config.project,
         checkpoint_timestamp=checkpoint_timestamp,
         start_timestamp=start_timestamp.datetime

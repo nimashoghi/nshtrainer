@@ -179,7 +179,7 @@ class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
         return WandbLogger(
             save_dir=save_dir,
             project=self.project or _project_name(trainer_config),
-            name=trainer_config.name,
+            name=trainer_config.full_name,
             version=trainer_config.id,
             log_model=self._lightning_log_model,
             notes=(

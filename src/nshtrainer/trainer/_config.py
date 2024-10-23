@@ -558,14 +558,18 @@ class TrainerConfig(C.Config):
     # region Active Run Configuration
     id: str = C.Field(default_factory=lambda: TrainerConfig.generate_id())
     """ID of the run."""
-    name: str | None = None
-    """Run name."""
+    name: list[str] = []
+    """Run name in parts. Full name is constructed by joining the parts with spaces."""
     project: str | None = None
     """Project name."""
     tags: list[str] = []
     """Tags for the run."""
     notes: list[str] = []
     """Human readable notes for the run."""
+
+    @property
+    def full_name(self):
+        return " ".join(self.name)
 
     debug: bool = False
     """Whether to run in debug mode. This will enable debug logging and enable debug code paths."""
@@ -920,7 +924,7 @@ class TrainerConfig(C.Config):
             config.id = config.generate_id()
 
         if basic:
-            config.name = None
+            config.name = []
             config.project = None
             config.tags = []
             config.notes = []

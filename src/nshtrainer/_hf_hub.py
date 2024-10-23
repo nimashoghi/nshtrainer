@@ -151,8 +151,8 @@ def _repo_name(api: HfApi, trainer_config: TrainerConfig):
     parts = []
     if trainer_config.project:
         parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", trainer_config.project))
-    if trainer_config.name:
-        parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", trainer_config.name))
+    if trainer_config.full_name:
+        parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", trainer_config.full_name))
     parts.append(re.sub(r"[^a-zA-Z0-9-]", "-", trainer_config.id))
 
     # Combine parts and ensure it starts and ends with alphanumeric characters

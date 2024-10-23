@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, TypeAlias, cast, final
+from typing import Any, TypeAlias, cast
 
 from lightning.pytorch import Callback, LightningModule
 from typing_extensions import override
 
+from ..._callback import NTCallbackBase
 from ...util.typing_utils import mixin_base_type
 
 log = logging.getLogger(__name__)
 
-CallbackFn: TypeAlias = Callable[[], Callback | Iterable[Callback] | None]
+_Callback = Callback | NTCallbackBase
+CallbackFn: TypeAlias = Callable[[], _Callback | Iterable[_Callback] | None]
 
 
 class CallbackRegistrarModuleMixin:
@@ -23,7 +25,7 @@ class CallbackRegistrarModuleMixin:
 
     def register_callback(
         self,
-        callback: Callback | Iterable[Callback] | CallbackFn | None = None,
+        callback: _Callback | Iterable[_Callback] | CallbackFn | None = None,
     ):
         if not callable(callback):
             callback_ = cast(CallbackFn, lambda: callback)
@@ -34,8 +36,26 @@ class CallbackRegistrarModuleMixin:
 
 
 class CallbackModuleMixin(
-    CallbackRegistrarModuleMixin, mixin_base_type(LightningModule)
+    CallbackRegistrarModuleMixin,
+    mixin_base_type(LightningModule),
 ):
+    @property
+    def _nshtrainer_callbacks(self) -> list[CallbackFn]:
+        if not hasattr(self, "_private_nshtrainer_callbacks_list"):
+            self._private_nshtrainer_callbacks_list = []
+        return self._private_nshtrainer_callbacks_list
+
+    def register_callback(
+        self,
+        callback: _Callback | Iterable[_Callback] | CallbackFn | None = None,
+    ):
+        if not callable(callback):
+            callback_ = cast(CallbackFn, lambda: callback)
+        else:
+            callback_ = callback
+
+        self._nshtrainer_callbacks.append(callback_)
+
     def _gather_all_callbacks(self):
         modules: list[Any] = []
         if isinstance(self, CallbackRegistrarModuleMixin):
@@ -52,7 +72,6 @@ class CallbackModuleMixin(
         for module in modules:
             yield from module._nshtrainer_callbacks
 
-    @final
     @override
     def configure_callbacks(self):
         callbacks = super().configure_callbacks()

@@ -35,7 +35,7 @@ class CSVLoggerConfig(BaseLoggerConfig):
         )
         return CSVLogger(
             save_dir=save_dir,
-            name=trainer_config.name,
+            name=trainer_config.full_name,
             version=trainer_config.id,
             prefix=self.prefix,
             flush_logs_every_n_steps=self.flush_logs_every_n_steps,

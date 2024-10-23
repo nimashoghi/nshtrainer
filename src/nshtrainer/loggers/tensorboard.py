@@ -68,7 +68,7 @@ class TensorboardLoggerConfig(BaseLoggerConfig):
         )
         return TensorBoardLogger(
             save_dir=save_dir,
-            name=trainer_config.name,
+            name=trainer_config.full_name,
             version=trainer_config.id,
             log_graph=self.log_graph,
             default_hp_metric=self.default_hp_metric,

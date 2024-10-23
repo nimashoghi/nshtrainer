@@ -15,3 +15,4 @@ from .metrics import MetricConfig as MetricConfig
 from .model import BaseConfig as BaseConfig
 from .model import LightningModuleBase as LightningModuleBase
 from .trainer import Trainer as Trainer
+from .trainer import TrainerConfig as TrainerConfig
