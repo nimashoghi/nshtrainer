@@ -10,11 +10,11 @@ import torch
 import torch.distributed
 from lightning.pytorch import LightningModule
 from lightning.pytorch.profilers import PassThroughProfiler, Profiler
-from typing_extensions import Never, TypeVar, override
+from typing_extensions import Never, TypeVar, deprecated, override
 
 from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
 from .mixins.callback import CallbackModuleMixin
-from .mixins.debug import _DebugModuleMixin
+from .mixins.debug import _DebugModuleMixin, _trainer
 from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
@@ -208,6 +208,11 @@ class LightningModuleBase(
                 hparams_dict["trainer"] = trainer.hparams.model_dump(mode="json")
 
         return cast(Never, hparams_dict)
+
+    @property
+    @deprecated("Use `hparams` instead")
+    def config(self):
+        return cast(Never, self.hparams)
 
     @classmethod
     @abstractmethod

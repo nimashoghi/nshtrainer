@@ -6,7 +6,7 @@ from typing import Any, Generic, cast
 
 import nshconfig as C
 from lightning.pytorch import LightningDataModule
-from typing_extensions import Never, TypeVar, override
+from typing_extensions import Never, TypeVar, deprecated, override
 
 from ..model.mixins.callback import CallbackRegistrarModuleMixin
 from ..model.mixins.debug import _DebugModuleMixin
@@ -21,7 +21,6 @@ class LightningDataModuleBase(
     ABC,
     Generic[THparams],
 ):
-    @property
     @override
     def hparams(self) -> THparams:  # pyright: ignore[reportIncompatibleMethodOverride]
         return cast(THparams, super().hparams)
@@ -31,6 +30,11 @@ class LightningDataModuleBase(
     def hparams_initial(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         hparams = cast(THparams, super().hparams_initial)
         return cast(Never, {"datamodule": hparams.model_dump(mode="json")})
+
+    @property
+    @deprecated("Use `hparams` instead")
+    def config(self):
+        return cast(Never, self.hparams)
 
     @classmethod
     @abstractmethod

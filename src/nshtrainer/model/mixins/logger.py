@@ -5,7 +5,7 @@ import dataclasses
 from collections import deque
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, ClassVar
 
 from lightning.pytorch import LightningModule
 from lightning.pytorch.utilities.types import _METRIC
@@ -17,6 +17,8 @@ from ...util.typing_utils import mixin_base_type
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class _LogContextKwargs:
+    __ignore_fields__: ClassVar[set[str]] = {"prefix", "disabled"}
+
     prefix: str | None = None
     disabled: bool | None = None
     prog_bar: bool | None = None
@@ -35,15 +37,24 @@ class _LogContextKwargs:
         kwargs = copy.deepcopy(self)
 
         # Copy over all the not-None values from the other object
+        updates = {}
         for field in dataclasses.fields(self):
+            # Ignore disabled fields
+            if field.name in self.__ignore_fields__:
+                continue
+
             if (value := getattr(other, field.name, None)) is None:
                 continue
-            setattr(kwargs, field.name, value)
+            # setattr(kwargs, field.name, value)
+            updates[field.name] = value
 
-        return kwargs
+        return dataclasses.replace(kwargs, **updates)
 
     def to_dict(self):
-        return dataclasses.asdict(self)
+        d = dataclasses.asdict(self)
+        for field in self.__ignore_fields__:
+            d.pop(field, None)
+        return d
 
 
 class LoggerLightningModuleMixin(mixin_base_type(LightningModule)):

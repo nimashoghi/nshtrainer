@@ -12,10 +12,13 @@ def _trainer(module: Any):
     if torch.jit.is_scripting():
         return None
 
-    try:
-        trainer = module.trainer
-    except RuntimeError:
-        return None
+    if hasattr(module, "_trainer"):
+        trainer = module._trainer
+    else:
+        try:
+            trainer = module.trainer
+        except RuntimeError:
+            return None
 
     from ...trainer import Trainer
 
@@ -26,6 +29,16 @@ def _trainer(module: Any):
 
 
 class _DebugModuleMixin:
+    @property
+    def nshtrainer_or_none(self):
+        return _trainer(self)
+
+    @property
+    def nshtrainer(self):
+        if (trainer := _trainer(self)) is None:
+            raise RuntimeError("Could not resolve trainer.")
+        return trainer
+
     @property
     def debug(self) -> bool:
         if (trainer := _trainer(self)) is None:

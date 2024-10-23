@@ -25,7 +25,7 @@ from lightning.pytorch.trainer.states import TrainerFn
 from lightning.pytorch.utilities.migration import pl_legacy_patch
 from lightning.pytorch.utilities.migration.utils import _pl_migrate_checkpoint
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
-from typing_extensions import Unpack, assert_never, override
+from typing_extensions import Never, Unpack, assert_never, deprecated, override
 
 from .._checkpoint.metadata import _write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
@@ -46,6 +46,22 @@ log = logging.getLogger(__name__)
 
 class Trainer(LightningTrainer):
     CHECKPOINT_HYPER_PARAMS_KEY = "trainer_hyper_parameters"
+
+    @property
+    def hparams(self) -> TrainerConfig:
+        """The collection of hyperparameters saved with :meth:`save_hyperparameters`. It is mutable by the user. For
+        the frozen set of initial hyperparameters, use :attr:`hparams_initial`.
+
+        Returns:
+            Mutable hyperparameters dictionary
+
+        """
+        return self._hparams
+
+    @property
+    @deprecated("Use `hparams` instead")
+    def config(self):
+        return cast(Never, self.hparams)
 
     @classmethod
     def hparams_cls(cls):
@@ -299,7 +315,7 @@ class Trainer(LightningTrainer):
         kwargs = self._update_kwargs(hparams, kwargs)
         log.critical(f"LightningTrainer.__init__ with {kwargs=}.")
 
-        self.hparams = hparams
+        self._hparams = hparams
         self.debug = self.hparams.debug
 
         super().__init__(**kwargs)
