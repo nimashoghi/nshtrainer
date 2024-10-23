@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, cast
+from typing import Literal
 
 from lightning.pytorch.utilities.types import LRSchedulerConfigType
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from typing_extensions import override
 
-from ..model.config import MetricConfig
+from ..metrics._config import MetricConfig
 from ._base import LRSchedulerConfigBase, LRSchedulerMetadata
-
-if TYPE_CHECKING:
-    from ..model.base import BaseConfig
 
 
 class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
@@ -48,9 +45,14 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
         self, optimizer, lightning_module
     ) -> LRSchedulerConfigType:
         if (metric := self.metric) is None:
-            lm_config = cast("BaseConfig", lightning_module.config)
+            from ..trainer import Trainer
+
+            assert isinstance(
+                trainer := lightning_module.trainer, Trainer
+            ), "The trainer must be a `nshtrainer.Trainer` instance."
+
             assert (
-                metric := lm_config.primary_metric
+                metric := trainer.config.primary_metric
             ) is not None, "Primary metric must be provided if metric is not specified."
 
         lr_scheduler = ReduceLROnPlateau(

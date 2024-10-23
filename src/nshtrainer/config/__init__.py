@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from nshtrainer._checkpoint.loader import (
         UserProvidedPathCheckpointStrategyConfig as UserProvidedPathCheckpointStrategyConfig,
     )
+    from nshtrainer._directory import DirectoryConfig as DirectoryConfig
     from nshtrainer._hf_hub import CallbackConfigBase as CallbackConfigBase
     from nshtrainer._hf_hub import (
         HuggingFaceHubAutoCreateConfig as HuggingFaceHubAutoCreateConfig,
@@ -91,9 +92,6 @@ if TYPE_CHECKING:
     from nshtrainer.lr_scheduler import (
         ReduceLROnPlateauConfig as ReduceLROnPlateauConfig,
     )
-    from nshtrainer.model import DirectoryConfig as DirectoryConfig
-    from nshtrainer.model import TrainerConfig as TrainerConfig
-    from nshtrainer.model.config import EnvironmentConfig as EnvironmentConfig
     from nshtrainer.nn import BaseNonlinearityConfig as BaseNonlinearityConfig
     from nshtrainer.nn import ELUNonlinearityConfig as ELUNonlinearityConfig
     from nshtrainer.nn import GELUNonlinearityConfig as GELUNonlinearityConfig
@@ -130,6 +128,7 @@ if TYPE_CHECKING:
     from nshtrainer.trainer._config import (
         CheckpointSavingConfig as CheckpointSavingConfig,
     )
+    from nshtrainer.trainer._config import EnvironmentConfig as EnvironmentConfig
     from nshtrainer.trainer._config import (
         GradientClippingConfig as GradientClippingConfig,
     )
@@ -139,6 +138,7 @@ if TYPE_CHECKING:
         ReproducibilityConfig as ReproducibilityConfig,
     )
     from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
+    from nshtrainer.trainer._config import TrainerConfig as TrainerConfig
     from nshtrainer.util._environment_info import (
         EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
     )
@@ -231,7 +231,7 @@ else:
                 "nshtrainer.callbacks"
             ).DebugFlagCallbackConfig
         if name == "DirectoryConfig":
-            return importlib.import_module("nshtrainer.model").DirectoryConfig
+            return importlib.import_module("nshtrainer._directory").DirectoryConfig
         if name == "DirectorySetupCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
@@ -253,7 +253,9 @@ else:
                 "nshtrainer.util._environment_info"
             ).EnvironmentClassInformationConfig
         if name == "EnvironmentConfig":
-            return importlib.import_module("nshtrainer.model.config").EnvironmentConfig
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).EnvironmentConfig
         if name == "EnvironmentGPUConfig":
             return importlib.import_module(
                 "nshtrainer.util._environment_info"
@@ -411,7 +413,7 @@ else:
         if name == "TensorboardLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").TensorboardLoggerConfig
         if name == "TrainerConfig":
-            return importlib.import_module("nshtrainer.model").TrainerConfig
+            return importlib.import_module("nshtrainer.trainer._config").TrainerConfig
         if name == "UserProvidedPathCheckpointStrategyConfig":
             return importlib.import_module(
                 "nshtrainer._checkpoint.loader"

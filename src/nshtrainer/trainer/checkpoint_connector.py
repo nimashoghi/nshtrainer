@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
 
 from lightning.pytorch.trainer.connectors.checkpoint_connector import (
     _CheckpointConnector as _LightningCheckpointConnector,
@@ -12,8 +11,6 @@ from typing_extensions import override
 
 from .._checkpoint.loader import CheckpointLoadingConfig, _resolve_checkpoint
 
-if TYPE_CHECKING:
-    from ..model.config import BaseConfig
 log = logging.getLogger(__name__)
 
 
@@ -32,8 +29,7 @@ class _CheckpointConnector(_LightningCheckpointConnector):
             return None
 
         # Now, resolve the checkpoint loader config.
-        root_config = cast("BaseConfig", trainer._base_module.config)
-        ckpt_loader_config = root_config.trainer.checkpoint_loading
+        ckpt_loader_config = trainer.config.checkpoint_loading
         match ckpt_loader_config:
             case "auto":
                 ckpt_loader_config = CheckpointLoadingConfig.auto(ckpt_path, state_fn)
@@ -44,9 +40,7 @@ class _CheckpointConnector(_LightningCheckpointConnector):
         log.debug(f"Checkpoint loader config: {ckpt_loader_config}")
 
         # Use the config to resolve the checkpoint.
-        if (
-            ckpt_path := _resolve_checkpoint(ckpt_loader_config, root_config, trainer)
-        ) is None:
+        if (ckpt_path := _resolve_checkpoint(ckpt_loader_config, trainer)) is None:
             log.info(
                 "No checkpoint found for the current trainer state. "
                 "Training will start from scratch."

@@ -9,7 +9,7 @@ from typing_extensions import assert_never
 from ..bf16 import is_bf16_supported_no_emulation
 
 if TYPE_CHECKING:
-    from ...model.base import BaseConfig
+    from ...trainer._config import TrainerConfig
 
 DTypeName: TypeAlias = Literal[
     "float32",
@@ -59,8 +59,8 @@ class DTypeConfig(C.Config):
     """The name of the dtype."""
 
     @classmethod
-    def from_base_config(cls, config: "BaseConfig"):
-        if (precision := config.trainer.precision) is None:
+    def from_trainer_config(cls, trainer_config: TrainerConfig):
+        if (precision := trainer_config.precision) is None:
             precision = "32-true"
 
         match precision:
@@ -79,7 +79,7 @@ class DTypeConfig(C.Config):
             case "64-true":
                 return cls(name="float64")
             case _:
-                assert_never(config.trainer.precision)
+                assert_never(trainer_config.precision)
 
     @property
     def torch_dtype(self):

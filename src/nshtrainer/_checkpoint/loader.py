@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Literal, TypeAlias, overload
 
 import nshconfig as C
-from lightning.pytorch import Trainer as LightningTrainer
 from lightning.pytorch.trainer.states import TrainerFn
 from typing_extensions import assert_never
 
@@ -15,7 +14,8 @@ from ..metrics._config import MetricConfig
 from .metadata import CheckpointMetadata
 
 if TYPE_CHECKING:
-    from ..model.config import BaseConfig
+    from ..trainer import Trainer
+    from ..trainer._config import TrainerConfig
 
 log = logging.getLogger(__name__)
 
@@ -228,22 +228,22 @@ class _CkptCandidate:
 @overload
 def _load_ckpt_meta(
     path: Path,
-    root_config: "BaseConfig",
+    trainer_config: TrainerConfig,
     on_error: Literal["warn"] = "warn",
 ) -> _CkptCandidate | None: ...
 @overload
 def _load_ckpt_meta(
     path: Path,
-    root_config: "BaseConfig",
+    trainer_config: TrainerConfig,
     on_error: Literal["raise"],
 ) -> _CkptCandidate: ...
 def _load_ckpt_meta(
     path: Path,
-    root_config: "BaseConfig",
+    trainer_config: TrainerConfig,
     on_error: Literal["warn", "raise"] = "warn",
 ):
     meta = CheckpointMetadata.from_file(path)
-    if root_config.id != meta.run_id:
+    if trainer_config.id != meta.run_id:
         error_msg = f"Skipping checkpoint {path} because it belongs to a different run"
         match on_error:
             case "warn":
@@ -256,16 +256,13 @@ def _load_ckpt_meta(
     return _CkptCandidate(meta, path)
 
 
-def _checkpoint_candidates(
-    root_config: "BaseConfig",
-    trainer: LightningTrainer,
-    *,
-    include_hpc: bool = True,
-):
+def _checkpoint_candidates(trainer: Trainer, *, include_hpc: bool = True):
     # Load the checkpoint directory, and throw if it doesn't exist.
     # This indicates a non-standard setup, and we don't want to guess
     # where the checkpoints are.
-    ckpt_dir = root_config.directory.resolve_subdirectory(root_config.id, "checkpoint")
+    ckpt_dir = trainer.config.directory.resolve_subdirectory(
+        trainer.config.id, "checkpoint"
+    )
     if not ckpt_dir.is_dir():
         raise FileNotFoundError(
             f"Checkpoint directory {ckpt_dir} not found. "
@@ -275,46 +272,40 @@ def _checkpoint_candidates(
     # Load all checkpoints in the directory.
     # We can do this by looking for metadata files.
     for path in ckpt_dir.glob(f"*{CheckpointMetadata.PATH_SUFFIX}"):
-        if (meta := _load_ckpt_meta(path, root_config)) is not None:
+        if (meta := _load_ckpt_meta(path, trainer.config)) is not None:
             yield meta
 
     # If we have a pre-empted checkpoint, load it
     if include_hpc and (hpc_path := trainer._checkpoint_connector._hpc_resume_path):
         hpc_meta_path = Path(hpc_path).with_suffix(CheckpointMetadata.PATH_SUFFIX)
-        if (meta := _load_ckpt_meta(hpc_meta_path, root_config)) is not None:
+        if (meta := _load_ckpt_meta(hpc_meta_path, trainer.config)) is not None:
             yield meta
 
 
 def _additional_candidates(
-    additional_candidates: Iterable[Path], root_config: "BaseConfig"
+    additional_candidates: Iterable[Path], trainer_config: TrainerConfig
 ):
     for path in additional_candidates:
         if (
             meta := _load_ckpt_meta(
-                path.with_suffix(CheckpointMetadata.PATH_SUFFIX), root_config
+                path.with_suffix(CheckpointMetadata.PATH_SUFFIX), trainer_config
             )
         ) is None:
             continue
         yield meta
 
 
-def _resolve_checkpoint(
-    config: CheckpointLoadingConfig,
-    root_config: "BaseConfig",
-    trainer: LightningTrainer,
-):
+def _resolve_checkpoint(config: CheckpointLoadingConfig, trainer: Trainer):
     # We lazily load the checkpoint candidates to avoid loading them
     # if they are not needed.
     _ckpt_candidates: list[_CkptCandidate] | None = None
 
     def ckpt_candidates():
-        nonlocal _ckpt_candidates, root_config, trainer
+        nonlocal _ckpt_candidates, trainer
 
         if _ckpt_candidates is None:
             _ckpt_candidates = list(
-                _checkpoint_candidates(
-                    root_config, trainer, include_hpc=config.include_hpc
-                )
+                _checkpoint_candidates(trainer, include_hpc=config.include_hpc)
             )
         return _ckpt_candidates
 
@@ -324,7 +315,7 @@ def _resolve_checkpoint(
             case UserProvidedPathCheckpointStrategyConfig():
                 meta = _load_ckpt_meta(
                     strategy.path.with_suffix(CheckpointMetadata.PATH_SUFFIX),
-                    root_config,
+                    trainer.config,
                     on_error=strategy.on_error,
                 )
                 if meta is None:
@@ -334,7 +325,7 @@ def _resolve_checkpoint(
                 candidates = [
                     *ckpt_candidates(),
                     *_additional_candidates(
-                        strategy.additional_candidates, root_config
+                        strategy.additional_candidates, trainer.config
                     ),
                 ]
                 if not candidates:
@@ -343,7 +334,7 @@ def _resolve_checkpoint(
                     )
                     continue
 
-                if (metric := strategy.metric or root_config.primary_metric) is None:
+                if (metric := strategy.metric or trainer.config.primary_metric) is None:
                     log.warning(
                         "No metric specified for `best` checkpoint strategy, "
                         "and no primary metric is set in the configuration. "
@@ -369,7 +360,7 @@ def _resolve_checkpoint(
                 candidates = [
                     *ckpt_candidates(),
                     *_additional_candidates(
-                        strategy.additional_candidates, root_config
+                        strategy.additional_candidates, trainer.config
                     ),
                 ]
                 if not candidates:

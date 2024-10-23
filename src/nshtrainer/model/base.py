@@ -20,7 +20,7 @@ from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
 
-THparams = TypeVar("THparams", bound=BaseConfig, infer_variance=True)
+TConfig = TypeVar("THparams", bound=BaseConfig, infer_variance=True)
 
 
 T = TypeVar("T", infer_variance=True)
@@ -57,13 +57,16 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     CallbackModuleMixin,
     LightningModule,
     ABC,
-    Generic[THparams],
+    Generic[TConfig],
 ):
+    hparams: Never  # pyright: ignore[reportIncompatibleMethodOverride]
+    hparams_initial: Never  # pyright: ignore[reportIncompatibleMethodOverride]
+
     # region Config
     @torch.jit.unused
     @property
-    def config(self) -> THparams:
-        return cast(THparams, self.hparams)
+    def config(self) -> TConfig:
+        return cast(TConfig, self.hparams)
 
     @property
     def debug(self) -> bool:
@@ -192,7 +195,7 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
     @override
     def __repr__(self):
         parts: list[str] = []
-        parts.append(f"config={self.config.concise_repr()}")
+        parts.append(f"config={repr(self.config)}")
         parts.append(f"device={self.device}")
         if self.debug:
             parts.append("debug=True")
@@ -222,15 +225,12 @@ class LightningModuleBase(  # pyright: ignore[reportIncompatibleMethodOverride]
                 f"__init__'s argument must be named 'hparams', got {parameters}"
             )
 
-    hparams: Never  # pyright: ignore[reportIncompatibleMethodOverride]
-    hparams_initial: Never  # pyright: ignore[reportIncompatibleMethodOverride]
-
     @classmethod
     @abstractmethod
-    def config_cls(cls) -> type[THparams]: ...
+    def config_cls(cls) -> type[TConfig]: ...
 
     @override
-    def __init__(self, hparams: THparams | Mapping[str, Any]):
+    def __init__(self, hparams: TConfig | Mapping[str, Any]):
         config_cls = self.config_cls()
         if not isinstance(hparams, config_cls):
             if not isinstance(hparams, Mapping):

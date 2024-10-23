@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import logging
+import os
 import string
 import time
 from collections.abc import Iterable, Sequence
@@ -611,7 +613,11 @@ class TrainerConfig(C.Config):
     # endregion
 
     primary_metric: MetricConfig | None = None
-    """The primary metric to use for checkpointing and early stopping."""
+    """Primary metric configuration options. This is used in the following ways:
+    - To determine the best model checkpoint to save with the ModelCheckpoint callback.
+    - To monitor the primary metric during training and stop training based on the `early_stopping` configuration.
+    - For the ReduceLROnPlateau scheduler.
+    """
 
     ckpt_path: Literal["none"] | str | Path | None = None
     """Path to a checkpoint to load and resume training from. If ``"none"``, will not load a checkpoint."""
@@ -860,3 +866,71 @@ class TrainerConfig(C.Config):
         yield self.reduce_lr_on_plateau_sanity_checking
         yield self.auto_set_debug_flag
         yield from self.callbacks
+
+    # region Helper Methods
+    def with_fast_dev_run(self, value: int | bool = True, /):
+        """
+        Enables fast_dev_run mode for the trainer.
+        This will run the training loop for a specified number of batches,
+        if an integer is provided, or for a single batch if True is provided.
+        """
+        config = copy.deepcopy(self)
+        config.fast_dev_run = value
+        return config
+
+    def with_project_root(self, project_root: str | Path | os.PathLike):
+        """
+        Set the project root directory for the trainer.
+
+        Args:
+            project_root (Path): The base directory to use.
+
+        Returns:
+            self: The current instance of the class.
+        """
+        config = copy.deepcopy(self)
+        config.directory.project_root = Path(project_root)
+        return config
+
+    def reset_run(
+        self,
+        *,
+        id: bool = True,
+        basic: bool = True,
+        project_root: bool = True,
+        environment: bool = True,
+    ):
+        """
+        Reset the configuration object to its initial state.
+
+        Parameters:
+        - id (bool): If True, generate a new ID for the configuration object.
+        - basic (bool): If True, reset basic attributes like name, project, tags, and notes.
+        - project_root (bool): If True, reset the directory configuration to its initial state.
+        - environment (bool): If True, reset the environment configuration to its initial state.
+        - meta (bool): If True, reset the meta dictionary to an empty dictionary.
+
+        Returns:
+        - self: The updated configuration object.
+
+        """
+        config = copy.deepcopy(self)
+
+        if id:
+            config.id = config.generate_id()
+
+        if basic:
+            config.name = None
+            config.project = None
+            config.tags = []
+            config.notes = []
+
+        if project_root:
+            config.directory = DirectoryConfig()
+
+        if environment:
+            config.environment = EnvironmentConfig.empty()
+
+        return config
+
+    # endregion
