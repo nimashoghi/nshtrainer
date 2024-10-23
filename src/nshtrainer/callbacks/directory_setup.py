@@ -76,7 +76,7 @@ class DirectorySetupCallback(NTCallbackBase):
 
         # Create a symlink to the root folder for the Runner
         if self.config.create_symlink_to_nshrunner_root:
-            base_dir = trainer.config.directory.resolve_run_root_directory(
-                trainer.config.id
+            base_dir = trainer.hparams.directory.resolve_run_root_directory(
+                trainer.hparams.id
             )
             _create_symlink_to_nshrunner(base_dir)

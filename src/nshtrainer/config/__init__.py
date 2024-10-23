@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 # Config/alias imports
 
 if TYPE_CHECKING:
-    from nshtrainer import BaseConfig as BaseConfig
     from nshtrainer import MetricConfig as MetricConfig
     from nshtrainer import TrainerConfig as TrainerConfig
     from nshtrainer._checkpoint.loader import (
@@ -192,8 +191,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks.checkpoint._base"
             ).BaseCheckpointCallbackConfig
-        if name == "BaseConfig":
-            return importlib.import_module("nshtrainer").BaseConfig
         if name == "BaseLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").BaseLoggerConfig
         if name == "BaseNonlinearityConfig":
@@ -461,7 +458,6 @@ from . import callbacks as callbacks
 from . import loggers as loggers
 from . import lr_scheduler as lr_scheduler
 from . import metrics as metrics
-from . import model as model
 from . import nn as nn
 from . import optimizer as optimizer
 from . import profiler as profiler

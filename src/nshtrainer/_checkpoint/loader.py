@@ -260,8 +260,8 @@ def _checkpoint_candidates(trainer: Trainer, *, include_hpc: bool = True):
     # Load the checkpoint directory, and throw if it doesn't exist.
     # This indicates a non-standard setup, and we don't want to guess
     # where the checkpoints are.
-    ckpt_dir = trainer.config.directory.resolve_subdirectory(
-        trainer.config.id, "checkpoint"
+    ckpt_dir = trainer.hparams.directory.resolve_subdirectory(
+        trainer.hparams.id, "checkpoint"
     )
     if not ckpt_dir.is_dir():
         raise FileNotFoundError(
@@ -272,13 +272,13 @@ def _checkpoint_candidates(trainer: Trainer, *, include_hpc: bool = True):
     # Load all checkpoints in the directory.
     # We can do this by looking for metadata files.
     for path in ckpt_dir.glob(f"*{CheckpointMetadata.PATH_SUFFIX}"):
-        if (meta := _load_ckpt_meta(path, trainer.config)) is not None:
+        if (meta := _load_ckpt_meta(path, trainer.hparams)) is not None:
             yield meta
 
     # If we have a pre-empted checkpoint, load it
     if include_hpc and (hpc_path := trainer._checkpoint_connector._hpc_resume_path):
         hpc_meta_path = Path(hpc_path).with_suffix(CheckpointMetadata.PATH_SUFFIX)
-        if (meta := _load_ckpt_meta(hpc_meta_path, trainer.config)) is not None:
+        if (meta := _load_ckpt_meta(hpc_meta_path, trainer.hparams)) is not None:
             yield meta
 
 
@@ -315,7 +315,7 @@ def _resolve_checkpoint(config: CheckpointLoadingConfig, trainer: Trainer):
             case UserProvidedPathCheckpointStrategyConfig():
                 meta = _load_ckpt_meta(
                     strategy.path.with_suffix(CheckpointMetadata.PATH_SUFFIX),
-                    trainer.config,
+                    trainer.hparams,
                     on_error=strategy.on_error,
                 )
                 if meta is None:
@@ -325,7 +325,7 @@ def _resolve_checkpoint(config: CheckpointLoadingConfig, trainer: Trainer):
                 candidates = [
                     *ckpt_candidates(),
                     *_additional_candidates(
-                        strategy.additional_candidates, trainer.config
+                        strategy.additional_candidates, trainer.hparams
                     ),
                 ]
                 if not candidates:
@@ -334,7 +334,9 @@ def _resolve_checkpoint(config: CheckpointLoadingConfig, trainer: Trainer):
                     )
                     continue
 
-                if (metric := strategy.metric or trainer.config.primary_metric) is None:
+                if (
+                    metric := strategy.metric or trainer.hparams.primary_metric
+                ) is None:
                     log.warning(
                         "No metric specified for `best` checkpoint strategy, "
                         "and no primary metric is set in the configuration. "
@@ -360,7 +362,7 @@ def _resolve_checkpoint(config: CheckpointLoadingConfig, trainer: Trainer):
                 candidates = [
                     *ckpt_candidates(),
                     *_additional_candidates(
-                        strategy.additional_candidates, trainer.config
+                        strategy.additional_candidates, trainer.hparams
                     ),
                 ]
                 if not candidates:

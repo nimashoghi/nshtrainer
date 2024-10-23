@@ -52,7 +52,7 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
             ), "The trainer must be a `nshtrainer.Trainer` instance."
 
             assert (
-                metric := trainer.config.primary_metric
+                metric := trainer.hparams.primary_metric
             ) is not None, "Primary metric must be provided if metric is not specified."
 
         lr_scheduler = ReduceLROnPlateau(

@@ -23,6 +23,19 @@ log = logging.getLogger(__name__)
 METADATA_PATH_SUFFIX = ".metadata.json"
 
 
+def _full_hparams_dict(trainer: Trainer):
+    hparams = {}
+    hparams["trainer"] = trainer.hparams.model_dump(mode="json")
+
+    if trainer.lightning_module is not None:
+        from ..model import LightningModuleBase
+
+        if isinstance(trainer.lightning_module, LightningModuleBase):
+            hparams["model"] = trainer.lightning_module.hparams.model_dump(mode="json")
+
+    return hparams
+
+
 class CheckpointMetadata(C.Config):
     PATH_SUFFIX: ClassVar[str] = METADATA_PATH_SUFFIX
 
@@ -82,9 +95,9 @@ def _generate_checkpoint_metadata(
         checkpoint_path=checkpoint_path.relative_to(metadata_path.parent),
         checkpoint_filename=checkpoint_path.name,
         checkpoint_checksum=compute_file_checksum(checkpoint_path),
-        run_id=trainer.config.id,
-        name=trainer.config.full_name,
-        project=trainer.config.project,
+        run_id=trainer.hparams.id,
+        name=trainer.hparams.full_name,
+        project=trainer.hparams.project,
         checkpoint_timestamp=checkpoint_timestamp,
         start_timestamp=start_timestamp.datetime
         if start_timestamp is not None
@@ -93,8 +106,8 @@ def _generate_checkpoint_metadata(
         global_step=trainer.global_step,
         training_time=training_time,
         metrics=metrics,
-        environment=trainer.config.environment,
-        hparams=trainer.full_hparams_dict(),
+        environment=trainer.hparams.environment,
+        hparams=_full_hparams_dict(trainer),
     )
 
 

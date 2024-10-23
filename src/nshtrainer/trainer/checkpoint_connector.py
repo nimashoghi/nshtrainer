@@ -29,7 +29,7 @@ class _CheckpointConnector(_LightningCheckpointConnector):
             return None
 
         # Now, resolve the checkpoint loader config.
-        ckpt_loader_config = trainer.config.checkpoint_loading
+        ckpt_loader_config = trainer.hparams.checkpoint_loading
         match ckpt_loader_config:
             case "auto":
                 ckpt_loader_config = CheckpointLoadingConfig.auto(ckpt_path, state_fn)
@@ -63,3 +63,24 @@ class _CheckpointConnector(_LightningCheckpointConnector):
         return super()._parse_ckpt_path(
             state_fn, ckpt_path, model_provided, model_connected
         )
+
+    @override
+    def dump_checkpoint(self, weights_only: bool = False):
+        checkpoint = super().dump_checkpoint(weights_only)
+
+        # Save the trainer's config.
+        _add_trainer_config_to_checkpoint_(checkpoint, self.trainer)
+
+        return checkpoint
+
+
+def _add_trainer_config_to_checkpoint_(checkpoint: dict, trainer):
+    from .trainer import Trainer
+
+    # If this isn't an `nshtrainer` trainer (which I don't know why it wouldn't be),
+    # then we just return.
+    if isinstance(trainer, Trainer):
+        return None
+
+    # Save the trainer's config.
+    checkpoint[trainer.CHECKPOINT_HYPER_PARAMS_KEY] = dict(trainer.hparams)

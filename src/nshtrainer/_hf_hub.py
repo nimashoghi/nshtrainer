@@ -223,7 +223,7 @@ class HFHubCallback(NTCallbackBase):
 
     @override
     def setup(self, trainer, pl_module, stage):
-        self._repo_id = _repo_name(self.api, trainer.config)
+        self._repo_id = _repo_name(self.api, trainer.hparams)
 
         if not self.config or not trainer.is_global_zero:
             return
@@ -232,7 +232,7 @@ class HFHubCallback(NTCallbackBase):
         self._create_repo_if_not_exists()
 
         # Upload the config and code
-        self._save_config(trainer.config)
+        self._save_config(trainer.hparams)
         self._save_code()
 
     @override
@@ -247,8 +247,8 @@ class HFHubCallback(NTCallbackBase):
 
         with self._with_error_handling("save checkpoints"):
             self._save_checkpoint(
-                _Upload.from_local_path(ckpt_path, trainer.config),
-                _Upload.from_local_path(metadata_path, trainer.config)
+                _Upload.from_local_path(ckpt_path, trainer.hparams),
+                _Upload.from_local_path(metadata_path, trainer.hparams)
                 if metadata_path is not None
                 else None,
             )

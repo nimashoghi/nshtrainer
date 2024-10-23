@@ -4,17 +4,26 @@ import logging
 import os
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import IO, TYPE_CHECKING, Any, cast
 
 import torch
 from lightning.fabric.plugins.environments.lsf import LSFEnvironment
 from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
+from lightning.fabric.utilities.cloud_io import _load as pl_load
+from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
 from lightning.pytorch import LightningModule
 from lightning.pytorch import Trainer as LightningTrainer
 from lightning.pytorch.callbacks import Callback
+from lightning.pytorch.core.saving import (
+    _default_map_location,
+    load_hparams_from_tags_csv,
+    load_hparams_from_yaml,
+)
 from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.trainer.states import TrainerFn
+from lightning.pytorch.utilities.migration import pl_legacy_patch
+from lightning.pytorch.utilities.migration.utils import _pl_migrate_checkpoint
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Unpack, assert_never, override
 
@@ -36,59 +45,61 @@ log = logging.getLogger(__name__)
 
 
 class Trainer(LightningTrainer):
+    CHECKPOINT_HYPER_PARAMS_KEY = "trainer_hyper_parameters"
+
     @classmethod
-    def config_cls(cls):
+    def hparams_cls(cls):
         return TrainerConfig
 
     @classmethod
-    def _pre_init(cls, config: TrainerConfig):
-        if (precision := config.set_float32_matmul_precision) is not None:
+    def _pre_init(cls, hparams: TrainerConfig):
+        if (precision := hparams.set_float32_matmul_precision) is not None:
             torch.set_float32_matmul_precision(precision)
 
     @classmethod
     def _update_kwargs(
         cls,
-        config: TrainerConfig,
+        hparams: TrainerConfig,
         kwargs_ctor: LightningTrainerKwargs,
     ):
         kwargs: LightningTrainerKwargs = {
-            "deterministic": config.reproducibility.deterministic,
-            "fast_dev_run": config.fast_dev_run,
-            "max_epochs": config.max_epochs,
-            "min_epochs": config.min_epochs,
-            "max_steps": config.max_steps,
-            "min_steps": config.min_steps,
-            "max_time": config.max_time,
-            "limit_train_batches": config.limit_train_batches,
-            "limit_val_batches": config.limit_val_batches,
-            "limit_test_batches": config.limit_test_batches,
-            "limit_predict_batches": config.limit_predict_batches,
-            "overfit_batches": config.overfit_batches,
-            "val_check_interval": config.val_check_interval,
-            "num_sanity_val_steps": config.num_sanity_val_steps,
-            "log_every_n_steps": config.log_every_n_steps,
-            "inference_mode": config.inference_mode,
+            "deterministic": hparams.reproducibility.deterministic,
+            "fast_dev_run": hparams.fast_dev_run,
+            "max_epochs": hparams.max_epochs,
+            "min_epochs": hparams.min_epochs,
+            "max_steps": hparams.max_steps,
+            "min_steps": hparams.min_steps,
+            "max_time": hparams.max_time,
+            "limit_train_batches": hparams.limit_train_batches,
+            "limit_val_batches": hparams.limit_val_batches,
+            "limit_test_batches": hparams.limit_test_batches,
+            "limit_predict_batches": hparams.limit_predict_batches,
+            "overfit_batches": hparams.overfit_batches,
+            "val_check_interval": hparams.val_check_interval,
+            "num_sanity_val_steps": hparams.num_sanity_val_steps,
+            "log_every_n_steps": hparams.log_every_n_steps,
+            "inference_mode": hparams.inference_mode,
             "callbacks": [],
             "plugins": [],
             "logger": [],
             # Moved to `lightning_kwargs`:
-            # "enable_checkpointing": config.enable_checkpointing,
-            # "accelerator": config.accelerator,
-            # "strategy": config.strategy,
-            # "num_nodes": config.num_nodes,
-            # "precision": config.precision,
-            # "logger": config.logging.enabled,
-            # "log_every_n_steps": config.log_every_n_steps,
-            # "enable_progress_bar": config.enable_progress_bar,
-            # "enable_model_summary": config.enable_model_summary,
-            # "accumulate_grad_batches": config.accumulate_grad_batches,
-            # "benchmark": config.benchmark,
-            # "use_distributed_sampler": config.use_distributed_sampler,
-            # "detect_anomaly": config.detect_anomaly,
-            # "barebones": config.barebones,
-            # "plugins": config.plugins,
-            # "sync_batchnorm": config.sync_batchnorm,
-            # "reload_dataloaders_every_n_epochs": config.reload_dataloaders_every_n_epochs,
+            # "enable_checkpointing": hparams.enable_checkpointing,
+            # "accelerator": hparams.accelerator,
+            # "strategy": hparams.strategy,
+            # "num_nodes": hparams.num_nodes,
+            # "precision": hparams.precision,
+            # "logger": hparams.logging.enabled,
+            # "log_every_n_steps": hparams.log_every_n_steps,
+            # "enable_progress_bar": hparams.enable_progress_bar,
+            # "enable_model_summary": hparams.enable_model_summary,
+            # "accumulate_grad_batches": hparams.accumulate_grad_batches,
+            # "benchmark": hparams.benchmark,
+            # "use_distributed_sampler": hparams.use_distributed_sampler,
+            # "detect_anomaly": hparams.detect_anomaly,
+            # "barebones": hparams.barebones,
+            # "plugins": hparams.plugins,
+            # "sync_batchnorm": hparams.sync_batchnorm,
+            # "reload_dataloaders_every_n_epochs": hparams.reload_dataloaders_every_n_epochs,
         }
 
         def _update_key(key: str, new_value: Any):
@@ -118,20 +129,22 @@ class Trainer(LightningTrainer):
                 _update_key(key, value)
 
         # Set `default_root_dir` if `auto_set_default_root_dir` is enabled.
-        if config.auto_set_default_root_dir:
+        if hparams.auto_set_default_root_dir:
             if kwargs.get("default_root_dir"):
                 raise ValueError(
-                    "You have set `config.default_root_dir`. "
+                    "You have set `hparams.default_root_dir`. "
                     "But we are trying to set it automatically. "
-                    "Please use `config.directory.base` rather than `config.default_root_dir`. "
-                    "If you want to set it manually, please set `config.auto_set_default_root_dir=False`."
+                    "Please use `hparams.directory.base` rather than `hparams.default_root_dir`. "
+                    "If you want to set it manually, please set `hparams.auto_set_default_root_dir=False`."
                 )
 
             _update_kwargs(
-                default_root_dir=config.directory.resolve_run_root_directory(config.id)
+                default_root_dir=hparams.directory.resolve_run_root_directory(
+                    hparams.id
+                )
             )
 
-        if (devices_input := config.devices) is not None:
+        if (devices_input := hparams.devices) is not None:
             match devices_input:
                 case "all":
                     devices = -1
@@ -144,20 +157,20 @@ class Trainer(LightningTrainer):
 
             _update_kwargs(devices=devices)
 
-        if (use_distributed_sampler := config.use_distributed_sampler) is not None:
+        if (use_distributed_sampler := hparams.use_distributed_sampler) is not None:
             _update_kwargs(use_distributed_sampler=use_distributed_sampler)
 
-        if (accelerator := config.accelerator) is not None:
+        if (accelerator := hparams.accelerator) is not None:
             if isinstance(accelerator, AcceleratorConfigProtocol):
                 accelerator = accelerator.create_accelerator()
             _update_kwargs(accelerator=accelerator)
 
-        if (strategy := config.strategy) is not None:
+        if (strategy := hparams.strategy) is not None:
             if isinstance(strategy, StrategyConfigProtocol):
                 strategy = strategy.create_strategy()
             _update_kwargs(strategy=strategy)
 
-        if (precision := config.precision) is not None:
+        if (precision := hparams.precision) is not None:
             resolved_precision: _PRECISION_INPUT
             match precision:
                 case "64-true" | "32-true" | "bf16-mixed":
@@ -185,11 +198,11 @@ class Trainer(LightningTrainer):
 
             _update_kwargs(precision=resolved_precision)
 
-        if (detect_anomaly := config.detect_anomaly) is not None:
+        if (detect_anomaly := hparams.detect_anomaly) is not None:
             _update_kwargs(detect_anomaly=detect_anomaly)
 
         if (
-            grad_clip_config := config.optimizer.gradient_clipping
+            grad_clip_config := hparams.optimizer.gradient_clipping
         ) is not None and grad_clip_config.enabled:
             # kwargs["gradient_clip_algorithm"] = grad_clip_config.algorithm
             # kwargs["gradient_clip_val"] = grad_clip_config.value
@@ -198,9 +211,9 @@ class Trainer(LightningTrainer):
                 gradient_clip_val=grad_clip_config.value,
             )
 
-        if profiler_config := config.profiler:
-            if (profiler := profiler_config.create_profiler(config)) is None:
-                log.warning(f"Profiler config {profiler_config=} returned None.")
+        if profiler_config := hparams.profiler:
+            if (profiler := profiler_config.create_profiler(hparams)) is None:
+                log.warning(f"Profiler hparams {profiler_config=} returned None.")
             # Make sure that the profiler is an instance of `Profiler`.
             elif not isinstance(profiler, Profiler):
                 raise ValueError(f"{profiler=} is not an instance of `{Profiler}`.")
@@ -209,29 +222,29 @@ class Trainer(LightningTrainer):
             else:
                 _update_kwargs(profiler=profiler)
 
-        if callbacks := resolve_all_callbacks(config):
+        if callbacks := resolve_all_callbacks(hparams):
             _update_kwargs(callbacks=callbacks)
 
-        if plugin_configs := config.plugins:
+        if plugin_configs := hparams.plugins:
             _update_kwargs(
                 plugins=[
                     plugin_config.create_plugin() for plugin_config in plugin_configs
                 ]
             )
 
-        if not config.logging.enabled:
-            log.critical(f"Disabling logger because {config.logging.enabled=}.")
+        if not hparams.logging.enabled:
+            log.critical(f"Disabling logger because {hparams.logging.enabled=}.")
             kwargs["logger"] = False
         else:
             _update_kwargs(
                 logger=[
                     logger
-                    for logger in config.logging.create_loggers(config)
+                    for logger in hparams.logging.create_loggers(hparams)
                     if logger is not None
                 ]
             )
 
-        if config.auto_determine_num_nodes:
+        if hparams.auto_determine_num_nodes:
             # When num_nodes is auto, we need to detect the number of nodes.
             if SLURMEnvironment.detect():
                 if (num_nodes := os.environ.get("SLURM_NNODES")) is not None:
@@ -250,12 +263,12 @@ class Trainer(LightningTrainer):
                 _update_kwargs(num_nodes=num_nodes)
             else:
                 log.info(
-                    "config.auto_determine_num_nodes ignored because no SLURM or LSF detected."
+                    "hparams.auto_determine_num_nodes ignored because no SLURM or LSF detected."
                 )
 
         # Update the kwargs with the additional trainer kwargs
-        _update_kwargs(**cast(Any, config.additional_lightning_kwargs))
-        _update_kwargs(**config.lightning_kwargs)
+        _update_kwargs(**cast(Any, hparams.additional_lightning_kwargs))
+        _update_kwargs(**hparams.lightning_kwargs)
         _update_kwargs(**kwargs_ctor)
 
         return kwargs
@@ -266,28 +279,28 @@ class Trainer(LightningTrainer):
     @override
     def __init__(
         self,
-        config: TrainerConfig | Mapping[str, Any],
+        hparams: TrainerConfig | Mapping[str, Any],
         /,
         **kwargs: Unpack[LightningTrainerKwargs],
     ):
-        # Validate the config.
-        config_cls = Trainer.config_cls()
-        if not isinstance(config, config_cls):
-            if not isinstance(config, Mapping):
-                raise ValueError(
-                    f"Trainer config must either be an instance of {config_cls} or a mapping. "
-                    f"Got {type(config)=} instead."
-                )
-            config = config_cls.model_validate(config)
-        config = config.model_deep_validate()
+        # Validate the hparams.
+        hparams_cls = Trainer.hparams_cls()
+        if isinstance(hparams, Mapping):
+            hparams = hparams_cls.model_validate(hparams)
+        elif not isinstance(hparams, hparams_cls):
+            raise ValueError(
+                f"Trainer hparams must either be an instance of {hparams_cls} or a mapping. "
+                f"Got {type(hparams)=} instead."
+            )
+        hparams = hparams.model_deep_validate()
 
-        self._pre_init(config)
+        self._pre_init(hparams)
 
-        kwargs = self._update_kwargs(config, kwargs)
+        kwargs = self._update_kwargs(hparams, kwargs)
         log.critical(f"LightningTrainer.__init__ with {kwargs=}.")
 
-        self.config = config
-        self.debug = self.config.debug
+        self.hparams = hparams
+        self.debug = self.hparams.debug
 
         super().__init__(**kwargs)
 
@@ -306,20 +319,8 @@ class Trainer(LightningTrainer):
         log.critical(f"LightningTrainer log directory: {self.log_dir}.")
 
         # Set the checkpoint
-        if (ckpt_path := config.ckpt_path) is not None:
+        if (ckpt_path := hparams.ckpt_path) is not None:
             self.ckpt_path = str(Path(ckpt_path).resolve().absolute())
-
-    def full_hparams_dict(self):
-        hparams = {}
-        hparams["trainer"] = self.config.model_dump(mode="json")
-
-        if self.lightning_module is not None:
-            from ..model import LightningModuleBase
-
-            if isinstance(self.lightning_module, LightningModuleBase):
-                hparams["model"] = self.lightning_module.config.model_dump(mode="json")
-
-        return hparams
 
     def __runtime_tracker(self):
         return next(
@@ -407,8 +408,8 @@ class Trainer(LightningTrainer):
         """
         # Save the current environment information
         datamodule = getattr(self, "datamodule", None)
-        self.config.environment = EnvironmentConfig.from_current_environment(
-            self.config, model, datamodule
+        self.hparams.environment = EnvironmentConfig.from_current_environment(
+            self.hparams, model, datamodule
         )
 
         # If gradient clipping is enabled, then we need to make sure that
@@ -443,7 +444,7 @@ class Trainer(LightningTrainer):
 
         # Save the checkpoint metadata
         metadata_path = None
-        if self.config.save_checkpoint_metadata and self.is_global_zero:
+        if self.hparams.save_checkpoint_metadata and self.is_global_zero:
             # Generate the metadata and write to disk
             if (
                 metadata_path := _write_checkpoint_metadata(self, filepath)
@@ -454,3 +455,64 @@ class Trainer(LightningTrainer):
         from .. import _callback
 
         _callback._call_on_checkpoint_saved(self, filepath, metadata_path)
+
+    @classmethod
+    def load_from_checkpoint(
+        cls,
+        checkpoint_path: _PATH | IO,
+        map_location: _MAP_LOCATION_TYPE = None,
+        hparams_file: _PATH | None = None,
+        **kwargs: Any,
+    ):
+        loaded = _load_from_checkpoint(
+            checkpoint_path,
+            map_location=map_location,
+            hparams_file=hparams_file,
+            **kwargs,
+        )
+        return loaded
+
+
+def _load_from_checkpoint(
+    checkpoint_path: _PATH | IO,
+    map_location: _MAP_LOCATION_TYPE = None,
+    hparams_file: _PATH | None = None,
+    **kwargs: Any,
+):
+    map_location = map_location or _default_map_location
+    with pl_legacy_patch():
+        checkpoint = pl_load(checkpoint_path, map_location=map_location)
+
+    # convert legacy checkpoints to the new format
+    checkpoint = _pl_migrate_checkpoint(
+        checkpoint,
+        checkpoint_path=(
+            checkpoint_path if isinstance(checkpoint_path, (str, Path)) else None
+        ),
+    )
+
+    if hparams_file is not None:
+        extension = str(hparams_file).split(".")[-1]
+        if extension.lower() == "csv":
+            hparams = load_hparams_from_tags_csv(hparams_file)
+        elif extension.lower() in ("yml", "yaml"):
+            hparams = load_hparams_from_yaml(hparams_file)
+        else:
+            raise ValueError(".csv, .yml or .yaml is required for `hparams_file`")
+
+        # overwrite hparams by the given file
+        checkpoint[Trainer.CHECKPOINT_HYPER_PARAMS_KEY] = hparams
+
+    # for past checkpoint need to add the new key
+    checkpoint.setdefault(Trainer.CHECKPOINT_HYPER_PARAMS_KEY, {})
+    # override the hparams with values that were passed in
+    checkpoint[Trainer.CHECKPOINT_HYPER_PARAMS_KEY].update(kwargs)
+
+    # load the hparams
+    hparams = Trainer.hparams_cls().model_validate(
+        checkpoint[Trainer.CHECKPOINT_HYPER_PARAMS_KEY]
+    )
+
+    # create the trainer
+    trainer = Trainer(hparams)
+    return trainer

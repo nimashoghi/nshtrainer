@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import Any, Generic, Literal, cast
 
+import nshconfig as C
 import torch
 import torch.distributed
 from lightning.pytorch import LightningModule
@@ -12,13 +13,13 @@ from lightning.pytorch.profilers import PassThroughProfiler, Profiler
 from typing_extensions import Never, TypeVar, override
 
 from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
-from .config import BaseConfig
 from .mixins.callback import CallbackModuleMixin
+from .mixins.debug import _DebugModuleMixin
 from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
 
-TConfig = TypeVar("TConfig", bound=BaseConfig, infer_variance=True)
+THparams = TypeVar("THparams", bound=C.Config, infer_variance=True)
 
 
 T = TypeVar("T", infer_variance=True)
@@ -50,22 +51,15 @@ VALID_REDUCE_OPS = (
 
 
 class LightningModuleBase(
+    _DebugModuleMixin,
     _RLPSanityCheckModuleMixin,
     LoggerLightningModuleMixin,
     CallbackModuleMixin,
     LightningModule,
     ABC,
-    Generic[TConfig],
+    Generic[THparams],
 ):
-    hparams: Never  # pyright: ignore[reportIncompatibleMethodOverride]
-    hparams_initial: Never  # pyright: ignore[reportIncompatibleMethodOverride]
-
-    # region Config
-    @torch.jit.unused
-    @property
-    def config(self) -> TConfig:
-        return cast(TConfig, self.hparams)
-
+    # region Debug
     @property
     def debug(self) -> bool:
         if torch.jit.is_scripting():
@@ -95,10 +89,6 @@ class LightningModuleBase(
             return
 
         trainer.debug = value
-
-    # endregion
-
-    # region Debug
 
     @torch.jit.unused
     def breakpoint(self, rank_zero_only: bool = True):
@@ -193,7 +183,7 @@ class LightningModuleBase(
     @override
     def __repr__(self):
         parts: list[str] = []
-        parts.append(f"config={repr(self.config)}")
+        parts.append(f"hparams={repr(self.hparams)}")
         parts.append(f"device={self.device}")
         if self.debug:
             parts.append("debug=True")
@@ -201,22 +191,41 @@ class LightningModuleBase(
         parts_str = ", ".join(parts)
         return f"{self.__class__.__name__}({parts_str})"
 
+    @property
+    @override
+    def hparams(self) -> THparams:  # pyright: ignore[reportIncompatibleMethodOverride]
+        return cast(THparams, super().hparams)
+
+    @property
+    @override
+    def hparams_initial(self):  # pyright: ignore[reportIncompatibleMethodOverride]
+        hparams = cast(THparams, super().hparams_initial)
+        hparams_dict = {"model": hparams.model_dump(mode="json")}
+        if (trainer := self._trainer) is not None:
+            from ..trainer import Trainer
+
+            if isinstance(trainer, Trainer):
+                hparams_dict["trainer"] = trainer.hparams.model_dump(mode="json")
+
+        return cast(Never, hparams_dict)
+
     @classmethod
     @abstractmethod
-    def config_cls(cls) -> type[TConfig]: ...
+    def hparams_cls(cls) -> type[THparams]: ...
 
     @override
-    def __init__(self, hparams: TConfig | Mapping[str, Any]):
-        config_cls = self.config_cls()
-        if not isinstance(hparams, config_cls):
-            if not isinstance(hparams, Mapping):
-                raise TypeError(
-                    f"hparams must be a BaseConfig or a Mapping: {type(hparams)}"
-                )
-            hparams = config_cls.model_validate(hparams)
-        hparams = config_cls.model_validate(hparams)
-
+    def __init__(self, hparams: THparams | Mapping[str, Any]):
         super().__init__()
+
+        # Validate and save hyperparameters
+        hparams_cls = self.hparams_cls()
+        if isinstance(hparams, Mapping):
+            hparams = hparams_cls.model_validate(hparams)
+        elif not isinstance(hparams, hparams_cls):
+            raise TypeError(
+                f"Expected hparams to be either a Mapping or an instance of {hparams_cls}, got {type(hparams)}"
+            )
+        hparams = hparams.model_deep_validate()
         self.save_hyperparameters(hparams)
 
     def zero_loss(self):

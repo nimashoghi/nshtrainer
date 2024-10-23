@@ -59,9 +59,6 @@ from ..metrics._config import MetricConfig
 from ..profiler import ProfilerConfig
 from ..util._environment_info import EnvironmentConfig
 
-if TYPE_CHECKING:
-    from ..model.config import BaseConfig
-
 log = logging.getLogger(__name__)
 
 
@@ -118,7 +115,7 @@ class LoggingConfig(CallbackConfigBase):
         Constructs and returns a list of loggers based on the provided root configuration.
 
         Args:
-            trainer_config (BaseConfig): The root configuration object.
+            trainer_config (TrainerConfig): The root configuration object.
 
         Returns:
             list[Logger]: A list of constructed loggers.

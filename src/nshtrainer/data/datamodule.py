@@ -1,31 +1,52 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, cast
+from collections.abc import Mapping
+from typing import Any, Generic, cast
 
-import torch
+import nshconfig as C
 from lightning.pytorch import LightningDataModule
-from typing_extensions import Never, TypeVar
+from typing_extensions import Never, TypeVar, override
 
 from ..model.mixins.callback import CallbackRegistrarModuleMixin
+from ..model.mixins.debug import _DebugModuleMixin
 
-TConfig = TypeVar("TConfig", infer_variance=True)
+THparams = TypeVar("THparams", bound=C.Config, infer_variance=True)
 
 
 class LightningDataModuleBase(
+    _DebugModuleMixin,
     CallbackRegistrarModuleMixin,
     LightningDataModule,
     ABC,
-    Generic[TConfig],
+    Generic[THparams],
 ):
-    hparams: Never  # pyright: ignore[reportIncompatibleMethodOverride]
-    hparams_initial: Never  # pyright: ignore[reportIncompatibleMethodOverride]
+    @property
+    @override
+    def hparams(self) -> THparams:  # pyright: ignore[reportIncompatibleMethodOverride]
+        return cast(THparams, super().hparams)
+
+    @property
+    @override
+    def hparams_initial(self):  # pyright: ignore[reportIncompatibleMethodOverride]
+        hparams = cast(THparams, super().hparams_initial)
+        return cast(Never, {"datamodule": hparams.model_dump(mode="json")})
 
     @classmethod
     @abstractmethod
-    def config_cls(cls) -> type[TConfig]: ...
+    def hparams_cls(cls) -> type[THparams]: ...
 
-    @torch.jit.unused
-    @property
-    def config(self) -> TConfig:
-        return cast(TConfig, self.hparams)
+    @override
+    def __init__(self, hparams: THparams | Mapping[str, Any]):
+        super().__init__()
+
+        # Validate and save hyperparameters
+        hparams_cls = self.hparams_cls()
+        if isinstance(hparams, Mapping):
+            hparams = hparams_cls.model_validate(hparams)
+        elif not isinstance(hparams, hparams_cls):
+            raise TypeError(
+                f"Expected hparams to be either a Mapping or an instance of {hparams_cls}, got {type(hparams)}"
+            )
+        hparams = hparams.model_deep_validate()
+        self.save_hyperparameters(hparams)
