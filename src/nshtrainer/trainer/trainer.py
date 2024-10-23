@@ -443,11 +443,10 @@ class Trainer(LightningTrainer):
 
         # Save the checkpoint metadata
         metadata_path = None
-        lm = self._base_module
         if self.config.save_checkpoint_metadata and self.is_global_zero:
             # Generate the metadata and write to disk
             if (
-                metadata_path := _write_checkpoint_metadata(self, lm, filepath)
+                metadata_path := _write_checkpoint_metadata(self, filepath)
             ) is not None:
                 written_files.append(metadata_path)
 
