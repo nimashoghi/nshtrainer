@@ -16,6 +16,6 @@ from .trainer import Trainer as Trainer
 from .trainer import TrainerConfig as TrainerConfig
 
 try:
-    from . import config as config
+    from . import configs as configs
 except BaseException:
     pass
