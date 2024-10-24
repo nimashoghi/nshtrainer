@@ -21,6 +21,7 @@ class LightningDataModuleBase(
     ABC,
     Generic[THparams],
 ):
+    @property
     @override
     def hparams(self) -> THparams:  # pyright: ignore[reportIncompatibleMethodOverride]
         return cast(THparams, super().hparams)
