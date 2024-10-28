@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import Any, Generic, cast
 
 import nshconfig as C
+import torch
 from lightning.pytorch import LightningDataModule
+from lightning.pytorch.utilities.model_helpers import is_overridden
+from lightning.pytorch.utilities.rank_zero import rank_zero_warn
 from typing_extensions import Never, TypeVar, deprecated, override
 
 from ..model.mixins.callback import CallbackRegistrarModuleMixin
@@ -55,3 +59,68 @@ class LightningDataModuleBase(
             )
         hparams = hparams.model_deep_validate()
         self.save_hyperparameters(hparams)
+
+    @override
+    @classmethod
+    def load_from_checkpoint(cls, *args, **kwargs) -> Never:
+        raise ValueError("This method is not supported. Use `from_checkpoint` instead.")
+
+    @classmethod
+    def hparams_from_checkpoint(
+        cls,
+        ckpt_or_path: dict[str, Any] | str | Path,
+        /,
+        strict: bool | None = None,
+        *,
+        update_hparams: Callable[[THparams], THparams] | None = None,
+        update_hparams_dict: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    ):
+        if isinstance(ckpt_or_path, dict):
+            ckpt = ckpt_or_path
+        else:
+            ckpt = torch.load(ckpt_or_path, map_location="cpu")
+
+        if (hparams := ckpt.get(cls.CHECKPOINT_HYPER_PARAMS_KEY)) is None:
+            raise ValueError(
+                f"The checkpoint does not contain hyperparameters. It must contain the key '{cls.CHECKPOINT_HYPER_PARAMS_KEY}'."
+            )
+        if update_hparams_dict is not None:
+            hparams = update_hparams_dict(hparams)
+
+        hparams = cls.hparams_cls().model_validate(hparams, strict=strict)
+        if update_hparams is not None:
+            hparams = update_hparams(hparams)
+
+        return hparams
+
+    @classmethod
+    def from_checkpoint(
+        cls,
+        ckpt_or_path: dict[str, Any] | str | Path,
+        /,
+        strict: bool | None = None,
+        map_location: torch.serialization.MAP_LOCATION = None,
+        *,
+        update_hparams: Callable[[THparams], THparams] | None = None,
+        update_hparams_dict: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    ):
+        # Load checkpoint
+        if isinstance(ckpt_or_path, Mapping):
+            ckpt = ckpt_or_path
+        else:
+            ckpt = torch.load(ckpt_or_path, map_location=map_location)
+
+        # Load hyperparameters from checkpoint
+        hparams = cls.hparams_from_checkpoint(
+            ckpt,
+            strict=strict,
+            update_hparams=update_hparams,
+            update_hparams_dict=update_hparams_dict,
+        )
+
+        # Load datamodule from checkpoint
+        datamodule = cls(hparams)
+        if datamodule.__class__.__qualname__ in ckpt:
+            datamodule.load_state_dict(ckpt[datamodule.__class__.__qualname__])
+
+        return datamodule

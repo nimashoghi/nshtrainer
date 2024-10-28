@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import Any, Generic, Literal, cast
 
 import nshconfig as C
@@ -10,11 +11,13 @@ import torch
 import torch.distributed
 from lightning.pytorch import LightningModule
 from lightning.pytorch.profilers import PassThroughProfiler, Profiler
+from lightning.pytorch.utilities.model_helpers import is_overridden
+from lightning.pytorch.utilities.rank_zero import rank_zero_warn
 from typing_extensions import Never, TypeVar, deprecated, override
 
 from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
 from .mixins.callback import CallbackModuleMixin
-from .mixins.debug import _DebugModuleMixin, _trainer
+from .mixins.debug import _DebugModuleMixin
 from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
@@ -241,3 +244,98 @@ class LightningModuleBase(
         loss = sum((0.0 * v).sum() for v in self.parameters() if v.requires_grad)
         loss = cast(torch.Tensor, loss)
         return loss
+
+    @override
+    @classmethod
+    def load_from_checkpoint(cls, *args, **kwargs) -> Never:
+        raise ValueError("This method is not supported. Use `from_checkpoint` instead.")
+
+    @classmethod
+    def hparams_from_checkpoint(
+        cls,
+        ckpt_or_path: dict[str, Any] | str | Path,
+        /,
+        strict: bool | None = None,
+        *,
+        update_hparams: Callable[[THparams], THparams] | None = None,
+        update_hparams_dict: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    ):
+        if isinstance(ckpt_or_path, dict):
+            ckpt = ckpt_or_path
+        else:
+            ckpt = torch.load(ckpt_or_path, map_location="cpu")
+
+        if (hparams := ckpt.get(cls.CHECKPOINT_HYPER_PARAMS_KEY)) is None:
+            raise ValueError(
+                f"The checkpoint does not contain hyperparameters. It must contain the key '{cls.CHECKPOINT_HYPER_PARAMS_KEY}'."
+            )
+        if update_hparams_dict is not None:
+            hparams = update_hparams_dict(hparams)
+
+        hparams = cls.hparams_cls().model_validate(hparams, strict=strict)
+        if update_hparams is not None:
+            hparams = update_hparams(hparams)
+
+        return hparams
+
+    @classmethod
+    def from_checkpoint(
+        cls,
+        ckpt_or_path: dict[str, Any] | str | Path,
+        /,
+        strict: bool | None = None,
+        map_location: torch.serialization.MAP_LOCATION = None,
+        *,
+        update_hparams: Callable[[THparams], THparams] | None = None,
+        update_hparams_dict: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    ):
+        # Load checkpoint
+        if isinstance(ckpt_or_path, Mapping):
+            ckpt = ckpt_or_path
+        else:
+            ckpt = torch.load(ckpt_or_path, map_location=map_location)
+
+        # Load hyperparameters from checkpoint
+        hparams = cls.hparams_from_checkpoint(
+            ckpt,
+            strict=strict,
+            update_hparams=update_hparams,
+            update_hparams_dict=update_hparams_dict,
+        )
+
+        # Load model from checkpoint
+        model = cls(hparams)
+
+        # Load model state from checkpoint
+        if (
+            model._strict_loading is not None
+            and strict is not None
+            and strict != model.strict_loading
+        ):
+            raise ValueError(
+                f"You set `.load_from_checkpoint(..., strict={strict!r})` which is in conflict with"
+                f" `{cls.__name__}.strict_loading={model.strict_loading!r}. Please set the same value for both of them."
+            )
+        strict = model.strict_loading if strict is None else strict
+
+        if is_overridden("configure_model", model):
+            model.configure_model()
+
+        # give model a chance to load something
+        model.on_load_checkpoint(ckpt)
+
+        # load the state_dict on the model automatically
+
+        keys = model.load_state_dict(ckpt["state_dict"], strict=strict)
+
+        if not strict:
+            if keys.missing_keys:
+                rank_zero_warn(
+                    f"Found keys that are in the model state dict but not in the checkpoint: {keys.missing_keys}"
+                )
+            if keys.unexpected_keys:
+                rank_zero_warn(
+                    f"Found keys that are not in the model state dict but in the checkpoint: {keys.unexpected_keys}"
+                )
+
+        return model

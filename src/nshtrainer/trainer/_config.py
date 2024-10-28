@@ -9,7 +9,6 @@ from collections.abc import Iterable, Sequence
 from datetime import timedelta
 from pathlib import Path
 from typing import (
-    TYPE_CHECKING,
     Annotated,
     Any,
     ClassVar,

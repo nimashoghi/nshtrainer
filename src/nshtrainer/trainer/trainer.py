@@ -2,28 +2,19 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import torch
 from lightning.fabric.plugins.environments.lsf import LSFEnvironment
 from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
-from lightning.fabric.utilities.cloud_io import _load as pl_load
-from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
 from lightning.pytorch import LightningModule
 from lightning.pytorch import Trainer as LightningTrainer
 from lightning.pytorch.callbacks import Callback
-from lightning.pytorch.core.saving import (
-    _default_map_location,
-    load_hparams_from_tags_csv,
-    load_hparams_from_yaml,
-)
 from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities.migration import pl_legacy_patch
-from lightning.pytorch.utilities.migration.utils import _pl_migrate_checkpoint
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Never, Unpack, assert_never, deprecated, override
 
@@ -473,62 +464,46 @@ class Trainer(LightningTrainer):
         _callback._call_on_checkpoint_saved(self, filepath, metadata_path)
 
     @classmethod
-    def load_from_checkpoint(
+    def hparams_from_checkpoint(
         cls,
-        checkpoint_path: _PATH | IO,
-        map_location: _MAP_LOCATION_TYPE = None,
-        hparams_file: _PATH | None = None,
-        **kwargs: Any,
+        ckpt_or_path: dict[str, Any] | str | Path,
+        /,
+        strict: bool | None = None,
+        *,
+        update_hparams: Callable[[TrainerConfig], TrainerConfig] | None = None,
+        update_hparams_dict: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ):
-        loaded = _load_from_checkpoint(
-            checkpoint_path,
-            map_location=map_location,
-            hparams_file=hparams_file,
-            **kwargs,
-        )
-        return loaded
-
-
-def _load_from_checkpoint(
-    checkpoint_path: _PATH | IO,
-    map_location: _MAP_LOCATION_TYPE = None,
-    hparams_file: _PATH | None = None,
-    **kwargs: Any,
-):
-    map_location = map_location or _default_map_location
-    with pl_legacy_patch():
-        checkpoint = pl_load(checkpoint_path, map_location=map_location)
-
-    # convert legacy checkpoints to the new format
-    checkpoint = _pl_migrate_checkpoint(
-        checkpoint,
-        checkpoint_path=(
-            checkpoint_path if isinstance(checkpoint_path, (str, Path)) else None
-        ),
-    )
-
-    if hparams_file is not None:
-        extension = str(hparams_file).split(".")[-1]
-        if extension.lower() == "csv":
-            hparams = load_hparams_from_tags_csv(hparams_file)
-        elif extension.lower() in ("yml", "yaml"):
-            hparams = load_hparams_from_yaml(hparams_file)
+        if isinstance(ckpt_or_path, dict):
+            ckpt = ckpt_or_path
         else:
-            raise ValueError(".csv, .yml or .yaml is required for `hparams_file`")
+            ckpt = torch.load(ckpt_or_path, map_location="cpu")
 
-        # overwrite hparams by the given file
-        checkpoint[Trainer.CHECKPOINT_HYPER_PARAMS_KEY] = hparams
+        if (hparams := ckpt.get(cls.CHECKPOINT_HYPER_PARAMS_KEY)) is None:
+            raise ValueError(
+                f"The checkpoint does not contain hyperparameters. It must contain the key '{cls.CHECKPOINT_HYPER_PARAMS_KEY}'."
+            )
+        if update_hparams_dict is not None:
+            hparams = update_hparams_dict(hparams)
 
-    # for past checkpoint need to add the new key
-    checkpoint.setdefault(Trainer.CHECKPOINT_HYPER_PARAMS_KEY, {})
-    # override the hparams with values that were passed in
-    checkpoint[Trainer.CHECKPOINT_HYPER_PARAMS_KEY].update(kwargs)
+        hparams = cls.hparams_cls().model_validate(hparams, strict=strict)
+        if update_hparams is not None:
+            hparams = update_hparams(hparams)
 
-    # load the hparams
-    hparams = Trainer.hparams_cls().model_validate(
-        checkpoint[Trainer.CHECKPOINT_HYPER_PARAMS_KEY]
-    )
+        return hparams
 
-    # create the trainer
-    trainer = Trainer(hparams)
-    return trainer
+    @classmethod
+    def from_checkpoint(
+        cls,
+        path: str | Path,
+        strict: bool | None = None,
+        *,
+        update_hparams: Callable[[TrainerConfig], TrainerConfig] | None = None,
+        update_hparams_dict: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    ):
+        hparams = cls.hparams_from_checkpoint(
+            path,
+            strict=strict,
+            update_hparams=update_hparams,
+            update_hparams_dict=update_hparams_dict,
+        )
+        return cls(hparams)
