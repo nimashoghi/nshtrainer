@@ -799,15 +799,35 @@ class TrainerConfig(C.Config):
         yield self.actsave_logger
 
     # region Helper Methods
+    def fast_dev_run_(self, value: int | bool = True, /):
+        """
+        Enables fast_dev_run mode for the trainer.
+        This will run the training loop for a specified number of batches,
+        if an integer is provided, or for a single batch if True is provided.
+        """
+        self.fast_dev_run = value
+        return self
+
     def with_fast_dev_run(self, value: int | bool = True, /):
         """
         Enables fast_dev_run mode for the trainer.
         This will run the training loop for a specified number of batches,
         if an integer is provided, or for a single batch if True is provided.
         """
-        config = copy.deepcopy(self)
-        config.fast_dev_run = value
-        return config
+        return copy.deepcopy(self).fast_dev_run_(value)
+
+    def project_root_(self, project_root: str | Path | os.PathLike):
+        """
+        Set the project root directory for the trainer.
+
+        Args:
+            project_root (Path): The base directory to use.
+
+        Returns:
+            self: The current instance of the class.
+        """
+        self.directory.project_root = Path(project_root)
+        return self
 
     def with_project_root(self, project_root: str | Path | os.PathLike):
         """
@@ -819,9 +839,7 @@ class TrainerConfig(C.Config):
         Returns:
             self: The current instance of the class.
         """
-        config = copy.deepcopy(self)
-        config.directory.project_root = Path(project_root)
-        return config
+        return copy.deepcopy(self).project_root_(project_root)
 
     def reset_run(
         self,
