@@ -62,6 +62,9 @@ if TYPE_CHECKING:
         CheckpointMetadata as CheckpointMetadata,
     )
     from nshtrainer.callbacks.early_stopping import MetricConfig as MetricConfig
+    from nshtrainer.callbacks.lr_monitor import (
+        LearningRateMonitorConfig as LearningRateMonitorConfig,
+    )
 else:
 
     def __getattr__(name):
@@ -115,6 +118,10 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks"
             ).LastCheckpointCallbackConfig
+        if name == "LearningRateMonitorConfig":
+            return importlib.import_module(
+                "nshtrainer.callbacks.lr_monitor"
+            ).LearningRateMonitorConfig
         if name == "LogEpochCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.callbacks"
@@ -167,6 +174,7 @@ from . import ema as ema
 from . import finite_checks as finite_checks
 from . import gradient_skipping as gradient_skipping
 from . import log_epoch as log_epoch
+from . import lr_monitor as lr_monitor
 from . import norm_logging as norm_logging
 from . import print_table as print_table
 from . import rlp_sanity_checks as rlp_sanity_checks

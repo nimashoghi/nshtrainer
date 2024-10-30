@@ -8,8 +8,6 @@ from typing import Any, Generic, cast
 import nshconfig as C
 import torch
 from lightning.pytorch import LightningDataModule
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import rank_zero_warn
 from typing_extensions import Never, TypeVar, deprecated, override
 
 from ..model.mixins.callback import CallbackRegistrarModuleMixin

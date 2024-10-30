@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nshtrainer.trainer._config import ActSaveLoggerConfig as ActSaveLoggerConfig
+    from nshtrainer.trainer._config import BaseLoggerConfig as BaseLoggerConfig
     from nshtrainer.trainer._config import (
         BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
     )
@@ -39,10 +40,12 @@ if TYPE_CHECKING:
         LastCheckpointCallbackConfig as LastCheckpointCallbackConfig,
     )
     from nshtrainer.trainer._config import (
+        LearningRateMonitorConfig as LearningRateMonitorConfig,
+    )
+    from nshtrainer.trainer._config import (
         LogEpochCallbackConfig as LogEpochCallbackConfig,
     )
     from nshtrainer.trainer._config import LoggerConfig as LoggerConfig
-    from nshtrainer.trainer._config import LoggingConfig as LoggingConfig
     from nshtrainer.trainer._config import MetricConfig as MetricConfig
     from nshtrainer.trainer._config import (
         NormLoggingCallbackConfig as NormLoggingCallbackConfig,
@@ -74,6 +77,10 @@ else:
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).ActSaveLoggerConfig
+        if name == "BaseLoggerConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).BaseLoggerConfig
         if name == "BestCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
@@ -118,12 +125,14 @@ else:
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).LastCheckpointCallbackConfig
+        if name == "LearningRateMonitorConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).LearningRateMonitorConfig
         if name == "LogEpochCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).LogEpochCallbackConfig
-        if name == "LoggingConfig":
-            return importlib.import_module("nshtrainer.trainer._config").LoggingConfig
         if name == "MetricConfig":
             return importlib.import_module("nshtrainer.trainer._config").MetricConfig
         if name == "NormLoggingCallbackConfig":

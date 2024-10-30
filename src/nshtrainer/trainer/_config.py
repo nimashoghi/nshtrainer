@@ -46,6 +46,7 @@ from ..callbacks import (
 from ..callbacks.base import CallbackConfigBase
 from ..callbacks.debug_flag import DebugFlagCallbackConfig
 from ..callbacks.log_epoch import LogEpochCallbackConfig
+from ..callbacks.lr_monitor import LearningRateMonitorConfig
 from ..callbacks.rlp_sanity_checks import RLPSanityChecksCallbackConfig
 from ..callbacks.shared_parameters import SharedParametersCallbackConfig
 from ..loggers import (
@@ -54,109 +55,13 @@ from ..loggers import (
     TensorboardLoggerConfig,
     WandbLoggerConfig,
 )
+from ..loggers._base import BaseLoggerConfig
 from ..loggers.actsave import ActSaveLoggerConfig
 from ..metrics._config import MetricConfig
 from ..profiler import ProfilerConfig
 from ..util._environment_info import EnvironmentConfig
 
 log = logging.getLogger(__name__)
-
-
-class LoggingConfig(CallbackConfigBase):
-    enabled: bool = True
-    """Enable experiment tracking."""
-
-    loggers: Sequence[LoggerConfig] = [
-        WandbLoggerConfig(),
-        CSVLoggerConfig(),
-        TensorboardLoggerConfig(),
-    ]
-    """Loggers to use for experiment tracking."""
-
-    log_lr: bool | Literal["step", "epoch"] = True
-    """If enabled, will register a `LearningRateMonitor` callback to log the learning rate to the logger."""
-    log_epoch: LogEpochCallbackConfig | None = LogEpochCallbackConfig()
-    """If enabled, will log the fractional epoch number to the logger."""
-
-    actsave_logger: ActSaveLoggerConfig | None = None
-    """If enabled, will automatically save logged metrics using ActSave (if nshutils is installed)."""
-
-    @property
-    def wandb(self):
-        return next(
-            (
-                logger
-                for logger in self.loggers
-                if isinstance(logger, WandbLoggerConfig)
-            ),
-            None,
-        )
-
-    @property
-    def csv(self):
-        return next(
-            (logger for logger in self.loggers if isinstance(logger, CSVLoggerConfig)),
-            None,
-        )
-
-    @property
-    def tensorboard(self):
-        return next(
-            (
-                logger
-                for logger in self.loggers
-                if isinstance(logger, TensorboardLoggerConfig)
-            ),
-            None,
-        )
-
-    def create_loggers(self, trainer_config: TrainerConfig):
-        """
-        Constructs and returns a list of loggers based on the provided root configuration.
-
-        Args:
-            trainer_config (TrainerConfig): The root configuration object.
-
-        Returns:
-            list[Logger]: A list of constructed loggers.
-        """
-        if not self.enabled:
-            return
-
-        for logger_config in sorted(
-            self.loggers,
-            key=lambda x: x.priority,
-            reverse=True,
-        ):
-            if not logger_config.enabled:
-                continue
-            if (logger := logger_config.create_logger(trainer_config)) is None:
-                continue
-            yield logger
-
-        # If the actsave_metrics is enabled, add the ActSave logger
-        if self.actsave_logger:
-            yield self.actsave_logger.create_logger(trainer_config)
-
-    @override
-    def create_callbacks(self, trainer_config):
-        if self.log_lr:
-            from lightning.pytorch.callbacks import LearningRateMonitor
-
-            logging_interval: str | None = None
-            if isinstance(self.log_lr, str):
-                logging_interval = self.log_lr
-
-            yield LearningRateMonitor(logging_interval=logging_interval)
-
-        if self.log_epoch:
-            yield from self.log_epoch.create_callbacks(trainer_config)
-
-        for logger in self.loggers:
-            if not logger or not isinstance(logger, CallbackConfigBase):
-                continue
-
-            yield from logger.create_callbacks(trainer_config)
 
 
 class GradientClippingConfig(C.Config):
@@ -600,8 +505,21 @@ class TrainerConfig(C.Config):
     hf_hub: HuggingFaceHubConfig = HuggingFaceHubConfig()
     """Hugging Face Hub configuration options."""
 
-    logging: LoggingConfig = LoggingConfig()
-    """Logging/experiment tracking (e.g., WandB) configuration options."""
+    loggers: Sequence[LoggerConfig] = [
+        WandbLoggerConfig(),
+        CSVLoggerConfig(),
+        TensorboardLoggerConfig(),
+    ]
+    """Loggers to use for experiment tracking."""
+
+    actsave_logger: ActSaveLoggerConfig | None = None
+    """If enabled, will automatically save logged metrics using ActSave (if nshutils is installed)."""
+
+    lr_monitor: LearningRateMonitorConfig | None = LearningRateMonitorConfig()
+    """Learning rate monitoring configuration options."""
+
+    log_epoch: LogEpochCallbackConfig | None = LogEpochCallbackConfig()
+    """If enabled, will log the fractional epoch number to the logger."""
 
     gradient_clipping: GradientClippingConfig | None = None
     """Gradient clipping configuration, or None to disable gradient clipping."""
@@ -829,16 +747,56 @@ class TrainerConfig(C.Config):
     set_float32_matmul_precision: Literal["medium", "high", "highest"] | None = None
     """If enabled, will set the torch float32 matmul precision to the specified value. Useful for faster training on Ampere+ GPUs."""
 
+    @property
+    def wandb_logger(self):
+        return next(
+            (
+                logger
+                for logger in self.loggers
+                if isinstance(logger, WandbLoggerConfig)
+            ),
+            None,
+        )
+
+    @property
+    def csv_logger(self):
+        return next(
+            (logger for logger in self.loggers if isinstance(logger, CSVLoggerConfig)),
+            None,
+        )
+
+    @property
+    def tensorboard_logger(self):
+        return next(
+            (
+                logger
+                for logger in self.loggers
+                if isinstance(logger, TensorboardLoggerConfig)
+            ),
+            None,
+        )
+
     def _nshtrainer_all_callback_configs(self) -> Iterable[CallbackConfigBase | None]:
         yield self.early_stopping
         yield self.checkpoint_saving
-        yield self.logging
+        yield self.lr_monitor
+        yield from (
+            logger_config
+            for logger_config in self.loggers
+            if logger_config is not None
+            and isinstance(logger_config, CallbackConfigBase)
+        )
+        yield self.log_epoch
         yield self.log_norms
         yield self.hf_hub
         yield self.shared_parameters
         yield self.reduce_lr_on_plateau_sanity_checking
         yield self.auto_set_debug_flag
         yield from self.callbacks
+
+    def _nshtrainer_all_logger_configs(self) -> Iterable[BaseLoggerConfig | None]:
+        yield from self.loggers
+        yield self.actsave_logger
 
     # region Helper Methods
     def with_fast_dev_run(self, value: int | bool = True, /):

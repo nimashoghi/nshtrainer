@@ -239,17 +239,14 @@ class Trainer(LightningTrainer):
                 ]
             )
 
-        if not hparams.logging.enabled:
-            log.critical(f"Disabling logger because {hparams.logging.enabled=}.")
-            kwargs["logger"] = False
-        else:
-            _update_kwargs(
-                logger=[
-                    logger
-                    for logger in hparams.logging.create_loggers(hparams)
-                    if logger is not None
-                ]
-            )
+        _update_kwargs(
+            logger=[
+                logger
+                for logger_config in hparams._nshtrainer_all_logger_configs()
+                if logger_config is not None
+                and (logger := logger_config.create_logger(hparams)) is not None
+            ]
+        )
 
         if hparams.auto_determine_num_nodes:
             # When num_nodes is auto, we need to detect the number of nodes.

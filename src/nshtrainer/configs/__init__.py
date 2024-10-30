@@ -132,7 +132,9 @@ if TYPE_CHECKING:
     from nshtrainer.trainer._config import (
         GradientClippingConfig as GradientClippingConfig,
     )
-    from nshtrainer.trainer._config import LoggingConfig as LoggingConfig
+    from nshtrainer.trainer._config import (
+        LearningRateMonitorConfig as LearningRateMonitorConfig,
+    )
     from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
     from nshtrainer.util._environment_info import (
         EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
@@ -321,6 +323,10 @@ else:
             ).LastCheckpointStrategyConfig
         if name == "LeakyReLUNonlinearityConfig":
             return importlib.import_module("nshtrainer.nn").LeakyReLUNonlinearityConfig
+        if name == "LearningRateMonitorConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).LearningRateMonitorConfig
         if name == "LinearWarmupCosineDecayLRSchedulerConfig":
             return importlib.import_module(
                 "nshtrainer.lr_scheduler"
@@ -329,8 +335,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks"
             ).LogEpochCallbackConfig
-        if name == "LoggingConfig":
-            return importlib.import_module("nshtrainer.trainer._config").LoggingConfig
         if name == "MLPConfig":
             return importlib.import_module("nshtrainer.nn").MLPConfig
         if name == "MetricConfig":
