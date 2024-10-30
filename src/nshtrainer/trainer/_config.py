@@ -40,6 +40,7 @@ from ..callbacks import (
     CallbackConfig,
     EarlyStoppingCallbackConfig,
     LastCheckpointCallbackConfig,
+    NormLoggingCallbackConfig,
     OnExceptionCheckpointCallbackConfig,
 )
 from ..callbacks.base import CallbackConfigBase
@@ -167,32 +168,6 @@ class GradientClippingConfig(C.Config):
     """Norm type to use for gradient clipping."""
 
 
-class OptimizationConfig(CallbackConfigBase):
-    log_grad_norm: bool | str | float = False
-    """If enabled, will log the gradient norm (averaged across all model parameters) to the logger."""
-    log_grad_norm_per_param: bool | str | float = False
-    """If enabled, will log the gradient norm for each model parameter to the logger."""
-
-    log_param_norm: bool | str | float = False
-    """If enabled, will log the parameter norm (averaged across all model parameters) to the logger."""
-    log_param_norm_per_param: bool | str | float = False
-    """If enabled, will log the parameter norm for each model parameter to the logger."""
-
-    gradient_clipping: GradientClippingConfig | None = None
-    """Gradient clipping configuration, or None to disable gradient clipping."""
-
-    @override
-    def create_callbacks(self, trainer_config):
-        from ..callbacks.norm_logging import NormLoggingCallbackConfig
-
-        yield from NormLoggingCallbackConfig(
-            log_grad_norm=self.log_grad_norm,
-            log_grad_norm_per_param=self.log_grad_norm_per_param,
-            log_param_norm=self.log_param_norm,
-            log_param_norm_per_param=self.log_param_norm_per_param,
-        ).create_callbacks(trainer_config)
-
-
 TPlugin = TypeVar(
     "TPlugin",
     Precision,
@@ -250,15 +225,6 @@ StrategyLiteral: TypeAlias = Literal[
     "xla",
     "single_tpu",
 ]
-
-
-class ReproducibilityConfig(C.Config):
-    deterministic: bool | Literal["warn"] | None = None
-    """
-    If ``True``, sets whether PyTorch operations must use deterministic algorithms.
-        Set to ``"warn"`` to use deterministic algorithms whenever possible, throwing warnings on operations
-        that don't support deterministic mode. If not set, defaults to ``False``. Default: ``None``.
-    """
 
 
 CheckpointCallbackConfig: TypeAlias = Annotated[
@@ -637,11 +603,18 @@ class TrainerConfig(C.Config):
     logging: LoggingConfig = LoggingConfig()
     """Logging/experiment tracking (e.g., WandB) configuration options."""
 
-    optimizer: OptimizationConfig = OptimizationConfig()
-    """Optimization configuration options."""
+    gradient_clipping: GradientClippingConfig | None = None
+    """Gradient clipping configuration, or None to disable gradient clipping."""
 
-    reproducibility: ReproducibilityConfig = ReproducibilityConfig()
-    """Reproducibility configuration options."""
+    log_norms: NormLoggingCallbackConfig | None = None
+    """Norm logging configuration options."""
+
+    deterministic: bool | Literal["warn"] | None = None
+    """
+    If ``True``, sets whether PyTorch operations must use deterministic algorithms.
+        Set to ``"warn"`` to use deterministic algorithms whenever possible, throwing warnings on operations
+        that don't support deterministic mode. If not set, defaults to ``False``. Default: ``None``.
+    """
 
     reduce_lr_on_plateau_sanity_checking: RLPSanityChecksCallbackConfig | None = (
         RLPSanityChecksCallbackConfig()
@@ -860,7 +833,7 @@ class TrainerConfig(C.Config):
         yield self.early_stopping
         yield self.checkpoint_saving
         yield self.logging
-        yield self.optimizer
+        yield self.log_norms
         yield self.hf_hub
         yield self.shared_parameters
         yield self.reduce_lr_on_plateau_sanity_checking

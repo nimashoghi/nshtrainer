@@ -70,7 +70,7 @@ class Trainer(LightningTrainer):
         kwargs_ctor: LightningTrainerKwargs,
     ):
         kwargs: LightningTrainerKwargs = {
-            "deterministic": hparams.reproducibility.deterministic,
+            "deterministic": hparams.deterministic,
             "fast_dev_run": hparams.fast_dev_run,
             "max_epochs": hparams.max_epochs,
             "min_epochs": hparams.min_epochs,
@@ -209,7 +209,7 @@ class Trainer(LightningTrainer):
             _update_kwargs(detect_anomaly=detect_anomaly)
 
         if (
-            grad_clip_config := hparams.optimizer.gradient_clipping
+            grad_clip_config := hparams.gradient_clipping
         ) is not None and grad_clip_config.enabled:
             # kwargs["gradient_clip_algorithm"] = grad_clip_config.algorithm
             # kwargs["gradient_clip_val"] = grad_clip_config.value

@@ -133,10 +133,6 @@ if TYPE_CHECKING:
         GradientClippingConfig as GradientClippingConfig,
     )
     from nshtrainer.trainer._config import LoggingConfig as LoggingConfig
-    from nshtrainer.trainer._config import OptimizationConfig as OptimizationConfig
-    from nshtrainer.trainer._config import (
-        ReproducibilityConfig as ReproducibilityConfig,
-    )
     from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
     from nshtrainer.util._environment_info import (
         EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
@@ -349,10 +345,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks"
             ).OnExceptionCheckpointCallbackConfig
-        if name == "OptimizationConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).OptimizationConfig
         if name == "OptimizerConfigBase":
             return importlib.import_module("nshtrainer.optimizer").OptimizerConfigBase
         if name == "PReLUConfig":
@@ -373,10 +365,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.lr_scheduler"
             ).ReduceLROnPlateauConfig
-        if name == "ReproducibilityConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).ReproducibilityConfig
         if name == "SanityCheckingConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"

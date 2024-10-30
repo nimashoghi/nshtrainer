@@ -46,13 +46,12 @@ if TYPE_CHECKING:
     from nshtrainer.trainer._config import LoggingConfig as LoggingConfig
     from nshtrainer.trainer._config import MetricConfig as MetricConfig
     from nshtrainer.trainer._config import (
+        NormLoggingCallbackConfig as NormLoggingCallbackConfig,
+    )
+    from nshtrainer.trainer._config import (
         OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
     )
-    from nshtrainer.trainer._config import OptimizationConfig as OptimizationConfig
     from nshtrainer.trainer._config import ProfilerConfig as ProfilerConfig
-    from nshtrainer.trainer._config import (
-        ReproducibilityConfig as ReproducibilityConfig,
-    )
     from nshtrainer.trainer._config import (
         RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
     )
@@ -127,22 +126,18 @@ else:
             return importlib.import_module("nshtrainer.trainer._config").LoggingConfig
         if name == "MetricConfig":
             return importlib.import_module("nshtrainer.trainer._config").MetricConfig
+        if name == "NormLoggingCallbackConfig":
+            return importlib.import_module(
+                "nshtrainer.trainer._config"
+            ).NormLoggingCallbackConfig
         if name == "OnExceptionCheckpointCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).OnExceptionCheckpointCallbackConfig
-        if name == "OptimizationConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).OptimizationConfig
         if name == "RLPSanityChecksCallbackConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).RLPSanityChecksCallbackConfig
-        if name == "ReproducibilityConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).ReproducibilityConfig
         if name == "SanityCheckingConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"
