@@ -96,8 +96,8 @@ class OnExceptionCheckpointCallback(_OnExceptionCheckpoint):
     def on_exception(self, trainer: LightningTrainer, *args: Any, **kwargs: Any):
         # Monkey-patch the strategy instance to make the barrier operation a no-op.
         # We do this because `save_checkpoint` calls `barrier`. This is okay in most
-        # cases, but when we want to save a checkpoint in the case of an exception,
-        # `barrier` causes a deadlock. So we monkey-patch the strategy instance to
-        # make the barrier operation a no-op.
+        #   cases, but when we want to save a checkpoint in the case of an exception,
+        #   `barrier` causes a deadlock. So we monkey-patch the strategy instance to
+        #   make the barrier operation a no-op.
         with _monkey_patch_disable_barrier(trainer):
             return super().on_exception(trainer, *args, **kwargs)

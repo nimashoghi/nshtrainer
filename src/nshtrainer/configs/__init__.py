@@ -9,19 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from nshtrainer import MetricConfig as MetricConfig
     from nshtrainer import TrainerConfig as TrainerConfig
-    from nshtrainer._checkpoint.loader import (
-        BestCheckpointStrategyConfig as BestCheckpointStrategyConfig,
-    )
-    from nshtrainer._checkpoint.loader import (
-        CheckpointLoadingStrategyConfig as CheckpointLoadingStrategyConfig,
-    )
-    from nshtrainer._checkpoint.loader import CheckpointMetadata as CheckpointMetadata
-    from nshtrainer._checkpoint.loader import (
-        LastCheckpointStrategyConfig as LastCheckpointStrategyConfig,
-    )
-    from nshtrainer._checkpoint.loader import (
-        UserProvidedPathCheckpointStrategyConfig as UserProvidedPathCheckpointStrategyConfig,
-    )
+    from nshtrainer._checkpoint.metadata import CheckpointMetadata as CheckpointMetadata
     from nshtrainer._directory import DirectoryConfig as DirectoryConfig
     from nshtrainer._hf_hub import CallbackConfigBase as CallbackConfigBase
     from nshtrainer._hf_hub import (
@@ -123,9 +111,6 @@ if TYPE_CHECKING:
         CheckpointCallbackConfig as CheckpointCallbackConfig,
     )
     from nshtrainer.trainer._config import (
-        CheckpointLoadingConfig as CheckpointLoadingConfig,
-    )
-    from nshtrainer.trainer._config import (
         CheckpointSavingConfig as CheckpointSavingConfig,
     )
     from nshtrainer.trainer._config import EnvironmentConfig as EnvironmentConfig
@@ -199,21 +184,13 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks"
             ).BestCheckpointCallbackConfig
-        if name == "BestCheckpointStrategyConfig":
-            return importlib.import_module(
-                "nshtrainer._checkpoint.loader"
-            ).BestCheckpointStrategyConfig
         if name == "CSVLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").CSVLoggerConfig
         if name == "CallbackConfigBase":
             return importlib.import_module("nshtrainer._hf_hub").CallbackConfigBase
-        if name == "CheckpointLoadingConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).CheckpointLoadingConfig
         if name == "CheckpointMetadata":
             return importlib.import_module(
-                "nshtrainer._checkpoint.loader"
+                "nshtrainer._checkpoint.metadata"
             ).CheckpointMetadata
         if name == "CheckpointSavingConfig":
             return importlib.import_module(
@@ -317,10 +294,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.callbacks"
             ).LastCheckpointCallbackConfig
-        if name == "LastCheckpointStrategyConfig":
-            return importlib.import_module(
-                "nshtrainer._checkpoint.loader"
-            ).LastCheckpointStrategyConfig
         if name == "LeakyReLUNonlinearityConfig":
             return importlib.import_module("nshtrainer.nn").LeakyReLUNonlinearityConfig
         if name == "LearningRateMonitorConfig":
@@ -403,10 +376,6 @@ else:
             return importlib.import_module("nshtrainer.loggers").TensorboardLoggerConfig
         if name == "TrainerConfig":
             return importlib.import_module("nshtrainer").TrainerConfig
-        if name == "UserProvidedPathCheckpointStrategyConfig":
-            return importlib.import_module(
-                "nshtrainer._checkpoint.loader"
-            ).UserProvidedPathCheckpointStrategyConfig
         if name == "WandbLoggerConfig":
             return importlib.import_module("nshtrainer.loggers").WandbLoggerConfig
         if name == "WandbUploadCodeCallbackConfig":
@@ -423,10 +392,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).CheckpointCallbackConfig
-        if name == "CheckpointLoadingStrategyConfig":
-            return importlib.import_module(
-                "nshtrainer._checkpoint.loader"
-            ).CheckpointLoadingStrategyConfig
         if name == "DurationConfig":
             return importlib.import_module("nshtrainer.util.config").DurationConfig
         if name == "LRSchedulerConfig":

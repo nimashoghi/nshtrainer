@@ -32,7 +32,6 @@ from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.strategies.strategy import Strategy
 from typing_extensions import TypedDict, TypeVar, override
 
-from .._checkpoint.loader import CheckpointLoadingConfig
 from .._directory import DirectoryConfig
 from .._hf_hub import HuggingFaceHubConfig
 from ..callbacks import (
@@ -492,12 +491,6 @@ class TrainerConfig(C.Config):
 
     ckpt_path: Literal["none"] | str | Path | None = None
     """Path to a checkpoint to load and resume training from. If ``"none"``, will not load a checkpoint."""
-
-    checkpoint_loading: CheckpointLoadingConfig | Literal["auto", "none"] = "auto"
-    """Checkpoint loading configuration options.
-    `"auto"` will automatically determine the best checkpoint loading strategy based on the provided.
-    `"none"` will disable checkpoint loading.
-    """
 
     checkpoint_saving: CheckpointSavingConfig = CheckpointSavingConfig()
     """Checkpoint saving configuration options."""

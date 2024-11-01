@@ -18,9 +18,6 @@ if TYPE_CHECKING:
         CheckpointCallbackConfig as CheckpointCallbackConfig,
     )
     from nshtrainer.trainer._config import (
-        CheckpointLoadingConfig as CheckpointLoadingConfig,
-    )
-    from nshtrainer.trainer._config import (
         CheckpointSavingConfig as CheckpointSavingConfig,
     )
     from nshtrainer.trainer._config import CSVLoggerConfig as CSVLoggerConfig
@@ -91,10 +88,6 @@ else:
             return importlib.import_module(
                 "nshtrainer.trainer._config"
             ).CallbackConfigBase
-        if name == "CheckpointLoadingConfig":
-            return importlib.import_module(
-                "nshtrainer.trainer._config"
-            ).CheckpointLoadingConfig
         if name == "CheckpointSavingConfig":
             return importlib.import_module(
                 "nshtrainer.trainer._config"

@@ -29,7 +29,6 @@ from ._config import (
     TrainerConfig,
 )
 from ._runtime_callback import RuntimeTrackerCallback, Stage
-from .checkpoint_connector import _CheckpointConnector
 from .signal_connector import _SignalConnector
 
 log = logging.getLogger(__name__)
@@ -314,9 +313,6 @@ class Trainer(LightningTrainer):
         # Replace the signal connector with our own.
         self._signal_connector = _SignalConnector(self)
 
-        # Replace the checkpoint connector with our own.
-        self._checkpoint_connector = _CheckpointConnector(self)
-
         # Print out the log dir, so that we can easily find it in the logs.
         if log_dir := self.log_dir:
             log_dir = str(Path(log_dir).resolve())
@@ -441,19 +437,13 @@ class Trainer(LightningTrainer):
     ):
         filepath = Path(filepath)
 
-        # List of files that we should upload to HF
-        written_files: list[Path] = [filepath]
-
         super().save_checkpoint(filepath, weights_only, storage_options)
 
         # Save the checkpoint metadata
         metadata_path = None
         if self.hparams.save_checkpoint_metadata and self.is_global_zero:
             # Generate the metadata and write to disk
-            if (
-                metadata_path := _write_checkpoint_metadata(self, filepath)
-            ) is not None:
-                written_files.append(metadata_path)
+            metadata_path = _write_checkpoint_metadata(self, filepath)
 
         # Call the `on_checkpoint_saved` method on all callbacks
         from .. import _callback
