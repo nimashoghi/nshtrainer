@@ -134,6 +134,10 @@ class Trainer(LightningTrainer):
             for key, value in update.items():
                 _update_key(key, value)
 
+        # Set `barebones`
+        if hparams.barebones:
+            _update_kwargs(barebones=True)
+
         # Set `default_root_dir` if `auto_set_default_root_dir` is enabled.
         if hparams.auto_set_default_root_dir:
             if kwargs.get("default_root_dir"):
@@ -274,6 +278,12 @@ class Trainer(LightningTrainer):
         _update_kwargs(**hparams.lightning_kwargs)
         _update_kwargs(**kwargs_ctor)
 
+        # Handle barebones mode
+        if kwargs.get("barebones"):
+            # Remove the logger if it's an empty list
+            if (logger := kwargs.get("logger")) is not None and not logger:
+                kwargs["logger"] = None
+
         return kwargs
 
     if TYPE_CHECKING:
@@ -296,6 +306,7 @@ class Trainer(LightningTrainer):
                 f"Got {type(hparams)=} instead."
             )
         hparams = hparams.model_deep_validate()
+        hparams._nshtrainer_validate_before_run()
 
         self._pre_init(hparams)
 

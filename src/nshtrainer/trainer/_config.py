@@ -498,12 +498,23 @@ class TrainerConfig(C.Config):
     hf_hub: HuggingFaceHubConfig = HuggingFaceHubConfig()
     """Hugging Face Hub configuration options."""
 
-    loggers: Sequence[LoggerConfig] = [
-        WandbLoggerConfig(),
-        CSVLoggerConfig(),
-        TensorboardLoggerConfig(),
-    ]
+    loggers: Sequence[LoggerConfig] | None = None
     """Loggers to use for experiment tracking."""
+
+    def enabled_loggers(self) -> Sequence[LoggerConfig]:
+        # Default loggers
+        if (loggers := self.loggers) is None:
+            loggers = [
+                WandbLoggerConfig(),
+                CSVLoggerConfig(),
+                TensorboardLoggerConfig(),
+            ]
+
+        # In barebones mode, disable all loggers
+        if self.barebones:
+            loggers = []
+
+        return loggers
 
     actsave_logger: ActSaveLoggerConfig | None = None
     """If enabled, will automatically save logged metrics using ActSave (if nshutils is installed)."""
@@ -572,6 +583,23 @@ class TrainerConfig(C.Config):
     """Runs n if set to ``n`` (int) else 1 if set to ``True`` batch(es)
     of train, val and test to find any bugs (ie: a sort of unit test).
     Default: ``False``.
+    """
+
+    barebones: bool = False
+    """Whether to run in "barebones mode", where all features that may impact raw speed are
+    disabled. This is meant for analyzing the Trainer overhead and is discouraged during regular training
+    runs. The following features are deactivated:
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.enable_checkpointing`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.logger`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.enable_progress_bar`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.log_every_n_steps`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.enable_model_summary`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.num_sanity_val_steps`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.fast_dev_run`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.detect_anomaly`,
+    :paramref:`~lightning.pytorch.trainer.trainer.Trainer.profiler`,
+    :meth:`~lightning.pytorch.core.LightningModule.log`,
+    :meth:`~lightning.pytorch.core.LightningModule.log_dict`.
     """
 
     precision: (
@@ -704,9 +732,7 @@ class TrainerConfig(C.Config):
     automatic selection based on the chosen accelerator. Default: ``"auto"``.
     """
 
-    shared_parameters: SharedParametersCallbackConfig | None = (
-        SharedParametersCallbackConfig()
-    )
+    shared_parameters: SharedParametersCallbackConfig | None = None
     """If enabled, the model supports scaling the gradients of shared parameters that
     are registered in the self.shared_parameters list. This is useful for models that
     share parameters across multiple modules (e.g., in a GPT model) and want to
@@ -745,7 +771,7 @@ class TrainerConfig(C.Config):
         return next(
             (
                 logger
-                for logger in self.loggers
+                for logger in self.enabled_loggers()
                 if isinstance(logger, WandbLoggerConfig)
             ),
             None,
@@ -754,7 +780,11 @@ class TrainerConfig(C.Config):
     @property
     def csv_logger(self):
         return next(
-            (logger for logger in self.loggers if isinstance(logger, CSVLoggerConfig)),
+            (
+                logger
+                for logger in self.enabled_loggers()
+                if isinstance(logger, CSVLoggerConfig)
+            ),
             None,
         )
 
@@ -763,19 +793,23 @@ class TrainerConfig(C.Config):
         return next(
             (
                 logger
-                for logger in self.loggers
+                for logger in self.enabled_loggers()
                 if isinstance(logger, TensorboardLoggerConfig)
             ),
             None,
         )
 
     def _nshtrainer_all_callback_configs(self) -> Iterable[CallbackConfigBase | None]:
+        # Disable all callbacks if barebones mode is enabled
+        if self.barebones:
+            return
+
         yield self.early_stopping
         yield self.checkpoint_saving
         yield self.lr_monitor
         yield from (
             logger_config
-            for logger_config in self.loggers
+            for logger_config in self.enabled_loggers()
             if logger_config is not None
             and isinstance(logger_config, CallbackConfigBase)
         )
@@ -788,8 +822,17 @@ class TrainerConfig(C.Config):
         yield from self.callbacks
 
     def _nshtrainer_all_logger_configs(self) -> Iterable[BaseLoggerConfig | None]:
-        yield from self.loggers
+        # Disable all loggers if barebones mode is enabled
+        if self.barebones:
+            return
+
+        yield from self.enabled_loggers()
         yield self.actsave_logger
+
+    def _nshtrainer_validate_before_run(self):
+        # shared_parameters is not supported under barebones mode
+        if self.barebones and self.shared_parameters:
+            raise ValueError("shared_parameters is not supported under barebones mode")
 
     # region Helper Methods
     def fast_dev_run_(self, value: int | bool = True, /):
