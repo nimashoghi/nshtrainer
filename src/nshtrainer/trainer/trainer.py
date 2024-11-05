@@ -316,7 +316,16 @@ class Trainer(LightningTrainer):
         self._hparams = hparams
         self.debug = self.hparams.debug
 
+        experimental_profiler = None
+        if hparams.experimental_barebones_profiler_enabled:
+            experimental_profiler = kwargs.pop("profiler", None)
         super().__init__(**kwargs)
+
+        # Set up the profiler again
+        if experimental_profiler is not None:
+            from lightning.pytorch.trainer import setup
+
+            setup._init_profiler(self, experimental_profiler)
 
         # Add our own start time callback to measure the start time.
         self.callbacks.append(RuntimeTrackerCallback())

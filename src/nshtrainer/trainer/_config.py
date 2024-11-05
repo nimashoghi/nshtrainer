@@ -602,6 +602,10 @@ class TrainerConfig(C.Config):
     :meth:`~lightning.pytorch.core.LightningModule.log_dict`.
     """
 
+    experimental_barebones_profiler_enabled: bool = False
+    """If enabled, will enable the profiler in barebones mode.
+    The implementation of this is very hacky and may not work as expected."""
+
     precision: (
         Literal[
             "64-true",
