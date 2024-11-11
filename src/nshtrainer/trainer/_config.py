@@ -606,6 +606,10 @@ class TrainerConfig(C.Config):
     """If enabled, will enable the profiler in barebones mode.
     The implementation of this is very hacky and may not work as expected."""
 
+    experimental_barebones_progress_bar_enabled: bool = False
+    """If enabled, will enable the progress bar in barebones mode.
+    The implementation of this is very hacky and may not work as expected."""
+
     precision: (
         Literal[
             "64-true",

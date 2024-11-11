@@ -319,6 +319,16 @@ class Trainer(LightningTrainer):
         experimental_profiler = None
         if hparams.experimental_barebones_profiler_enabled:
             experimental_profiler = kwargs.pop("profiler", None)
+            log.warning(
+                "Barebones profiler is enabled. This is an experimental feature and may not work as expected."
+            )
+
+        experimental_barebones_progress_bar = None
+        if hparams.experimental_barebones_progress_bar_enabled:
+            experimental_barebones_progress_bar = kwargs.pop(
+                "enable_progress_bar", None
+            )
+
         super().__init__(**kwargs)
 
         # Set up the profiler again
@@ -326,6 +336,12 @@ class Trainer(LightningTrainer):
             from lightning.pytorch.trainer import setup
 
             setup._init_profiler(self, experimental_profiler)
+
+        # Set up the progress bar again
+        if experimental_barebones_progress_bar is not None:
+            self._callback_connector._configure_progress_bar(
+                experimental_barebones_progress_bar
+            )
 
         # Add our own start time callback to measure the start time.
         self.callbacks.append(RuntimeTrackerCallback())
