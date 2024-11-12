@@ -326,7 +326,7 @@ class Trainer(LightningTrainer):
         experimental_barebones_progress_bar = None
         if hparams.experimental_barebones_progress_bar_enabled:
             experimental_barebones_progress_bar = kwargs.pop(
-                "enable_progress_bar", None
+                "enable_progress_bar", True
             )
 
         super().__init__(**kwargs)
