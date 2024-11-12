@@ -64,6 +64,32 @@ class LoggerLightningModuleMixin(mixin_base_type(LightningModule)):
 
         self._logger_prefix_stack = deque[_LogContextKwargs]()
 
+    @property
+    def logging_enabled(self) -> bool:
+        # Logging is disabled in barebones mode.
+        if (trainer := self._trainer) is not None and trainer.barebones:
+            # Warn the user once that logging is disabled in barebones mode.
+            if not hasattr(self, "_barebones_logging_warned"):
+                rank_zero_warn(
+                    "Logging is disabled in barebones mode. "
+                    "This is to reduce the overhead of logging in barebones mode. "
+                    "If you want to enable logging, set `barebones=False` in the Trainer.",
+                )
+                self._barebones_logging_warned = True
+            return False
+
+        # If no loggers are registered, then logging is disabled.
+        if not self.logger:
+            return False
+
+        # Check if the topmost non-null context is disabled
+        for context in reversed(self._logger_prefix_stack):
+            if context.disabled is not None:
+                return not context.disabled
+
+        # Otherwise, logging is enabled.
+        return True
+
     @contextmanager
     def log_context(
         self,
@@ -121,21 +147,13 @@ class LoggerLightningModuleMixin(mixin_base_type(LightningModule)):
         metric_attribute: str | None = None,
         rank_zero_only: bool = False,
     ) -> None:
+        # If logging is disabled, then do nothing.
+        if not self.logging_enabled:
+            return
+
         # join all prefixes
         prefix = "".join(c.prefix for c in self._logger_prefix_stack if c.prefix)
         name = f"{prefix}{name}"
-
-        # check for disabled context:
-        # if the topmost non-null context is disabled, then we don't log
-        for c in reversed(self._logger_prefix_stack):
-            if c.disabled is not None:
-                if c.disabled:
-                    rank_zero_warn(
-                        f"Skipping logging of {name} due to disabled context"
-                    )
-                    return
-                else:
-                    break
 
         fn_kwargs = _LogContextKwargs()
         for c in self._logger_prefix_stack:
