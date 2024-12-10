@@ -82,6 +82,13 @@ class PluginConfigBase(C.Config, ABC):
 
 
 plugin_registry = C.Registry(PluginConfigBase, discriminator="name")
+PluginConfig = TypeAliasType(
+    "PluginConfig", Annotated[PluginConfigBase, plugin_registry.DynamicResolution()]
+)
+
+AcceleratorLiteral = TypeAliasType(
+    "AcceleratorLiteral", Literal["cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto"]
+)
 
 
 class AcceleratorConfigBase(C.Config, ABC):
@@ -90,18 +97,9 @@ class AcceleratorConfigBase(C.Config, ABC):
 
 
 accelerator_registry = C.Registry(AcceleratorConfigBase, discriminator="name")
-
-
-class StrategyConfigBase(C.Config, ABC):
-    @abstractmethod
-    def create_strategy(self) -> Strategy: ...
-
-
-strategy_registry = C.Registry(StrategyConfigBase, discriminator="name")
-
-
-AcceleratorLiteral = TypeAliasType(
-    "AcceleratorLiteral", Literal["cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto"]
+AcceleratorConfig = TypeAliasType(
+    "AcceleratorConfig",
+    Annotated[AcceleratorConfigBase, accelerator_registry.DynamicResolution()],
 )
 
 StrategyLiteral = TypeAliasType(
@@ -136,6 +134,17 @@ StrategyLiteral = TypeAliasType(
     ],
 )
 
+
+class StrategyConfigBase(C.Config, ABC):
+    @abstractmethod
+    def create_strategy(self) -> Strategy: ...
+
+
+strategy_registry = C.Registry(StrategyConfigBase, discriminator="name")
+StrategyConfig = TypeAliasType(
+    "StrategyConfig",
+    Annotated[StrategyConfigBase, strategy_registry.DynamicResolution()],
+)
 
 CheckpointCallbackConfig = TypeAliasType(
     "CheckpointCallbackConfig",
@@ -578,9 +587,7 @@ class TrainerConfig(C.Config):
     Default: ``False``.
     """
 
-    plugins: (
-        list[Annotated[PluginConfigBase, plugin_registry.DynamicResolution()]] | None
-    ) = None
+    plugins: list[PluginConfig] | None = None
     """
     Plugins allow modification of core behavior like ddp and amp, and enable custom lightning plugins.
         Default: ``None``.
@@ -740,21 +747,13 @@ class TrainerConfig(C.Config):
     Default: ``True``.
     """
 
-    accelerator: (
-        Annotated[AcceleratorConfigBase, accelerator_registry.DynamicResolution()]
-        | AcceleratorLiteral
-        | None
-    ) = None
+    accelerator: AcceleratorConfig | AcceleratorLiteral | None = None
     """Supports passing different accelerator types ("cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto")
     as well as custom accelerator instances.
     Default: ``"auto"``.
     """
 
-    strategy: (
-        Annotated[StrategyConfigBase, strategy_registry.DynamicResolution()]
-        | StrategyLiteral
-        | None
-    ) = None
+    strategy: StrategyConfig | StrategyLiteral | None = None
     """Supports different training strategies with aliases as well custom strategies.
     Default: ``"auto"``.
     """
