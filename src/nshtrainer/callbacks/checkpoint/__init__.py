@@ -14,3 +14,7 @@ from .on_exception_checkpoint import (
 from .on_exception_checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
+from .time_checkpoint import TimeCheckpointCallback as TimeCheckpointCallback
+from .time_checkpoint import (
+    TimeCheckpointCallbackConfig as TimeCheckpointCallbackConfig,
+)

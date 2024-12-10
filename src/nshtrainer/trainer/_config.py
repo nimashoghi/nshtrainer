@@ -42,6 +42,7 @@ from ..callbacks import (
     OnExceptionCheckpointCallbackConfig,
 )
 from ..callbacks.base import CallbackConfigBase
+from ..callbacks.checkpoint.time_checkpoint import TimeCheckpointCallbackConfig
 from ..callbacks.debug_flag import DebugFlagCallbackConfig
 from ..callbacks.log_epoch import LogEpochCallbackConfig
 from ..callbacks.lr_monitor import LearningRateMonitorConfig
@@ -137,7 +138,8 @@ StrategyLiteral: TypeAlias = Literal[
 CheckpointCallbackConfig: TypeAlias = Annotated[
     BestCheckpointCallbackConfig
     | LastCheckpointCallbackConfig
-    | OnExceptionCheckpointCallbackConfig,
+    | OnExceptionCheckpointCallbackConfig
+    | TimeCheckpointCallbackConfig,
     C.Field(discriminator="name"),
 ]
 
@@ -150,6 +152,7 @@ class CheckpointSavingConfig(CallbackConfigBase):
         BestCheckpointCallbackConfig(throw_on_no_metric=False),
         LastCheckpointCallbackConfig(),
         OnExceptionCheckpointCallbackConfig(),
+        TimeCheckpointCallbackConfig(interval=timedelta(hours=12)),
     ]
     """Checkpoint callback configurations."""
 

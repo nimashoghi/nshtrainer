@@ -6,8 +6,7 @@ from typing import Literal
 from lightning.pytorch import LightningModule, Trainer
 from typing_extensions import final, override
 
-from nshtrainer._checkpoint.metadata import CheckpointMetadata
-
+from ..._checkpoint.metadata import CheckpointMetadata
 from ._base import BaseCheckpointCallbackConfig, CheckpointBase
 
 log = logging.getLogger(__name__)
