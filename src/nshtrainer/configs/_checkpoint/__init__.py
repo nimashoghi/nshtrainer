@@ -6,3 +6,9 @@ from nshtrainer._checkpoint.metadata import CheckpointMetadata as CheckpointMeta
 from nshtrainer._checkpoint.metadata import EnvironmentConfig as EnvironmentConfig
 
 from . import metadata as metadata
+
+__all__ = [
+    "CheckpointMetadata",
+    "EnvironmentConfig",
+    "metadata",
+]

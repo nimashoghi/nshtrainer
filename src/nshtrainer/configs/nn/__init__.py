@@ -8,7 +8,6 @@ from nshtrainer.nn import GELUNonlinearityConfig as GELUNonlinearityConfig
 from nshtrainer.nn import LeakyReLUNonlinearityConfig as LeakyReLUNonlinearityConfig
 from nshtrainer.nn import MishNonlinearityConfig as MishNonlinearityConfig
 from nshtrainer.nn import MLPConfig as MLPConfig
-from nshtrainer.nn import NonlinearityConfig as NonlinearityConfig
 from nshtrainer.nn import PReLUConfig as PReLUConfig
 from nshtrainer.nn import ReLUNonlinearityConfig as ReLUNonlinearityConfig
 from nshtrainer.nn import SigmoidNonlinearityConfig as SigmoidNonlinearityConfig
@@ -24,3 +23,24 @@ from nshtrainer.nn.nonlinearity import (
 
 from . import mlp as mlp
 from . import nonlinearity as nonlinearity
+
+__all__ = [
+    "BaseNonlinearityConfig",
+    "ELUNonlinearityConfig",
+    "GELUNonlinearityConfig",
+    "LeakyReLUNonlinearityConfig",
+    "MLPConfig",
+    "MishNonlinearityConfig",
+    "PReLUConfig",
+    "ReLUNonlinearityConfig",
+    "SiLUNonlinearityConfig",
+    "SigmoidNonlinearityConfig",
+    "SoftmaxNonlinearityConfig",
+    "SoftplusNonlinearityConfig",
+    "SoftsignNonlinearityConfig",
+    "SwiGLUNonlinearityConfig",
+    "SwishNonlinearityConfig",
+    "TanhNonlinearityConfig",
+    "mlp",
+    "nonlinearity",
+]

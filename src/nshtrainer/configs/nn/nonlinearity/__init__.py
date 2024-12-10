@@ -9,7 +9,6 @@ from nshtrainer.nn.nonlinearity import (
     LeakyReLUNonlinearityConfig as LeakyReLUNonlinearityConfig,
 )
 from nshtrainer.nn.nonlinearity import MishNonlinearityConfig as MishNonlinearityConfig
-from nshtrainer.nn.nonlinearity import NonlinearityConfig as NonlinearityConfig
 from nshtrainer.nn.nonlinearity import PReLUConfig as PReLUConfig
 from nshtrainer.nn.nonlinearity import ReLUNonlinearityConfig as ReLUNonlinearityConfig
 from nshtrainer.nn.nonlinearity import (
@@ -32,3 +31,21 @@ from nshtrainer.nn.nonlinearity import (
     SwishNonlinearityConfig as SwishNonlinearityConfig,
 )
 from nshtrainer.nn.nonlinearity import TanhNonlinearityConfig as TanhNonlinearityConfig
+
+__all__ = [
+    "BaseNonlinearityConfig",
+    "ELUNonlinearityConfig",
+    "GELUNonlinearityConfig",
+    "LeakyReLUNonlinearityConfig",
+    "MishNonlinearityConfig",
+    "PReLUConfig",
+    "ReLUNonlinearityConfig",
+    "SiLUNonlinearityConfig",
+    "SigmoidNonlinearityConfig",
+    "SoftmaxNonlinearityConfig",
+    "SoftplusNonlinearityConfig",
+    "SoftsignNonlinearityConfig",
+    "SwiGLUNonlinearityConfig",
+    "SwishNonlinearityConfig",
+    "TanhNonlinearityConfig",
+]

@@ -31,3 +31,17 @@ from nshtrainer.util._environment_info import (
     EnvironmentSnapshotConfig as EnvironmentSnapshotConfig,
 )
 from nshtrainer.util._environment_info import GitRepositoryConfig as GitRepositoryConfig
+
+__all__ = [
+    "EnvironmentCUDAConfig",
+    "EnvironmentClassInformationConfig",
+    "EnvironmentConfig",
+    "EnvironmentGPUConfig",
+    "EnvironmentHardwareConfig",
+    "EnvironmentLSFInformationConfig",
+    "EnvironmentLinuxEnvironmentConfig",
+    "EnvironmentPackageConfig",
+    "EnvironmentSLURMInformationConfig",
+    "EnvironmentSnapshotConfig",
+    "GitRepositoryConfig",
+]

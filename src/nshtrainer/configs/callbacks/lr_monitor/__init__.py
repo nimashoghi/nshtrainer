@@ -6,3 +6,8 @@ from nshtrainer.callbacks.lr_monitor import CallbackConfigBase as CallbackConfig
 from nshtrainer.callbacks.lr_monitor import (
     LearningRateMonitorConfig as LearningRateMonitorConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "LearningRateMonitorConfig",
+]

@@ -6,3 +6,8 @@ from nshtrainer.callbacks.norm_logging import CallbackConfigBase as CallbackConf
 from nshtrainer.callbacks.norm_logging import (
     NormLoggingCallbackConfig as NormLoggingCallbackConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "NormLoggingCallbackConfig",
+]

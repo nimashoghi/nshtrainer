@@ -6,3 +6,8 @@ from nshtrainer.callbacks.wandb_watch import CallbackConfigBase as CallbackConfi
 from nshtrainer.callbacks.wandb_watch import (
     WandbWatchCallbackConfig as WandbWatchCallbackConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "WandbWatchCallbackConfig",
+]

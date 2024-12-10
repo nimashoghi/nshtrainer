@@ -8,3 +8,8 @@ from nshtrainer.callbacks.wandb_upload_code import (
 from nshtrainer.callbacks.wandb_upload_code import (
     WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "WandbUploadCodeCallbackConfig",
+]

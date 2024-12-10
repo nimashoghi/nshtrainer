@@ -8,3 +8,8 @@ from nshtrainer.callbacks.shared_parameters import (
 from nshtrainer.callbacks.shared_parameters import (
     SharedParametersCallbackConfig as SharedParametersCallbackConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "SharedParametersCallbackConfig",
+]

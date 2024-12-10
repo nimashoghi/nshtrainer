@@ -6,3 +6,8 @@ from nshtrainer.callbacks.log_epoch import CallbackConfigBase as CallbackConfigB
 from nshtrainer.callbacks.log_epoch import (
     LogEpochCallbackConfig as LogEpochCallbackConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "LogEpochCallbackConfig",
+]

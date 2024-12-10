@@ -5,6 +5,7 @@ import logging
 import os
 import string
 import time
+from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from datetime import timedelta
 from pathlib import Path
@@ -13,9 +14,7 @@ from typing import (
     Any,
     ClassVar,
     Literal,
-    Protocol,
     TypeAlias,
-    runtime_checkable,
 )
 
 import nshconfig as C
@@ -30,7 +29,7 @@ from lightning.pytorch.plugins.layer_sync import LayerSync
 from lightning.pytorch.plugins.precision.precision import Precision
 from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.strategies.strategy import Strategy
-from typing_extensions import TypedDict, TypeVar, override
+from typing_extensions import TypeAliasType, TypedDict, override
 
 from .._directory import DirectoryConfig
 from .._hf_hub import HuggingFaceHubConfig
@@ -72,29 +71,33 @@ class GradientClippingConfig(C.Config):
     """Norm type to use for gradient clipping."""
 
 
-TPlugin = TypeVar(
-    "TPlugin",
-    Precision,
-    ClusterEnvironment,
-    CheckpointIO,
-    LayerSync,
-    infer_variance=True,
+Plugin = TypeAliasType(
+    "Plugin", Precision | ClusterEnvironment | CheckpointIO | LayerSync
 )
 
 
-@runtime_checkable
-class PluginConfigProtocol(Protocol[TPlugin]):
-    def create_plugin(self) -> TPlugin: ...
+class PluginConfigBase(C.Config, ABC):
+    @abstractmethod
+    def create_plugin(self) -> Plugin: ...
 
 
-@runtime_checkable
-class AcceleratorConfigProtocol(Protocol):
+plugin_registry = C.Registry(PluginConfigBase, discriminator="name")
+
+
+class AcceleratorConfigBase(C.Config, ABC):
+    @abstractmethod
     def create_accelerator(self) -> Accelerator: ...
 
 
-@runtime_checkable
-class StrategyConfigProtocol(Protocol):
+accelerator_registry = C.Registry(AcceleratorConfigBase, discriminator="name")
+
+
+class StrategyConfigBase(C.Config, ABC):
+    @abstractmethod
     def create_strategy(self) -> Strategy: ...
+
+
+strategy_registry = C.Registry(StrategyConfigBase, discriminator="name")
 
 
 AcceleratorLiteral: TypeAlias = Literal[
@@ -420,6 +423,9 @@ class SanityCheckingConfig(C.Config):
     """
 
 
+@plugin_registry.rebuild_on_registers
+@strategy_registry.rebuild_on_registers
+@accelerator_registry.rebuild_on_registers
 class TrainerConfig(C.Config):
     # region Active Run Configuration
     id: str = C.Field(default_factory=lambda: TrainerConfig.generate_id())
@@ -564,7 +570,9 @@ class TrainerConfig(C.Config):
     Default: ``False``.
     """
 
-    plugins: list[PluginConfigProtocol] | None = None
+    plugins: (
+        list[Annotated[PluginConfigBase, plugin_registry.DynamicResolution()]] | None
+    ) = None
     """
     Plugins allow modification of core behavior like ddp and amp, and enable custom lightning plugins.
         Default: ``None``.
@@ -724,13 +732,21 @@ class TrainerConfig(C.Config):
     Default: ``True``.
     """
 
-    accelerator: AcceleratorConfigProtocol | AcceleratorLiteral | None = None
+    accelerator: (
+        Annotated[AcceleratorConfigBase, accelerator_registry.DynamicResolution()]
+        | AcceleratorLiteral
+        | None
+    ) = None
     """Supports passing different accelerator types ("cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto")
     as well as custom accelerator instances.
     Default: ``"auto"``.
     """
 
-    strategy: StrategyConfigProtocol | StrategyLiteral | None = None
+    strategy: (
+        Annotated[StrategyConfigBase, strategy_registry.DynamicResolution()]
+        | StrategyLiteral
+        | None
+    ) = None
     """Supports different training strategies with aliases as well custom strategies.
     Default: ``"auto"``.
     """

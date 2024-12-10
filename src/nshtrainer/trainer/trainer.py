@@ -23,9 +23,9 @@ from ..callbacks.base import resolve_all_callbacks
 from ..util._environment_info import EnvironmentConfig
 from ..util.bf16 import is_bf16_supported_no_emulation
 from ._config import (
-    AcceleratorConfigProtocol,
+    AcceleratorConfigBase,
     LightningTrainerKwargs,
-    StrategyConfigProtocol,
+    StrategyConfigBase,
     TrainerConfig,
 )
 from ._runtime_callback import RuntimeTrackerCallback, Stage
@@ -171,12 +171,12 @@ class Trainer(LightningTrainer):
             _update_kwargs(use_distributed_sampler=use_distributed_sampler)
 
         if (accelerator := hparams.accelerator) is not None:
-            if isinstance(accelerator, AcceleratorConfigProtocol):
+            if isinstance(accelerator, AcceleratorConfigBase):
                 accelerator = accelerator.create_accelerator()
             _update_kwargs(accelerator=accelerator)
 
         if (strategy := hparams.strategy) is not None:
-            if isinstance(strategy, StrategyConfigProtocol):
+            if isinstance(strategy, StrategyConfigBase):
                 strategy = strategy.create_strategy()
             _update_kwargs(strategy=strategy)
 

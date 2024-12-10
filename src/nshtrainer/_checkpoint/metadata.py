@@ -55,7 +55,7 @@ class CheckpointMetadata(C.Config):
     metrics: dict[str, Any]
     environment: EnvironmentConfig
 
-    hparams: Any
+    hparams: Any | None
 
     @classmethod
     def from_file(cls, path: Path):

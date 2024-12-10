@@ -11,3 +11,11 @@ from nshtrainer.loggers.wandb import (
 from nshtrainer.loggers.wandb import (
     WandbWatchCallbackConfig as WandbWatchCallbackConfig,
 )
+
+__all__ = [
+    "BaseLoggerConfig",
+    "CallbackConfigBase",
+    "WandbLoggerConfig",
+    "WandbUploadCodeCallbackConfig",
+    "WandbWatchCallbackConfig",
+]

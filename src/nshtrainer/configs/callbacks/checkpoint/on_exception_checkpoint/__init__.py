@@ -8,3 +8,8 @@ from nshtrainer.callbacks.checkpoint.on_exception_checkpoint import (
 from nshtrainer.callbacks.checkpoint.on_exception_checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "OnExceptionCheckpointCallbackConfig",
+]

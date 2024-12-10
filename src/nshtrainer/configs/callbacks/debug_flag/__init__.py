@@ -6,3 +6,8 @@ from nshtrainer.callbacks.debug_flag import CallbackConfigBase as CallbackConfig
 from nshtrainer.callbacks.debug_flag import (
     DebugFlagCallbackConfig as DebugFlagCallbackConfig,
 )
+
+__all__ = [
+    "CallbackConfigBase",
+    "DebugFlagCallbackConfig",
+]
