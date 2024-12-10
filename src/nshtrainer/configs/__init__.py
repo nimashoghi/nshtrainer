@@ -4,6 +4,8 @@ __codegen__ = True
 
 from nshtrainer import MetricConfig as MetricConfig
 from nshtrainer import TrainerConfig as TrainerConfig
+from nshtrainer import accelerator_registry as accelerator_registry
+from nshtrainer import plugin_registry as plugin_registry
 from nshtrainer._checkpoint.metadata import CheckpointMetadata as CheckpointMetadata
 from nshtrainer._directory import DirectoryConfig as DirectoryConfig
 from nshtrainer._hf_hub import CallbackConfigBase as CallbackConfigBase
@@ -97,7 +99,7 @@ from nshtrainer.profiler import BaseProfilerConfig as BaseProfilerConfig
 from nshtrainer.profiler import ProfilerConfig as ProfilerConfig
 from nshtrainer.profiler import PyTorchProfilerConfig as PyTorchProfilerConfig
 from nshtrainer.profiler import SimpleProfilerConfig as SimpleProfilerConfig
-from nshtrainer.trainer._config import AcceleratorConfigBase as AcceleratorConfigBase
+from nshtrainer.trainer._config import AcceleratorConfig as AcceleratorConfig
 from nshtrainer.trainer._config import (
     CheckpointCallbackConfig as CheckpointCallbackConfig,
 )
@@ -107,9 +109,71 @@ from nshtrainer.trainer._config import GradientClippingConfig as GradientClippin
 from nshtrainer.trainer._config import (
     LearningRateMonitorConfig as LearningRateMonitorConfig,
 )
-from nshtrainer.trainer._config import PluginConfigBase as PluginConfigBase
 from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
-from nshtrainer.trainer._config import StrategyConfigBase as StrategyConfigBase
+from nshtrainer.trainer._config import StrategyConfig as StrategyConfig
+from nshtrainer.trainer.accelerator import CPUAcceleratorConfig as CPUAcceleratorConfig
+from nshtrainer.trainer.accelerator import (
+    CUDAAcceleratorConfig as CUDAAcceleratorConfig,
+)
+from nshtrainer.trainer.accelerator import MPSAcceleratorConfig as MPSAcceleratorConfig
+from nshtrainer.trainer.accelerator import XLAAcceleratorConfig as XLAAcceleratorConfig
+from nshtrainer.trainer.plugin import PluginConfig as PluginConfig
+from nshtrainer.trainer.plugin import PluginConfigBase as PluginConfigBase
+from nshtrainer.trainer.plugin.environment import (
+    KubeflowEnvironmentPlugin as KubeflowEnvironmentPlugin,
+)
+from nshtrainer.trainer.plugin.environment import (
+    LightningEnvironmentPlugin as LightningEnvironmentPlugin,
+)
+from nshtrainer.trainer.plugin.environment import (
+    LSFEnvironmentPlugin as LSFEnvironmentPlugin,
+)
+from nshtrainer.trainer.plugin.environment import (
+    MPIEnvironmentPlugin as MPIEnvironmentPlugin,
+)
+from nshtrainer.trainer.plugin.environment import (
+    SLURMEnvironmentPlugin as SLURMEnvironmentPlugin,
+)
+from nshtrainer.trainer.plugin.environment import (
+    TorchElasticEnvironmentPlugin as TorchElasticEnvironmentPlugin,
+)
+from nshtrainer.trainer.plugin.environment import (
+    XLAEnvironmentPlugin as XLAEnvironmentPlugin,
+)
+from nshtrainer.trainer.plugin.io import (
+    AsyncCheckpointIOPlugin as AsyncCheckpointIOPlugin,
+)
+from nshtrainer.trainer.plugin.io import (
+    TorchCheckpointIOPlugin as TorchCheckpointIOPlugin,
+)
+from nshtrainer.trainer.plugin.io import XLACheckpointIOPlugin as XLACheckpointIOPlugin
+from nshtrainer.trainer.plugin.layer_sync import (
+    TorchSyncBatchNormPlugin as TorchSyncBatchNormPlugin,
+)
+from nshtrainer.trainer.plugin.precision import (
+    BitsandbytesPluginConfig as BitsandbytesPluginConfig,
+)
+from nshtrainer.trainer.plugin.precision import (
+    DeepSpeedPluginConfig as DeepSpeedPluginConfig,
+)
+from nshtrainer.trainer.plugin.precision import (
+    DoublePrecisionPluginConfig as DoublePrecisionPluginConfig,
+)
+from nshtrainer.trainer.plugin.precision import (
+    FSDPPrecisionPluginConfig as FSDPPrecisionPluginConfig,
+)
+from nshtrainer.trainer.plugin.precision import (
+    HalfPrecisionPluginConfig as HalfPrecisionPluginConfig,
+)
+from nshtrainer.trainer.plugin.precision import (
+    MixedPrecisionPluginConfig as MixedPrecisionPluginConfig,
+)
+from nshtrainer.trainer.plugin.precision import (
+    TransformerEnginePluginConfig as TransformerEnginePluginConfig,
+)
+from nshtrainer.trainer.plugin.precision import XLAPluginConfig as XLAPluginConfig
+from nshtrainer.trainer.trainer import AcceleratorConfigBase as AcceleratorConfigBase
+from nshtrainer.trainer.trainer import StrategyConfigBase as StrategyConfigBase
 from nshtrainer.util._environment_info import (
     EnvironmentClassInformationConfig as EnvironmentClassInformationConfig,
 )
@@ -157,17 +221,22 @@ from . import trainer as trainer
 from . import util as util
 
 __all__ = [
+    "AcceleratorConfig",
     "AcceleratorConfigBase",
     "ActSaveConfig",
     "ActSaveLoggerConfig",
     "AdamWConfig",
     "AdvancedProfilerConfig",
+    "AsyncCheckpointIOPlugin",
     "BaseCheckpointCallbackConfig",
     "BaseLoggerConfig",
     "BaseNonlinearityConfig",
     "BaseProfilerConfig",
     "BestCheckpointCallbackConfig",
+    "BitsandbytesPluginConfig",
+    "CPUAcceleratorConfig",
     "CSVLoggerConfig",
+    "CUDAAcceleratorConfig",
     "CallbackConfig",
     "CallbackConfigBase",
     "CheckpointCallbackConfig",
@@ -175,8 +244,10 @@ __all__ = [
     "CheckpointSavingConfig",
     "DTypeConfig",
     "DebugFlagCallbackConfig",
+    "DeepSpeedPluginConfig",
     "DirectoryConfig",
     "DirectorySetupCallbackConfig",
+    "DoublePrecisionPluginConfig",
     "DurationConfig",
     "ELUNonlinearityConfig",
     "EMACallbackConfig",
@@ -193,30 +264,39 @@ __all__ = [
     "EnvironmentSnapshotConfig",
     "EpochTimerCallbackConfig",
     "EpochsConfig",
+    "FSDPPrecisionPluginConfig",
     "FiniteChecksCallbackConfig",
     "GELUNonlinearityConfig",
     "GitRepositoryConfig",
     "GradientClippingConfig",
     "GradientSkippingCallbackConfig",
+    "HalfPrecisionPluginConfig",
     "HuggingFaceHubAutoCreateConfig",
     "HuggingFaceHubConfig",
+    "KubeflowEnvironmentPlugin",
     "LRSchedulerConfig",
     "LRSchedulerConfigBase",
+    "LSFEnvironmentPlugin",
     "LastCheckpointCallbackConfig",
     "LeakyReLUNonlinearityConfig",
     "LearningRateMonitorConfig",
+    "LightningEnvironmentPlugin",
     "LinearWarmupCosineDecayLRSchedulerConfig",
     "LogEpochCallbackConfig",
     "LoggerConfig",
     "MLPConfig",
+    "MPIEnvironmentPlugin",
+    "MPSAcceleratorConfig",
     "MetricConfig",
     "MishNonlinearityConfig",
+    "MixedPrecisionPluginConfig",
     "NonlinearityConfig",
     "NormLoggingCallbackConfig",
     "OnExceptionCheckpointCallbackConfig",
     "OptimizerConfig",
     "OptimizerConfigBase",
     "PReLUConfig",
+    "PluginConfig",
     "PluginConfigBase",
     "PrintTableMetricsCallbackConfig",
     "ProfilerConfig",
@@ -224,6 +304,7 @@ __all__ = [
     "RLPSanityChecksCallbackConfig",
     "ReLUNonlinearityConfig",
     "ReduceLROnPlateauConfig",
+    "SLURMEnvironmentPlugin",
     "SanityCheckingConfig",
     "SharedParametersCallbackConfig",
     "SiLUNonlinearityConfig",
@@ -233,25 +314,36 @@ __all__ = [
     "SoftplusNonlinearityConfig",
     "SoftsignNonlinearityConfig",
     "StepsConfig",
+    "StrategyConfig",
     "StrategyConfigBase",
     "SwiGLUNonlinearityConfig",
     "SwishNonlinearityConfig",
     "TanhNonlinearityConfig",
     "TensorboardLoggerConfig",
     "TimeCheckpointCallbackConfig",
+    "TorchCheckpointIOPlugin",
+    "TorchElasticEnvironmentPlugin",
+    "TorchSyncBatchNormPlugin",
     "TrainerConfig",
+    "TransformerEnginePluginConfig",
     "WandbLoggerConfig",
     "WandbUploadCodeCallbackConfig",
     "WandbWatchCallbackConfig",
+    "XLAAcceleratorConfig",
+    "XLACheckpointIOPlugin",
+    "XLAEnvironmentPlugin",
+    "XLAPluginConfig",
     "_checkpoint",
     "_directory",
     "_hf_hub",
+    "accelerator_registry",
     "callbacks",
     "loggers",
     "lr_scheduler",
     "metrics",
     "nn",
     "optimizer",
+    "plugin_registry",
     "profiler",
     "trainer",
     "util",

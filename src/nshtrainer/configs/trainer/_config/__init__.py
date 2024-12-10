@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __codegen__ = True
 
-from nshtrainer.trainer._config import AcceleratorConfigBase as AcceleratorConfigBase
+from nshtrainer.trainer._config import AcceleratorConfig as AcceleratorConfig
 from nshtrainer.trainer._config import ActSaveLoggerConfig as ActSaveLoggerConfig
 from nshtrainer.trainer._config import BaseLoggerConfig as BaseLoggerConfig
 from nshtrainer.trainer._config import (
@@ -40,7 +40,7 @@ from nshtrainer.trainer._config import (
 from nshtrainer.trainer._config import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
-from nshtrainer.trainer._config import PluginConfigBase as PluginConfigBase
+from nshtrainer.trainer._config import PluginConfig as PluginConfig
 from nshtrainer.trainer._config import ProfilerConfig as ProfilerConfig
 from nshtrainer.trainer._config import (
     RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
@@ -49,7 +49,7 @@ from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingCon
 from nshtrainer.trainer._config import (
     SharedParametersCallbackConfig as SharedParametersCallbackConfig,
 )
-from nshtrainer.trainer._config import StrategyConfigBase as StrategyConfigBase
+from nshtrainer.trainer._config import StrategyConfig as StrategyConfig
 from nshtrainer.trainer._config import (
     TensorboardLoggerConfig as TensorboardLoggerConfig,
 )
@@ -58,9 +58,11 @@ from nshtrainer.trainer._config import (
 )
 from nshtrainer.trainer._config import TrainerConfig as TrainerConfig
 from nshtrainer.trainer._config import WandbLoggerConfig as WandbLoggerConfig
+from nshtrainer.trainer._config import accelerator_registry as accelerator_registry
+from nshtrainer.trainer._config import plugin_registry as plugin_registry
 
 __all__ = [
-    "AcceleratorConfigBase",
+    "AcceleratorConfig",
     "ActSaveLoggerConfig",
     "BaseLoggerConfig",
     "BestCheckpointCallbackConfig",
@@ -82,14 +84,16 @@ __all__ = [
     "MetricConfig",
     "NormLoggingCallbackConfig",
     "OnExceptionCheckpointCallbackConfig",
-    "PluginConfigBase",
+    "PluginConfig",
     "ProfilerConfig",
     "RLPSanityChecksCallbackConfig",
     "SanityCheckingConfig",
     "SharedParametersCallbackConfig",
-    "StrategyConfigBase",
+    "StrategyConfig",
     "TensorboardLoggerConfig",
     "TimeCheckpointCallbackConfig",
     "TrainerConfig",
     "WandbLoggerConfig",
+    "accelerator_registry",
+    "plugin_registry",
 ]
