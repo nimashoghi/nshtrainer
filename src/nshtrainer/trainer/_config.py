@@ -14,7 +14,6 @@ from typing import (
     Any,
     ClassVar,
     Literal,
-    TypeAlias,
 )
 
 import nshconfig as C
@@ -101,47 +100,53 @@ class StrategyConfigBase(C.Config, ABC):
 strategy_registry = C.Registry(StrategyConfigBase, discriminator="name")
 
 
-AcceleratorLiteral: TypeAlias = Literal[
-    "cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto"
-]
+AcceleratorLiteral = TypeAliasType(
+    "AcceleratorLiteral", Literal["cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto"]
+)
 
-StrategyLiteral: TypeAlias = Literal[
-    "auto",
-    "ddp",
-    "ddp_find_unused_parameters_false",
-    "ddp_find_unused_parameters_true",
-    "ddp_spawn",
-    "ddp_spawn_find_unused_parameters_false",
-    "ddp_spawn_find_unused_parameters_true",
-    "ddp_fork",
-    "ddp_fork_find_unused_parameters_false",
-    "ddp_fork_find_unused_parameters_true",
-    "ddp_notebook",
-    "dp",
-    "deepspeed",
-    "deepspeed_stage_1",
-    "deepspeed_stage_1_offload",
-    "deepspeed_stage_2",
-    "deepspeed_stage_2_offload",
-    "deepspeed_stage_3",
-    "deepspeed_stage_3_offload",
-    "deepspeed_stage_3_offload_nvme",
-    "fsdp",
-    "fsdp_cpu_offload",
-    "single_xla",
-    "xla_fsdp",
-    "xla",
-    "single_tpu",
-]
+StrategyLiteral = TypeAliasType(
+    "StrategyLiteral",
+    Literal[
+        "auto",
+        "ddp",
+        "ddp_find_unused_parameters_false",
+        "ddp_find_unused_parameters_true",
+        "ddp_spawn",
+        "ddp_spawn_find_unused_parameters_false",
+        "ddp_spawn_find_unused_parameters_true",
+        "ddp_fork",
+        "ddp_fork_find_unused_parameters_false",
+        "ddp_fork_find_unused_parameters_true",
+        "ddp_notebook",
+        "dp",
+        "deepspeed",
+        "deepspeed_stage_1",
+        "deepspeed_stage_1_offload",
+        "deepspeed_stage_2",
+        "deepspeed_stage_2_offload",
+        "deepspeed_stage_3",
+        "deepspeed_stage_3_offload",
+        "deepspeed_stage_3_offload_nvme",
+        "fsdp",
+        "fsdp_cpu_offload",
+        "single_xla",
+        "xla_fsdp",
+        "xla",
+        "single_tpu",
+    ],
+)
 
 
-CheckpointCallbackConfig: TypeAlias = Annotated[
-    BestCheckpointCallbackConfig
-    | LastCheckpointCallbackConfig
-    | OnExceptionCheckpointCallbackConfig
-    | TimeCheckpointCallbackConfig,
-    C.Field(discriminator="name"),
-]
+CheckpointCallbackConfig = TypeAliasType(
+    "CheckpointCallbackConfig",
+    Annotated[
+        BestCheckpointCallbackConfig
+        | LastCheckpointCallbackConfig
+        | OnExceptionCheckpointCallbackConfig
+        | TimeCheckpointCallbackConfig,
+        C.Field(discriminator="name"),
+    ],
+)
 
 
 class CheckpointSavingConfig(CallbackConfigBase):

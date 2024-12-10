@@ -6,11 +6,12 @@ import os
 import platform
 import shutil
 from pathlib import Path
-from typing import TypeAlias
+
+from typing_extensions import TypeAliasType
 
 log = logging.getLogger(__name__)
 
-_Path: TypeAlias = str | Path | os.PathLike
+_Path = TypeAliasType("_Path", str | Path)
 
 
 def get_relative_path(source: _Path, destination: _Path):

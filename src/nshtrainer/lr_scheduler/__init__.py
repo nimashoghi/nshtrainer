@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Annotated, TypeAlias
+from typing import Annotated
 
 import nshconfig as C
+from typing_extensions import TypeAliasType
 
 from ._base import LRSchedulerConfigBase as LRSchedulerConfigBase
 from ._base import LRSchedulerMetadata as LRSchedulerMetadata
@@ -15,7 +16,10 @@ from .linear_warmup_cosine import (
 from .reduce_lr_on_plateau import ReduceLROnPlateau as ReduceLROnPlateau
 from .reduce_lr_on_plateau import ReduceLROnPlateauConfig as ReduceLROnPlateauConfig
 
-LRSchedulerConfig: TypeAlias = Annotated[
-    LinearWarmupCosineDecayLRSchedulerConfig | ReduceLROnPlateauConfig,
-    C.Field(discriminator="name"),
-]
+LRSchedulerConfig = TypeAliasType(
+    "LRSchedulerConfig",
+    Annotated[
+        LinearWarmupCosineDecayLRSchedulerConfig | ReduceLROnPlateauConfig,
+        C.Field(discriminator="name"),
+    ],
+)

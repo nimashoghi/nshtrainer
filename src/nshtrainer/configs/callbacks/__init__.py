@@ -39,6 +39,9 @@ from nshtrainer.callbacks import (
     SharedParametersCallbackConfig as SharedParametersCallbackConfig,
 )
 from nshtrainer.callbacks import (
+    TimeCheckpointCallbackConfig as TimeCheckpointCallbackConfig,
+)
+from nshtrainer.callbacks import (
     WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
 )
 from nshtrainer.callbacks import WandbWatchCallbackConfig as WandbWatchCallbackConfig
@@ -95,6 +98,7 @@ __all__ = [
     "PrintTableMetricsCallbackConfig",
     "RLPSanityChecksCallbackConfig",
     "SharedParametersCallbackConfig",
+    "TimeCheckpointCallbackConfig",
     "WandbUploadCodeCallbackConfig",
     "WandbWatchCallbackConfig",
     "actsave",

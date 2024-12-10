@@ -4,14 +4,14 @@ import datetime
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal
 
 from lightning.pytorch.callbacks.callback import Callback
-from typing_extensions import override
+from typing_extensions import TypeAliasType, override
 
 log = logging.getLogger(__name__)
 
-Stage: TypeAlias = Literal["train", "validate", "test", "predict"]
+Stage = TypeAliasType("Stage", Literal["train", "validate", "test", "predict"])
 ALL_STAGES = ("train", "validate", "test", "predict")
 
 

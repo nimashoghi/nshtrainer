@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Annotated, Any, Literal, TypeAlias
+from typing import Annotated, Any, Literal
 
 import nshconfig as C
 import torch.nn as nn
 from torch.optim import Optimizer
-from typing_extensions import override
+from typing_extensions import TypeAliasType, override
 
 
 class OptimizerConfigBase(C.Config, ABC):
@@ -57,4 +57,6 @@ class AdamWConfig(OptimizerConfigBase):
         )
 
 
-OptimizerConfig: TypeAlias = Annotated[AdamWConfig, C.Field(discriminator="name")]
+OptimizerConfig = TypeAliasType(
+    "OptimizerConfig", Annotated[AdamWConfig, C.Field(discriminator="name")]
+)

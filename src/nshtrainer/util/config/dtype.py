@@ -1,57 +1,60 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal
 
 import nshconfig as C
 import torch
-from typing_extensions import assert_never
+from typing_extensions import TypeAliasType, assert_never
 
 from ..bf16 import is_bf16_supported_no_emulation
 
 if TYPE_CHECKING:
     from ...trainer._config import TrainerConfig
 
-DTypeName: TypeAlias = Literal[
-    "float32",
-    "float",
-    "float64",
-    "double",
-    "float16",
-    "bfloat16",
-    "float8_e4m3fn",
-    "float8_e4m3fnuz",
-    "float8_e5m2",
-    "float8_e5m2fnuz",
-    "half",
-    "uint8",
-    "uint16",
-    "uint32",
-    "uint64",
-    "int8",
-    "int16",
-    "short",
-    "int32",
-    "int",
-    "int64",
-    "long",
-    "complex32",
-    "complex64",
-    "chalf",
-    "cfloat",
-    "complex128",
-    "cdouble",
-    "quint8",
-    "qint8",
-    "qint32",
-    "bool",
-    "quint4x2",
-    "quint2x4",
-    "bits1x8",
-    "bits2x4",
-    "bits4x2",
-    "bits8",
-    "bits16",
-]
+DTypeName = TypeAliasType(
+    "DTypeName",
+    Literal[
+        "float32",
+        "float",
+        "float64",
+        "double",
+        "float16",
+        "bfloat16",
+        "float8_e4m3fn",
+        "float8_e4m3fnuz",
+        "float8_e5m2",
+        "float8_e5m2fnuz",
+        "half",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "int8",
+        "int16",
+        "short",
+        "int32",
+        "int",
+        "int64",
+        "long",
+        "complex32",
+        "complex64",
+        "chalf",
+        "cfloat",
+        "complex128",
+        "cdouble",
+        "quint8",
+        "qint8",
+        "qint32",
+        "bool",
+        "quint4x2",
+        "quint2x4",
+        "bits1x8",
+        "bits2x4",
+        "bits4x2",
+        "bits8",
+        "bits16",
+    ],
+)
 
 
 class DTypeConfig(C.Config):

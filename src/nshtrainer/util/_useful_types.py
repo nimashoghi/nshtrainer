@@ -7,7 +7,14 @@ from collections.abc import Set as AbstractSet
 from os import PathLike
 from typing import Any, TypeVar, overload
 
-from typing_extensions import Buffer, Literal, Protocol, SupportsIndex, TypeAlias
+from typing_extensions import (
+    Buffer,
+    Literal,
+    Protocol,
+    SupportsIndex,
+    TypeAlias,
+    TypeAliasType,
+)
 
 _KT = TypeVar("_KT")
 _KT_co = TypeVar("_KT_co", covariant=True)
@@ -60,7 +67,9 @@ class SupportsAllComparisons(
 ): ...
 
 
-SupportsRichComparison: TypeAlias = SupportsDunderLT[Any] | SupportsDunderGT[Any]
+SupportsRichComparison = TypeAliasType(
+    "SupportsRichComparison", SupportsDunderLT[Any] | SupportsDunderGT[Any]
+)
 SupportsRichComparisonT = TypeVar(
     "SupportsRichComparisonT", bound=SupportsRichComparison
 )

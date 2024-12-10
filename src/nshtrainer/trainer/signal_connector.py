@@ -12,7 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from pathlib import Path
 from types import FrameType
-from typing import Any, TypeAlias
+from typing import Any
 
 import nshrunner as nr
 import torch.utils.data
@@ -22,12 +22,14 @@ from lightning.pytorch.trainer.connectors.signal_connector import _HandlersCompo
 from lightning.pytorch.trainer.connectors.signal_connector import (
     _SignalConnector as _LightningSignalConnector,
 )
-from typing_extensions import override
+from typing_extensions import TypeAliasType, override
 
 log = logging.getLogger(__name__)
 
-_SIGNUM = int | signal.Signals
-_HANDLER: TypeAlias = Callable[[_SIGNUM, FrameType], Any] | int | signal.Handlers | None
+_SIGNUM = TypeAliasType("_SIGNUM", int | signal.Signals)
+_HANDLER = TypeAliasType(
+    "_HANDLER", Callable[[_SIGNUM, FrameType], Any] | int | signal.Handlers | None
+)
 _IS_WINDOWS = platform.system() == "Windows"
 
 

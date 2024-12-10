@@ -48,6 +48,9 @@ from nshtrainer.trainer._config import StrategyConfigBase as StrategyConfigBase
 from nshtrainer.trainer._config import (
     TensorboardLoggerConfig as TensorboardLoggerConfig,
 )
+from nshtrainer.trainer._config import (
+    TimeCheckpointCallbackConfig as TimeCheckpointCallbackConfig,
+)
 from nshtrainer.trainer._config import WandbLoggerConfig as WandbLoggerConfig
 
 from . import _config as _config
@@ -79,6 +82,7 @@ __all__ = [
     "SharedParametersCallbackConfig",
     "StrategyConfigBase",
     "TensorboardLoggerConfig",
+    "TimeCheckpointCallbackConfig",
     "TrainerConfig",
     "WandbLoggerConfig",
     "_config",

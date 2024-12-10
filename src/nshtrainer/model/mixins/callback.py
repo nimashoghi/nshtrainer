@@ -2,18 +2,20 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, TypeAlias, cast
+from typing import Any, cast
 
 from lightning.pytorch import Callback, LightningModule
-from typing_extensions import override
+from typing_extensions import TypeAliasType, override
 
 from ..._callback import NTCallbackBase
 from ...util.typing_utils import mixin_base_type
 
 log = logging.getLogger(__name__)
 
-_Callback = Callback | NTCallbackBase
-CallbackFn: TypeAlias = Callable[[], _Callback | Iterable[_Callback] | None]
+_Callback = TypeAliasType("_Callback", Callback | NTCallbackBase)
+CallbackFn = TypeAliasType(
+    "CallbackFn", Callable[[], _Callback | Iterable[_Callback] | None]
+)
 
 
 class CallbackRegistrarModuleMixin:

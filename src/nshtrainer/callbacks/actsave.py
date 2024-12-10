@@ -4,12 +4,12 @@ import contextlib
 from pathlib import Path
 from typing import Literal
 
-from typing_extensions import TypeAlias, override
+from typing_extensions import TypeAliasType, override
 
 from .._callback import NTCallbackBase
 from .base import CallbackConfigBase
 
-Stage: TypeAlias = Literal["train", "validation", "test", "predict"]
+Stage = TypeAliasType("Stage", Literal["train", "validation", "test", "predict"])
 
 
 class ActSaveConfig(CallbackConfigBase):

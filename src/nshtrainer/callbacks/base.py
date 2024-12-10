@@ -4,11 +4,11 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar, TypeAlias
+from typing import TYPE_CHECKING, ClassVar
 
 import nshconfig as C
 from lightning.pytorch import Callback
-from typing_extensions import TypedDict, Unpack
+from typing_extensions import TypeAliasType, TypedDict, Unpack
 
 if TYPE_CHECKING:
     from ..trainer._config import TrainerConfig
@@ -30,7 +30,9 @@ class CallbackWithMetadata:
     metadata: CallbackMetadataConfig
 
 
-ConstructedCallback: TypeAlias = Callback | CallbackWithMetadata
+ConstructedCallback = TypeAliasType(
+    "ConstructedCallback", Callback | CallbackWithMetadata
+)
 
 
 class CallbackConfigBase(C.Config, ABC):

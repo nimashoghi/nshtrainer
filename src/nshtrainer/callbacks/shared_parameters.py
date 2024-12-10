@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
-from typing import Literal, Protocol, TypeAlias, runtime_checkable
+from typing import Literal, Protocol, runtime_checkable
 
 import torch.nn as nn
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
-from typing_extensions import override
+from typing_extensions import TypeAliasType, override
 
 from .base import CallbackConfigBase
 
@@ -34,7 +34,9 @@ class SharedParametersCallbackConfig(CallbackConfigBase):
         yield SharedParametersCallback(self)
 
 
-SharedParametersList: TypeAlias = list[tuple[nn.Parameter, int | float]]
+SharedParametersList = TypeAliasType(
+    "SharedParametersList", list[tuple[nn.Parameter, int | float]]
+)
 
 
 @runtime_checkable
