@@ -49,14 +49,14 @@ class PrintTableMetricsCallback(Callback):
             }
         self.metrics.append(metrics_dict)
 
-        from rich.console import Console
+        from rich.console import Console  # type: ignore[reportMissingImports] # noqa
 
         console = Console()
         table = self.create_metrics_table()
         console.print(table)
 
     def create_metrics_table(self):
-        from rich.table import Table
+        from rich.table import Table  # type: ignore[reportMissingImports] # noqa
 
         table = Table(show_header=True, header_style="bold magenta")
 
