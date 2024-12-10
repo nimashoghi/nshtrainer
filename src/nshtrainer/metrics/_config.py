@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import builtins
-from typing import Literal
+from typing import Any, Literal
 
 import nshconfig as C
-
-from ..util._useful_types import SupportsRichComparisonT
 
 
 class MetricConfig(C.Config):
@@ -40,5 +38,5 @@ class MetricConfig(C.Config):
     def best(self):
         return builtins.min if self.mode == "min" else builtins.max
 
-    def is_better(self, a: SupportsRichComparisonT, b: SupportsRichComparisonT) -> bool:
+    def is_better(self, a: Any, b: Any):
         return self.best(a, b) == a
