@@ -5,6 +5,7 @@ __codegen__ = True
 from nshtrainer.callbacks import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
 )
+from nshtrainer.callbacks import CallbackConfig as CallbackConfig
 from nshtrainer.callbacks import CallbackConfigBase as CallbackConfigBase
 from nshtrainer.callbacks import DebugFlagCallbackConfig as DebugFlagCallbackConfig
 from nshtrainer.callbacks import (
@@ -80,6 +81,7 @@ __all__ = [
     "ActSaveConfig",
     "BaseCheckpointCallbackConfig",
     "BestCheckpointCallbackConfig",
+    "CallbackConfig",
     "CallbackConfigBase",
     "CheckpointMetadata",
     "DebugFlagCallbackConfig",

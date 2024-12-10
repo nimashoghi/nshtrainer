@@ -4,6 +4,7 @@ __codegen__ = True
 
 from nshtrainer.profiler import AdvancedProfilerConfig as AdvancedProfilerConfig
 from nshtrainer.profiler import BaseProfilerConfig as BaseProfilerConfig
+from nshtrainer.profiler import ProfilerConfig as ProfilerConfig
 from nshtrainer.profiler import PyTorchProfilerConfig as PyTorchProfilerConfig
 from nshtrainer.profiler import SimpleProfilerConfig as SimpleProfilerConfig
 
@@ -15,6 +16,7 @@ from . import simple as simple
 __all__ = [
     "AdvancedProfilerConfig",
     "BaseProfilerConfig",
+    "ProfilerConfig",
     "PyTorchProfilerConfig",
     "SimpleProfilerConfig",
     "_base",

@@ -5,6 +5,7 @@ __codegen__ = True
 from nshtrainer.loggers import ActSaveLoggerConfig as ActSaveLoggerConfig
 from nshtrainer.loggers import BaseLoggerConfig as BaseLoggerConfig
 from nshtrainer.loggers import CSVLoggerConfig as CSVLoggerConfig
+from nshtrainer.loggers import LoggerConfig as LoggerConfig
 from nshtrainer.loggers import TensorboardLoggerConfig as TensorboardLoggerConfig
 from nshtrainer.loggers import WandbLoggerConfig as WandbLoggerConfig
 from nshtrainer.loggers.wandb import CallbackConfigBase as CallbackConfigBase
@@ -26,6 +27,7 @@ __all__ = [
     "BaseLoggerConfig",
     "CSVLoggerConfig",
     "CallbackConfigBase",
+    "LoggerConfig",
     "TensorboardLoggerConfig",
     "WandbLoggerConfig",
     "WandbUploadCodeCallbackConfig",

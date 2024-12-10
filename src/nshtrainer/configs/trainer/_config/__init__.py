@@ -8,7 +8,11 @@ from nshtrainer.trainer._config import BaseLoggerConfig as BaseLoggerConfig
 from nshtrainer.trainer._config import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
 )
+from nshtrainer.trainer._config import CallbackConfig as CallbackConfig
 from nshtrainer.trainer._config import CallbackConfigBase as CallbackConfigBase
+from nshtrainer.trainer._config import (
+    CheckpointCallbackConfig as CheckpointCallbackConfig,
+)
 from nshtrainer.trainer._config import CheckpointSavingConfig as CheckpointSavingConfig
 from nshtrainer.trainer._config import CSVLoggerConfig as CSVLoggerConfig
 from nshtrainer.trainer._config import (
@@ -28,6 +32,7 @@ from nshtrainer.trainer._config import (
     LearningRateMonitorConfig as LearningRateMonitorConfig,
 )
 from nshtrainer.trainer._config import LogEpochCallbackConfig as LogEpochCallbackConfig
+from nshtrainer.trainer._config import LoggerConfig as LoggerConfig
 from nshtrainer.trainer._config import MetricConfig as MetricConfig
 from nshtrainer.trainer._config import (
     NormLoggingCallbackConfig as NormLoggingCallbackConfig,
@@ -36,6 +41,7 @@ from nshtrainer.trainer._config import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
 from nshtrainer.trainer._config import PluginConfigBase as PluginConfigBase
+from nshtrainer.trainer._config import ProfilerConfig as ProfilerConfig
 from nshtrainer.trainer._config import (
     RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
 )
@@ -59,7 +65,9 @@ __all__ = [
     "BaseLoggerConfig",
     "BestCheckpointCallbackConfig",
     "CSVLoggerConfig",
+    "CallbackConfig",
     "CallbackConfigBase",
+    "CheckpointCallbackConfig",
     "CheckpointSavingConfig",
     "DebugFlagCallbackConfig",
     "DirectoryConfig",
@@ -70,10 +78,12 @@ __all__ = [
     "LastCheckpointCallbackConfig",
     "LearningRateMonitorConfig",
     "LogEpochCallbackConfig",
+    "LoggerConfig",
     "MetricConfig",
     "NormLoggingCallbackConfig",
     "OnExceptionCheckpointCallbackConfig",
     "PluginConfigBase",
+    "ProfilerConfig",
     "RLPSanityChecksCallbackConfig",
     "SanityCheckingConfig",
     "SharedParametersCallbackConfig",

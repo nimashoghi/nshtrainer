@@ -32,6 +32,7 @@ from nshtrainer.util._environment_info import (
 )
 from nshtrainer.util._environment_info import GitRepositoryConfig as GitRepositoryConfig
 from nshtrainer.util.config import DTypeConfig as DTypeConfig
+from nshtrainer.util.config import DurationConfig as DurationConfig
 from nshtrainer.util.config import EpochsConfig as EpochsConfig
 from nshtrainer.util.config import StepsConfig as StepsConfig
 
@@ -40,6 +41,7 @@ from . import config as config
 
 __all__ = [
     "DTypeConfig",
+    "DurationConfig",
     "EnvironmentCUDAConfig",
     "EnvironmentClassInformationConfig",
     "EnvironmentConfig",

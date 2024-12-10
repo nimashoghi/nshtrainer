@@ -9,6 +9,7 @@ from nshtrainer.nn.nonlinearity import (
     LeakyReLUNonlinearityConfig as LeakyReLUNonlinearityConfig,
 )
 from nshtrainer.nn.nonlinearity import MishNonlinearityConfig as MishNonlinearityConfig
+from nshtrainer.nn.nonlinearity import NonlinearityConfig as NonlinearityConfig
 from nshtrainer.nn.nonlinearity import PReLUConfig as PReLUConfig
 from nshtrainer.nn.nonlinearity import ReLUNonlinearityConfig as ReLUNonlinearityConfig
 from nshtrainer.nn.nonlinearity import (
@@ -38,6 +39,7 @@ __all__ = [
     "GELUNonlinearityConfig",
     "LeakyReLUNonlinearityConfig",
     "MishNonlinearityConfig",
+    "NonlinearityConfig",
     "PReLUConfig",
     "ReLUNonlinearityConfig",
     "SiLUNonlinearityConfig",
