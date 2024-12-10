@@ -28,7 +28,7 @@ class MixedPrecisionPluginConfig(PluginConfigBase):
 
 @plugin_registry.register
 class BitsandbytesPluginConfig(PluginConfigBase):
-    name: Literal["bitsandbytes"] = "bitsandbytes"
+    name: Literal["bitsandbytes_precision"] = "bitsandbytes_precision"
 
     mode: Literal["nf4", "nf4-dq", "fp4", "fp4-dq", "int8", "int8-training"]
     """The quantization mode to use."""
@@ -59,7 +59,7 @@ class BitsandbytesPluginConfig(PluginConfigBase):
 
 @plugin_registry.register
 class DeepSpeedPluginConfig(PluginConfigBase):
-    name: Literal["deepspeed"] = "deepspeed"
+    name: Literal["deepspeed_precision"] = "deepspeed_precision"
 
     precision: Literal["16-true", "bf16-true", "16-mixed", "bf16-mixed", "32-true"]
     """Full precision (32-true), half precision (16-true, bf16-true) or
@@ -74,7 +74,7 @@ class DeepSpeedPluginConfig(PluginConfigBase):
 
 @plugin_registry.register
 class DoublePrecisionPluginConfig(PluginConfigBase):
-    name: Literal["double"] = "double"
+    name: Literal["double_precision"] = "double_precision"
 
     precision: Literal["64-true"] = "64-true"
     """Plugin for training with double (``torch.float64``) precision."""
@@ -88,7 +88,7 @@ class DoublePrecisionPluginConfig(PluginConfigBase):
 
 @plugin_registry.register
 class FSDPPrecisionPluginConfig(PluginConfigBase):
-    name: Literal["fsdp"] = "fsdp"
+    name: Literal["fsdp_precision"] = "fsdp_precision"
 
     precision: Literal["16-true", "bf16-true", "16-mixed", "bf16-mixed", "32-true"]
     """Full precision (32-true), half precision (16-true, bf16-true) or
@@ -103,7 +103,7 @@ class FSDPPrecisionPluginConfig(PluginConfigBase):
 
 @plugin_registry.register
 class HalfPrecisionPluginConfig(PluginConfigBase):
-    name: Literal["half"] = "half"
+    name: Literal["half_precision"] = "half_precision"
 
     precision: Literal["bf16-true", "16-true"]
     """Whether to use ``torch.float16`` (``'16-true'``) or ``torch.bfloat16`` (``'bf16-true'``)."""
@@ -117,7 +117,7 @@ class HalfPrecisionPluginConfig(PluginConfigBase):
 
 @plugin_registry.register
 class TransformerEnginePluginConfig(PluginConfigBase):
-    name: Literal["transformer_engine"] = "transformer_engine"
+    name: Literal["transformer_engine_precision"] = "transformer_engine_precision"
 
     weights_dtype: DTypeConfig
     """The weights dtype to use."""
@@ -151,7 +151,7 @@ class TransformerEnginePluginConfig(PluginConfigBase):
 
 @plugin_registry.register
 class XLAPluginConfig(PluginConfigBase):
-    name: Literal["xla"] = "xla"
+    name: Literal["xla_precision"] = "xla_precision"
 
     precision: Literal["32-true", "16-true", "bf16-true"]
     """Full precision (32-true) or half precision (16-true, bf16-true)."""

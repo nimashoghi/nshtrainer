@@ -10,7 +10,7 @@ from .base import PluginConfigBase, plugin_registry
 
 @plugin_registry.register
 class TorchSyncBatchNormPlugin(PluginConfigBase):
-    name: Literal["sync_batchnorm"] = "sync_batchnorm"
+    name: Literal["torch_sync_batchnorm"] = "torch_sync_batchnorm"
 
     """A plugin that wraps all batch normalization layers of a model with synchronization
     logic for multiprocessing.

@@ -12,7 +12,7 @@ from .base import PluginConfigBase, plugin_registry
 
 @plugin_registry.register
 class KubeflowEnvironmentPlugin(PluginConfigBase):
-    name: Literal["kubeflow"] = "kubeflow"
+    name: Literal["kubeflow_environment"] = "kubeflow_environment"
 
     """Environment for distributed training using the PyTorchJob operator from Kubeflow.
 
@@ -29,7 +29,7 @@ class KubeflowEnvironmentPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class LightningEnvironmentPlugin(PluginConfigBase):
-    name: Literal["lightning"] = "lightning"
+    name: Literal["lightning_environment"] = "lightning_environment"
 
     """The default environment used by Lightning for a single node or free cluster (not managed).
 
@@ -49,7 +49,7 @@ class LightningEnvironmentPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class LSFEnvironmentPlugin(PluginConfigBase):
-    name: Literal["lsf"] = "lsf"
+    name: Literal["lsf_environment"] = "lsf_environment"
 
     """An environment for running on clusters managed by the LSF resource manager.
 
@@ -66,7 +66,7 @@ class LSFEnvironmentPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class MPIEnvironmentPlugin(PluginConfigBase):
-    name: Literal["mpi"] = "mpi"
+    name: Literal["mpi_environment"] = "mpi_environment"
 
     """An environment for running on clusters with processes created through MPI.
 
@@ -82,7 +82,7 @@ class MPIEnvironmentPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class SLURMEnvironmentPlugin(PluginConfigBase):
-    name: Literal["slurm"] = "slurm"
+    name: Literal["slurm_environment"] = "slurm_environment"
 
     auto_requeue: bool = True
     """Whether automatic job resubmission is enabled or not."""
@@ -102,7 +102,7 @@ class SLURMEnvironmentPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class TorchElasticEnvironmentPlugin(PluginConfigBase):
-    name: Literal["torchelastic"] = "torchelastic"
+    name: Literal["torchelastic_environment"] = "torchelastic_environment"
 
     """Environment for fault-tolerant and elastic training with torchelastic."""
 
@@ -117,7 +117,7 @@ class TorchElasticEnvironmentPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class XLAEnvironmentPlugin(PluginConfigBase):
-    name: Literal["xla"] = "xla"
+    name: Literal["xla_environment"] = "xla_environment"
 
     """Cluster environment for training on a TPU Pod with the PyTorch/XLA library."""
 

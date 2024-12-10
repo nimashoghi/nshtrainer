@@ -10,7 +10,7 @@ from .base import PluginConfig, PluginConfigBase, plugin_registry
 
 @plugin_registry.register
 class AsyncCheckpointIOPlugin(PluginConfigBase):
-    name: Literal["async"] = "async"
+    name: Literal["async_checkpoint"] = "async_checkpoint"
 
     """Enables saving the checkpoints asynchronously in a thread.
 
@@ -38,7 +38,7 @@ class AsyncCheckpointIOPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class TorchCheckpointIOPlugin(PluginConfigBase):
-    name: Literal["torch"] = "torch"
+    name: Literal["torch_checkpoint"] = "torch_checkpoint"
 
     """CheckpointIO that utilizes torch.save and torch.load to save and load checkpoints respectively."""
 
@@ -51,7 +51,7 @@ class TorchCheckpointIOPlugin(PluginConfigBase):
 
 @plugin_registry.register
 class XLACheckpointIOPlugin(PluginConfigBase):
-    name: Literal["xla"] = "xla"
+    name: Literal["xla_checkpoint"] = "xla_checkpoint"
 
     """CheckpointIO that utilizes xm.save to save checkpoints for TPU training strategies."""
 
