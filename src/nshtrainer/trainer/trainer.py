@@ -22,14 +22,12 @@ from .._checkpoint.metadata import _write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
 from ..util._environment_info import EnvironmentConfig
 from ..util.bf16 import is_bf16_supported_no_emulation
-from ._config import (
-    AcceleratorConfigBase,
-    LightningTrainerKwargs,
-    StrategyConfigBase,
-    TrainerConfig,
-)
+from ._config import LightningTrainerKwargs, TrainerConfig
 from ._runtime_callback import RuntimeTrackerCallback, Stage
+from .accelerator import AcceleratorConfigBase
+from .plugin import PluginConfigBase
 from .signal_connector import _SignalConnector
+from .strategy import StrategyConfigBase
 
 log = logging.getLogger(__name__)
 
@@ -172,12 +170,12 @@ class Trainer(LightningTrainer):
 
         if (accelerator := hparams.accelerator) is not None:
             if isinstance(accelerator, AcceleratorConfigBase):
-                accelerator = accelerator.create_accelerator()
+                accelerator = accelerator.create_accelerator(hparams)
             _update_kwargs(accelerator=accelerator)
 
         if (strategy := hparams.strategy) is not None:
             if isinstance(strategy, StrategyConfigBase):
-                strategy = strategy.create_strategy()
+                strategy = strategy.create_strategy(hparams)
             _update_kwargs(strategy=strategy)
 
         if (precision := hparams.precision) is not None:

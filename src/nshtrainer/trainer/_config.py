@@ -5,7 +5,6 @@ import logging
 import os
 import string
 import time
-from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from datetime import timedelta
 from pathlib import Path
@@ -55,7 +54,9 @@ from ..loggers.actsave import ActSaveLoggerConfig
 from ..metrics._config import MetricConfig
 from ..profiler import ProfilerConfig
 from ..util._environment_info import EnvironmentConfig
+from .accelerator import AcceleratorConfig, AcceleratorLiteral, accelerator_registry
 from .plugin import PluginConfig, plugin_registry
+from .strategy import StrategyConfig
 
 log = logging.getLogger(__name__)
 
@@ -68,22 +69,6 @@ class GradientClippingConfig(C.Config):
     algorithm: Literal["value", "norm"] = "norm"
     """Norm type to use for gradient clipping."""
 
-
-AcceleratorLiteral = TypeAliasType(
-    "AcceleratorLiteral", Literal["cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto"]
-)
-
-
-class AcceleratorConfigBase(C.Config, ABC):
-    @abstractmethod
-    def create_accelerator(self) -> Accelerator: ...
-
-
-accelerator_registry = C.Registry(AcceleratorConfigBase, discriminator="name")
-AcceleratorConfig = TypeAliasType(
-    "AcceleratorConfig",
-    Annotated[AcceleratorConfigBase, accelerator_registry.DynamicResolution()],
-)
 
 StrategyLiteral = TypeAliasType(
     "StrategyLiteral",
@@ -117,17 +102,6 @@ StrategyLiteral = TypeAliasType(
     ],
 )
 
-
-class StrategyConfigBase(C.Config, ABC):
-    @abstractmethod
-    def create_strategy(self) -> Strategy: ...
-
-
-strategy_registry = C.Registry(StrategyConfigBase, discriminator="name")
-StrategyConfig = TypeAliasType(
-    "StrategyConfig",
-    Annotated[StrategyConfigBase, strategy_registry.DynamicResolution()],
-)
 
 CheckpointCallbackConfig = TypeAliasType(
     "CheckpointCallbackConfig",
@@ -424,7 +398,6 @@ class SanityCheckingConfig(C.Config):
 
 
 @plugin_registry.rebuild_on_registers
-@strategy_registry.rebuild_on_registers
 @accelerator_registry.rebuild_on_registers
 class TrainerConfig(C.Config):
     # region Active Run Configuration

@@ -26,6 +26,8 @@ class PluginConfigBase(C.Config, ABC):
 
 
 plugin_registry = C.Registry(PluginConfigBase, discriminator="name")
+
 PluginConfig = TypeAliasType(
-    "PluginConfig", Annotated[PluginConfigBase, plugin_registry.DynamicResolution()]
+    "PluginConfig",
+    Annotated[PluginConfigBase, plugin_registry.DynamicResolution()],
 )
