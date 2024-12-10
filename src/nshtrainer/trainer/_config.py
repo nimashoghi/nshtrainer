@@ -18,14 +18,11 @@ from typing import (
 
 import nshconfig as C
 import numpy as np
-from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
 from lightning.pytorch.accelerators import Accelerator
 from lightning.pytorch.callbacks.callback import Callback
 from lightning.pytorch.loggers import Logger
 from lightning.pytorch.plugins import _PLUGIN_INPUT
-from lightning.pytorch.plugins.layer_sync import LayerSync
-from lightning.pytorch.plugins.precision.precision import Precision
 from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.strategies.strategy import Strategy
 from typing_extensions import TypeAliasType, TypedDict, override
@@ -58,6 +55,7 @@ from ..loggers.actsave import ActSaveLoggerConfig
 from ..metrics._config import MetricConfig
 from ..profiler import ProfilerConfig
 from ..util._environment_info import EnvironmentConfig
+from .plugin import PluginConfig, plugin_registry
 
 log = logging.getLogger(__name__)
 
@@ -70,21 +68,6 @@ class GradientClippingConfig(C.Config):
     algorithm: Literal["value", "norm"] = "norm"
     """Norm type to use for gradient clipping."""
 
-
-Plugin = TypeAliasType(
-    "Plugin", Precision | ClusterEnvironment | CheckpointIO | LayerSync
-)
-
-
-class PluginConfigBase(C.Config, ABC):
-    @abstractmethod
-    def create_plugin(self) -> Plugin: ...
-
-
-plugin_registry = C.Registry(PluginConfigBase, discriminator="name")
-PluginConfig = TypeAliasType(
-    "PluginConfig", Annotated[PluginConfigBase, plugin_registry.DynamicResolution()]
-)
 
 AcceleratorLiteral = TypeAliasType(
     "AcceleratorLiteral", Literal["cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto"]

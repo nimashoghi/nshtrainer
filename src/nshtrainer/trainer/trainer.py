@@ -238,7 +238,8 @@ class Trainer(LightningTrainer):
         if plugin_configs := hparams.plugins:
             _update_kwargs(
                 plugins=[
-                    plugin_config.create_plugin() for plugin_config in plugin_configs
+                    plugin_config.create_plugin(hparams)
+                    for plugin_config in plugin_configs
                 ]
             )
 
