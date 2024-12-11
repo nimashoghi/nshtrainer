@@ -30,5 +30,14 @@ class LoggerConfigBase(C.Config, ABC):
     def __bool__(self):
         return self.enabled
 
+    def resolve_logger_dirname(self) -> str:
+        if not (name := getattr(self, "name", None)):
+            raise ValueError(
+                "Logger must have a name attribute to resolve the directory name.\n"
+                "Otherwise, you must override `resolve_logger_dirname`."
+            )
+
+        return name
+
 
 logger_registry = C.Registry(LoggerConfigBase, discriminator="name")
