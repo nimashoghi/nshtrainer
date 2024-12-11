@@ -361,8 +361,6 @@ class SanityCheckingConfig(C.Config):
     """
 
 
-@plugin_registry.rebuild_on_registers
-@accelerator_registry.rebuild_on_registers
 class TrainerConfig(C.Config):
     # region Active Run Configuration
     id: str = C.Field(default_factory=lambda: TrainerConfig.generate_id())
