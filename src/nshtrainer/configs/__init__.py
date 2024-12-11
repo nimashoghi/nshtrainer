@@ -72,6 +72,7 @@ from nshtrainer.lr_scheduler import (
 from nshtrainer.lr_scheduler import LRSchedulerConfig as LRSchedulerConfig
 from nshtrainer.lr_scheduler import LRSchedulerConfigBase as LRSchedulerConfigBase
 from nshtrainer.lr_scheduler import ReduceLROnPlateauConfig as ReduceLROnPlateauConfig
+from nshtrainer.lr_scheduler.base import lr_scheduler_registry as lr_scheduler_registry
 from nshtrainer.nn import ELUNonlinearityConfig as ELUNonlinearityConfig
 from nshtrainer.nn import GELUNonlinearityConfig as GELUNonlinearityConfig
 from nshtrainer.nn import LeakyReLUNonlinearityConfig as LeakyReLUNonlinearityConfig
@@ -95,6 +96,7 @@ from nshtrainer.nn.nonlinearity import nonlinearity_registry as nonlinearity_reg
 from nshtrainer.optimizer import AdamWConfig as AdamWConfig
 from nshtrainer.optimizer import OptimizerConfig as OptimizerConfig
 from nshtrainer.optimizer import OptimizerConfigBase as OptimizerConfigBase
+from nshtrainer.optimizer import optimizer_registry as optimizer_registry
 from nshtrainer.profiler import AdvancedProfilerConfig as AdvancedProfilerConfig
 from nshtrainer.profiler import BaseProfilerConfig as BaseProfilerConfig
 from nshtrainer.profiler import ProfilerConfig as ProfilerConfig
@@ -339,10 +341,12 @@ __all__ = [
     "logger_registry",
     "loggers",
     "lr_scheduler",
+    "lr_scheduler_registry",
     "metrics",
     "nn",
     "nonlinearity_registry",
     "optimizer",
+    "optimizer_registry",
     "plugin_registry",
     "profiler",
     "trainer",

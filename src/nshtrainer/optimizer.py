@@ -7,7 +7,7 @@ from typing import Annotated, Any, Literal
 import nshconfig as C
 import torch.nn as nn
 from torch.optim import Optimizer
-from typing_extensions import TypeAliasType, override
+from typing_extensions import TypeAliasType, final, override
 
 
 class OptimizerConfigBase(C.Config, ABC):
@@ -18,6 +18,11 @@ class OptimizerConfigBase(C.Config, ABC):
     ) -> Optimizer: ...
 
 
+optimizer_registry = C.Registry(OptimizerConfigBase, discriminator="name")
+
+
+@final
+@optimizer_registry.register
 class AdamWConfig(OptimizerConfigBase):
     name: Literal["adamw"] = "adamw"
 
@@ -58,5 +63,6 @@ class AdamWConfig(OptimizerConfigBase):
 
 
 OptimizerConfig = TypeAliasType(
-    "OptimizerConfig", Annotated[AdamWConfig, C.Field(discriminator="name")]
+    "OptimizerConfig",
+    Annotated[OptimizerConfigBase, optimizer_registry.DynamicResolution()],
 )

@@ -5,8 +5,8 @@ from typing import Annotated
 import nshconfig as C
 from typing_extensions import TypeAliasType
 
-from ._base import LRSchedulerConfigBase as LRSchedulerConfigBase
-from ._base import LRSchedulerMetadata as LRSchedulerMetadata
+from .base import LRSchedulerConfigBase as LRSchedulerConfigBase
+from .base import LRSchedulerMetadata as LRSchedulerMetadata
 from .linear_warmup_cosine import (
     LinearWarmupCosineAnnealingLR as LinearWarmupCosineAnnealingLR,
 )

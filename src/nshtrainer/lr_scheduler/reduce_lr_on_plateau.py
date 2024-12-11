@@ -4,12 +4,14 @@ from typing import Literal
 
 from lightning.pytorch.utilities.types import LRSchedulerConfigType
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from typing_extensions import override
+from typing_extensions import final, override
 
 from ..metrics._config import MetricConfig
-from ._base import LRSchedulerConfigBase, LRSchedulerMetadata
+from .base import LRSchedulerConfigBase, LRSchedulerMetadata, lr_scheduler_registry
 
 
+@final
+@lr_scheduler_registry.register
 class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
     """Reduce learning rate when a metric has stopped improving."""
 

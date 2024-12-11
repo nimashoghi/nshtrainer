@@ -94,3 +94,6 @@ class LRSchedulerConfigBase(C.Config, ABC):
         # ^ This is a hack to trigger the computation of the estimated stepping batches
         #   and make sure that the `trainer.num_training_batches` attribute is set.
         return math.ceil(trainer.num_training_batches / trainer.accumulate_grad_batches)
+
+
+lr_scheduler_registry = C.Registry(LRSchedulerConfigBase, discriminator="name")
