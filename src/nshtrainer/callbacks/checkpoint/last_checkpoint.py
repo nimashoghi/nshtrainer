@@ -57,12 +57,15 @@ class LastCheckpointCallback(CheckpointBase[LastCheckpointCallbackConfig]):
     def topk_sort_reverse(self):
         return True
 
-    def _should_checkpoint(self) -> bool:
-        if not self.save_on_time_interval:
-            return False
+    def _local_should_checkpoint(self) -> bool:
         current_time = time.time()
         elapsed_time = current_time - self.last_checkpoint_time
         return elapsed_time >= self.interval_seconds
+
+    def _should_checkpoint(self, trainer: Trainer):
+        if not self.save_on_time_interval:
+            return False
+        return trainer.strategy.broadcast(self._local_should_checkpoint(), src=0)
 
     def _format_duration(self, seconds: float) -> str:
         """Format duration in seconds to a human-readable string."""
@@ -98,7 +101,7 @@ class LastCheckpointCallback(CheckpointBase[LastCheckpointCallbackConfig]):
         *args,
         **kwargs,
     ):
-        if not self._should_checkpoint():
+        if not self._should_checkpoint(trainer):
             return
         self.save_checkpoints(trainer)
 
