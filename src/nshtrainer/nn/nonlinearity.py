@@ -7,10 +7,10 @@ import nshconfig as C
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing_extensions import final, override
+from typing_extensions import TypeAliasType, final, override
 
 
-class BaseNonlinearityConfig(C.Config, ABC):
+class NonlinearityConfigBase(C.Config, ABC):
     @abstractmethod
     def create_module(self) -> nn.Module: ...
 
@@ -18,8 +18,12 @@ class BaseNonlinearityConfig(C.Config, ABC):
     def __call__(self, x: torch.Tensor) -> torch.Tensor: ...
 
 
+nonlinearity_registry = C.Registry(NonlinearityConfigBase, discriminator="name")
+
+
 @final
-class ReLUNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class ReLUNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["relu"] = "relu"
 
     @override
@@ -31,7 +35,8 @@ class ReLUNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class SigmoidNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class SigmoidNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["sigmoid"] = "sigmoid"
 
     @override
@@ -43,7 +48,8 @@ class SigmoidNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class TanhNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class TanhNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["tanh"] = "tanh"
 
     @override
@@ -55,7 +61,8 @@ class TanhNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class SoftmaxNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class SoftmaxNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["softmax"] = "softmax"
 
     dim: int = -1
@@ -70,7 +77,8 @@ class SoftmaxNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class SoftplusNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class SoftplusNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["softplus"] = "softplus"
 
     beta: float = 1.0
@@ -88,7 +96,8 @@ class SoftplusNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class SoftsignNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class SoftsignNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["softsign"] = "softsign"
 
     @override
@@ -100,7 +109,8 @@ class SoftsignNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class ELUNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class ELUNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["elu"] = "elu"
 
     alpha: float = 1.0
@@ -115,7 +125,8 @@ class ELUNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class LeakyReLUNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class LeakyReLUNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["leaky_relu"] = "leaky_relu"
 
     negative_slope: float = 1.0e-2
@@ -130,7 +141,8 @@ class LeakyReLUNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class PReLUConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class PReLUConfig(NonlinearityConfigBase):
     name: Literal["prelu"] = "prelu"
 
     num_parameters: int = 1
@@ -152,7 +164,8 @@ class PReLUConfig(BaseNonlinearityConfig):
 
 
 @final
-class GELUNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class GELUNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["gelu"] = "gelu"
 
     approximate: Literal["tanh", "none"] = "none"
@@ -167,7 +180,8 @@ class GELUNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class SwishNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class SwishNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["swish"] = "swish"
 
     @override
@@ -179,7 +193,8 @@ class SwishNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class SiLUNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class SiLUNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["silu"] = "silu"
 
     @override
@@ -191,7 +206,8 @@ class SiLUNonlinearityConfig(BaseNonlinearityConfig):
 
 
 @final
-class MishNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class MishNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["mish"] = "mish"
 
     @override
@@ -210,7 +226,8 @@ class SwiGLU(nn.SiLU):
 
 
 @final
-class SwiGLUNonlinearityConfig(BaseNonlinearityConfig):
+@nonlinearity_registry.register
+class SwiGLUNonlinearityConfig(NonlinearityConfigBase):
     name: Literal["swiglu"] = "swiglu"
 
     @override
@@ -222,20 +239,7 @@ class SwiGLUNonlinearityConfig(BaseNonlinearityConfig):
         return input * F.silu(gate)
 
 
-NonlinearityConfig = Annotated[
-    ReLUNonlinearityConfig
-    | SigmoidNonlinearityConfig
-    | TanhNonlinearityConfig
-    | SoftmaxNonlinearityConfig
-    | SoftplusNonlinearityConfig
-    | SoftsignNonlinearityConfig
-    | ELUNonlinearityConfig
-    | LeakyReLUNonlinearityConfig
-    | PReLUConfig
-    | GELUNonlinearityConfig
-    | SwishNonlinearityConfig
-    | SiLUNonlinearityConfig
-    | MishNonlinearityConfig
-    | SwiGLUNonlinearityConfig,
-    C.Field(discriminator="name"),
-]
+NonlinearityConfig = TypeAliasType(
+    "NonlinearityConfig",
+    Annotated[NonlinearityConfigBase, nonlinearity_registry.DynamicResolution()],
+)

@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from typing_extensions import TypedDict, override
 
-from .nonlinearity import BaseNonlinearityConfig, NonlinearityConfig
+from .nonlinearity import NonlinearityConfig, NonlinearityConfigBase
 
 
 @runtime_checkable
@@ -92,11 +92,11 @@ class MLPConfig(C.Config):
 
 def MLP(
     dims: Sequence[int],
-    activation: BaseNonlinearityConfig
+    activation: NonlinearityConfigBase
     | nn.Module
     | Callable[[], nn.Module]
     | None = None,
-    nonlinearity: BaseNonlinearityConfig
+    nonlinearity: NonlinearityConfigBase
     | nn.Module
     | Callable[[], nn.Module]
     | None = None,
@@ -153,7 +153,7 @@ def MLP(
             layers.append(nn.Dropout(dropout))
         if i < len(dims) - 2:
             match activation:
-                case BaseNonlinearityConfig():
+                case NonlinearityConfigBase():
                     layers.append(activation.create_module())
                 case nn.Module():
                     # In this case, we create a deep copy of the module to avoid sharing parameters (if any).

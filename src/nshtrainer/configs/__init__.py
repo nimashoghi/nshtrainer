@@ -72,13 +72,13 @@ from nshtrainer.lr_scheduler import (
 from nshtrainer.lr_scheduler import LRSchedulerConfig as LRSchedulerConfig
 from nshtrainer.lr_scheduler import LRSchedulerConfigBase as LRSchedulerConfigBase
 from nshtrainer.lr_scheduler import ReduceLROnPlateauConfig as ReduceLROnPlateauConfig
-from nshtrainer.nn import BaseNonlinearityConfig as BaseNonlinearityConfig
 from nshtrainer.nn import ELUNonlinearityConfig as ELUNonlinearityConfig
 from nshtrainer.nn import GELUNonlinearityConfig as GELUNonlinearityConfig
 from nshtrainer.nn import LeakyReLUNonlinearityConfig as LeakyReLUNonlinearityConfig
 from nshtrainer.nn import MishNonlinearityConfig as MishNonlinearityConfig
 from nshtrainer.nn import MLPConfig as MLPConfig
 from nshtrainer.nn import NonlinearityConfig as NonlinearityConfig
+from nshtrainer.nn import NonlinearityConfigBase as NonlinearityConfigBase
 from nshtrainer.nn import PReLUConfig as PReLUConfig
 from nshtrainer.nn import ReLUNonlinearityConfig as ReLUNonlinearityConfig
 from nshtrainer.nn import SigmoidNonlinearityConfig as SigmoidNonlinearityConfig
@@ -91,6 +91,7 @@ from nshtrainer.nn import TanhNonlinearityConfig as TanhNonlinearityConfig
 from nshtrainer.nn.nonlinearity import (
     SwiGLUNonlinearityConfig as SwiGLUNonlinearityConfig,
 )
+from nshtrainer.nn.nonlinearity import nonlinearity_registry as nonlinearity_registry
 from nshtrainer.optimizer import AdamWConfig as AdamWConfig
 from nshtrainer.optimizer import OptimizerConfig as OptimizerConfig
 from nshtrainer.optimizer import OptimizerConfigBase as OptimizerConfigBase
@@ -226,7 +227,6 @@ __all__ = [
     "AdvancedProfilerConfig",
     "AsyncCheckpointIOPlugin",
     "BaseCheckpointCallbackConfig",
-    "BaseNonlinearityConfig",
     "BaseProfilerConfig",
     "BestCheckpointCallbackConfig",
     "BitsandbytesPluginConfig",
@@ -288,6 +288,7 @@ __all__ = [
     "MishNonlinearityConfig",
     "MixedPrecisionPluginConfig",
     "NonlinearityConfig",
+    "NonlinearityConfigBase",
     "NormLoggingCallbackConfig",
     "OnExceptionCheckpointCallbackConfig",
     "OptimizerConfig",
@@ -340,6 +341,7 @@ __all__ = [
     "lr_scheduler",
     "metrics",
     "nn",
+    "nonlinearity_registry",
     "optimizer",
     "plugin_registry",
     "profiler",
