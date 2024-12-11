@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "1.0.0-beta38"
+version = "1.0.0-beta39"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
