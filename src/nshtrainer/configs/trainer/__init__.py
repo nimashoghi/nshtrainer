@@ -8,7 +8,6 @@ from nshtrainer.trainer import callback_registry as callback_registry
 from nshtrainer.trainer import plugin_registry as plugin_registry
 from nshtrainer.trainer._config import AcceleratorConfig as AcceleratorConfig
 from nshtrainer.trainer._config import ActSaveLoggerConfig as ActSaveLoggerConfig
-from nshtrainer.trainer._config import BaseLoggerConfig as BaseLoggerConfig
 from nshtrainer.trainer._config import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
 )
@@ -37,6 +36,7 @@ from nshtrainer.trainer._config import (
 )
 from nshtrainer.trainer._config import LogEpochCallbackConfig as LogEpochCallbackConfig
 from nshtrainer.trainer._config import LoggerConfig as LoggerConfig
+from nshtrainer.trainer._config import LoggerConfigBase as LoggerConfigBase
 from nshtrainer.trainer._config import MetricConfig as MetricConfig
 from nshtrainer.trainer._config import (
     NormLoggingCallbackConfig as NormLoggingCallbackConfig,
@@ -133,7 +133,6 @@ __all__ = [
     "AcceleratorConfigBase",
     "ActSaveLoggerConfig",
     "AsyncCheckpointIOPlugin",
-    "BaseLoggerConfig",
     "BestCheckpointCallbackConfig",
     "BitsandbytesPluginConfig",
     "CPUAcceleratorConfig",
@@ -161,6 +160,7 @@ __all__ = [
     "LightningEnvironmentPlugin",
     "LogEpochCallbackConfig",
     "LoggerConfig",
+    "LoggerConfigBase",
     "MPIEnvironmentPlugin",
     "MPSAcceleratorConfig",
     "MetricConfig",

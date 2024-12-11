@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from typing import Literal
 
-from typing_extensions import override
+from typing_extensions import final, override
 
-from ._base import BaseLoggerConfig
+from .base import LoggerConfigBase, logger_registry
 
 
-class CSVLoggerConfig(BaseLoggerConfig):
+@final
+@logger_registry.register
+class CSVLoggerConfig(LoggerConfigBase):
     name: Literal["csv"] = "csv"
 
     enabled: bool = True

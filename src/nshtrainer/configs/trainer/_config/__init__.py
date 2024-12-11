@@ -4,7 +4,6 @@ __codegen__ = True
 
 from nshtrainer.trainer._config import AcceleratorConfig as AcceleratorConfig
 from nshtrainer.trainer._config import ActSaveLoggerConfig as ActSaveLoggerConfig
-from nshtrainer.trainer._config import BaseLoggerConfig as BaseLoggerConfig
 from nshtrainer.trainer._config import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
 )
@@ -33,6 +32,7 @@ from nshtrainer.trainer._config import (
 )
 from nshtrainer.trainer._config import LogEpochCallbackConfig as LogEpochCallbackConfig
 from nshtrainer.trainer._config import LoggerConfig as LoggerConfig
+from nshtrainer.trainer._config import LoggerConfigBase as LoggerConfigBase
 from nshtrainer.trainer._config import MetricConfig as MetricConfig
 from nshtrainer.trainer._config import (
     NormLoggingCallbackConfig as NormLoggingCallbackConfig,
@@ -59,7 +59,6 @@ from nshtrainer.trainer._config import WandbLoggerConfig as WandbLoggerConfig
 __all__ = [
     "AcceleratorConfig",
     "ActSaveLoggerConfig",
-    "BaseLoggerConfig",
     "BestCheckpointCallbackConfig",
     "CSVLoggerConfig",
     "CallbackConfig",
@@ -76,6 +75,7 @@ __all__ = [
     "LearningRateMonitorConfig",
     "LogEpochCallbackConfig",
     "LoggerConfig",
+    "LoggerConfigBase",
     "MetricConfig",
     "NormLoggingCallbackConfig",
     "OnExceptionCheckpointCallbackConfig",

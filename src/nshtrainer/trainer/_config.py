@@ -48,8 +48,8 @@ from ..loggers import (
     TensorboardLoggerConfig,
     WandbLoggerConfig,
 )
-from ..loggers._base import BaseLoggerConfig
 from ..loggers.actsave import ActSaveLoggerConfig
+from ..loggers.base import LoggerConfigBase
 from ..metrics._config import MetricConfig
 from ..profiler import ProfilerConfig
 from ..util._environment_info import EnvironmentConfig
@@ -770,7 +770,7 @@ class TrainerConfig(C.Config):
         yield self.auto_set_debug_flag
         yield from self.callbacks
 
-    def _nshtrainer_all_logger_configs(self) -> Iterable[BaseLoggerConfig | None]:
+    def _nshtrainer_all_logger_configs(self) -> Iterable[LoggerConfigBase | None]:
         # Disable all loggers if barebones mode is enabled
         if self.barebones:
             return

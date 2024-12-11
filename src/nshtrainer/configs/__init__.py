@@ -60,11 +60,12 @@ from nshtrainer.callbacks.checkpoint._base import (
     BaseCheckpointCallbackConfig as BaseCheckpointCallbackConfig,
 )
 from nshtrainer.loggers import ActSaveLoggerConfig as ActSaveLoggerConfig
-from nshtrainer.loggers import BaseLoggerConfig as BaseLoggerConfig
 from nshtrainer.loggers import CSVLoggerConfig as CSVLoggerConfig
 from nshtrainer.loggers import LoggerConfig as LoggerConfig
+from nshtrainer.loggers import LoggerConfigBase as LoggerConfigBase
 from nshtrainer.loggers import TensorboardLoggerConfig as TensorboardLoggerConfig
 from nshtrainer.loggers import WandbLoggerConfig as WandbLoggerConfig
+from nshtrainer.loggers import logger_registry as logger_registry
 from nshtrainer.lr_scheduler import (
     LinearWarmupCosineDecayLRSchedulerConfig as LinearWarmupCosineDecayLRSchedulerConfig,
 )
@@ -225,7 +226,6 @@ __all__ = [
     "AdvancedProfilerConfig",
     "AsyncCheckpointIOPlugin",
     "BaseCheckpointCallbackConfig",
-    "BaseLoggerConfig",
     "BaseNonlinearityConfig",
     "BaseProfilerConfig",
     "BestCheckpointCallbackConfig",
@@ -280,6 +280,7 @@ __all__ = [
     "LinearWarmupCosineDecayLRSchedulerConfig",
     "LogEpochCallbackConfig",
     "LoggerConfig",
+    "LoggerConfigBase",
     "MLPConfig",
     "MPIEnvironmentPlugin",
     "MPSAcceleratorConfig",
@@ -334,6 +335,7 @@ __all__ = [
     "accelerator_registry",
     "callback_registry",
     "callbacks",
+    "logger_registry",
     "loggers",
     "lr_scheduler",
     "metrics",

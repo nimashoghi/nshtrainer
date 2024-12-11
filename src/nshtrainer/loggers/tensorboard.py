@@ -4,9 +4,9 @@ import logging
 from typing import Literal
 
 import nshconfig as C
-from typing_extensions import override
+from typing_extensions import final, override
 
-from ._base import BaseLoggerConfig
+from .base import LoggerConfigBase, logger_registry
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +30,9 @@ def _tensorboard_available():
         return False
 
 
-class TensorboardLoggerConfig(BaseLoggerConfig):
+@final
+@logger_registry.register
+class TensorboardLoggerConfig(LoggerConfigBase):
     name: Literal["tensorboard"] = "tensorboard"
 
     enabled: bool = C.Field(default_factory=lambda: _tensorboard_available())

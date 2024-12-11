@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, Literal
 import nshconfig as C
 from lightning.pytorch import Callback, LightningModule, Trainer
 from packaging import version
-from typing_extensions import assert_never, override
+from typing_extensions import assert_never, final, override
 
 from ..callbacks.base import CallbackConfigBase
 from ..callbacks.wandb_upload_code import WandbUploadCodeCallbackConfig
 from ..callbacks.wandb_watch import WandbWatchCallbackConfig
-from ._base import BaseLoggerConfig
+from .base import LoggerConfigBase, logger_registry
 
 if TYPE_CHECKING:
     from ..trainer._config import TrainerConfig
@@ -73,7 +73,9 @@ class FinishWandbOnTeardownCallback(Callback):
         wandb.finish()
 
 
-class WandbLoggerConfig(CallbackConfigBase, BaseLoggerConfig):
+@final
+@logger_registry.register
+class WandbLoggerConfig(CallbackConfigBase, LoggerConfigBase):
     name: Literal["wandb"] = "wandb"
 
     enabled: bool = C.Field(default_factory=lambda: _wandb_available())

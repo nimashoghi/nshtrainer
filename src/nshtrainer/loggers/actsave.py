@@ -5,11 +5,14 @@ from typing import Any, Literal
 
 import numpy as np
 from lightning.pytorch.loggers import Logger
+from typing_extensions import final
 
-from ._base import BaseLoggerConfig
+from .base import LoggerConfigBase, logger_registry
 
 
-class ActSaveLoggerConfig(BaseLoggerConfig):
+@final
+@logger_registry.register
+class ActSaveLoggerConfig(LoggerConfigBase):
     name: Literal["actsave"] = "actsave"
 
     def create_logger(self, trainer_config):

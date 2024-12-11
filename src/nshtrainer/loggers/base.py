@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..trainer._config import TrainerConfig
 
 
-class BaseLoggerConfig(C.Config, ABC):
+class LoggerConfigBase(C.Config, ABC):
     enabled: bool = True
     """Enable this logger."""
 
@@ -29,3 +29,6 @@ class BaseLoggerConfig(C.Config, ABC):
 
     def __bool__(self):
         return self.enabled
+
+
+logger_registry = C.Registry(LoggerConfigBase, discriminator="name")
