@@ -21,11 +21,8 @@ log = logging.getLogger(__name__)
 class LastCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     name: Literal["last_checkpoint"] = "last_checkpoint"
 
-    save_on_time_interval: bool = True
-    """Whether to save checkpoints based on time interval."""
-
-    interval: timedelta = timedelta(hours=12)
-    """Time interval between checkpoints when save_on_time_interval is True."""
+    save_on_time_interval: timedelta | None = None
+    """Save a checkpoint every `save_on_time_interval` seconds. If `None`, this feature is disabled."""
 
     @override
     def create_checkpoint(self, trainer_config, dirpath):
@@ -38,8 +35,6 @@ class LastCheckpointCallback(CheckpointBase[LastCheckpointCallbackConfig]):
         super().__init__(config, dirpath)
         self.start_time = time.time()
         self.last_checkpoint_time = self.start_time
-        self.interval_seconds = config.interval.total_seconds()
-        self.save_on_time_interval = config.save_on_time_interval
 
     @override
     def name(self):
@@ -58,12 +53,15 @@ class LastCheckpointCallback(CheckpointBase[LastCheckpointCallbackConfig]):
         return True
 
     def _local_should_checkpoint(self) -> bool:
+        if (interval := self.config.save_on_time_interval) is None:
+            return False
+
         current_time = time.time()
         elapsed_time = current_time - self.last_checkpoint_time
-        return elapsed_time >= self.interval_seconds
+        return elapsed_time >= interval.total_seconds()
 
     def _should_checkpoint(self, trainer: Trainer):
-        if not self.save_on_time_interval:
+        if self.config.save_on_time_interval is None:
             return False
         return trainer.strategy.broadcast(self._local_should_checkpoint(), src=0)
 
@@ -113,5 +111,5 @@ class LastCheckpointCallback(CheckpointBase[LastCheckpointCallbackConfig]):
     def save_checkpoints(self, trainer):
         super().save_checkpoints(trainer)
 
-        if self.save_on_time_interval:
+        if self.config.save_on_time_interval is not None:
             self.last_checkpoint_time = time.time()
