@@ -55,9 +55,6 @@ from nshtrainer.trainer._config import StrategyConfig as StrategyConfig
 from nshtrainer.trainer._config import (
     TensorboardLoggerConfig as TensorboardLoggerConfig,
 )
-from nshtrainer.trainer._config import (
-    TimeCheckpointCallbackConfig as TimeCheckpointCallbackConfig,
-)
 from nshtrainer.trainer._config import WandbLoggerConfig as WandbLoggerConfig
 from nshtrainer.trainer.accelerator import CPUAcceleratorConfig as CPUAcceleratorConfig
 from nshtrainer.trainer.accelerator import (
@@ -179,7 +176,6 @@ __all__ = [
     "StrategyConfig",
     "StrategyConfigBase",
     "TensorboardLoggerConfig",
-    "TimeCheckpointCallbackConfig",
     "TorchCheckpointIOPlugin",
     "TorchElasticEnvironmentPlugin",
     "TorchSyncBatchNormPlugin",

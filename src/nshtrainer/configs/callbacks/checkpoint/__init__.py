@@ -11,9 +11,6 @@ from nshtrainer.callbacks.checkpoint import (
 from nshtrainer.callbacks.checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
-from nshtrainer.callbacks.checkpoint import (
-    TimeCheckpointCallbackConfig as TimeCheckpointCallbackConfig,
-)
 from nshtrainer.callbacks.checkpoint._base import (
     BaseCheckpointCallbackConfig as BaseCheckpointCallbackConfig,
 )
@@ -29,7 +26,6 @@ from . import _base as _base
 from . import best_checkpoint as best_checkpoint
 from . import last_checkpoint as last_checkpoint
 from . import on_exception_checkpoint as on_exception_checkpoint
-from . import time_checkpoint as time_checkpoint
 
 __all__ = [
     "BaseCheckpointCallbackConfig",
@@ -39,10 +35,8 @@ __all__ = [
     "LastCheckpointCallbackConfig",
     "MetricConfig",
     "OnExceptionCheckpointCallbackConfig",
-    "TimeCheckpointCallbackConfig",
     "_base",
     "best_checkpoint",
     "last_checkpoint",
     "on_exception_checkpoint",
-    "time_checkpoint",
 ]

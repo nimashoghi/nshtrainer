@@ -37,7 +37,6 @@ from ..callbacks import (
     OnExceptionCheckpointCallbackConfig,
 )
 from ..callbacks.base import CallbackConfigBase
-from ..callbacks.checkpoint.time_checkpoint import TimeCheckpointCallbackConfig
 from ..callbacks.debug_flag import DebugFlagCallbackConfig
 from ..callbacks.log_epoch import LogEpochCallbackConfig
 from ..callbacks.lr_monitor import LearningRateMonitorConfig
@@ -56,7 +55,7 @@ from ..profiler import ProfilerConfig
 from ..util._environment_info import EnvironmentConfig
 from .accelerator import AcceleratorConfig, AcceleratorLiteral, accelerator_registry
 from .plugin import PluginConfig, plugin_registry
-from .strategy import StrategyConfig
+from .strategy import StrategyConfig, StrategyLiteral
 
 log = logging.getLogger(__name__)
 
@@ -70,46 +69,12 @@ class GradientClippingConfig(C.Config):
     """Norm type to use for gradient clipping."""
 
 
-StrategyLiteral = TypeAliasType(
-    "StrategyLiteral",
-    Literal[
-        "auto",
-        "ddp",
-        "ddp_find_unused_parameters_false",
-        "ddp_find_unused_parameters_true",
-        "ddp_spawn",
-        "ddp_spawn_find_unused_parameters_false",
-        "ddp_spawn_find_unused_parameters_true",
-        "ddp_fork",
-        "ddp_fork_find_unused_parameters_false",
-        "ddp_fork_find_unused_parameters_true",
-        "ddp_notebook",
-        "dp",
-        "deepspeed",
-        "deepspeed_stage_1",
-        "deepspeed_stage_1_offload",
-        "deepspeed_stage_2",
-        "deepspeed_stage_2_offload",
-        "deepspeed_stage_3",
-        "deepspeed_stage_3_offload",
-        "deepspeed_stage_3_offload_nvme",
-        "fsdp",
-        "fsdp_cpu_offload",
-        "single_xla",
-        "xla_fsdp",
-        "xla",
-        "single_tpu",
-    ],
-)
-
-
 CheckpointCallbackConfig = TypeAliasType(
     "CheckpointCallbackConfig",
     Annotated[
         BestCheckpointCallbackConfig
         | LastCheckpointCallbackConfig
-        | OnExceptionCheckpointCallbackConfig
-        | TimeCheckpointCallbackConfig,
+        | OnExceptionCheckpointCallbackConfig,
         C.Field(discriminator="name"),
     ],
 )
@@ -123,7 +88,6 @@ class CheckpointSavingConfig(CallbackConfigBase):
         BestCheckpointCallbackConfig(throw_on_no_metric=False),
         LastCheckpointCallbackConfig(),
         OnExceptionCheckpointCallbackConfig(),
-        TimeCheckpointCallbackConfig(interval=timedelta(hours=12)),
     ]
     """Checkpoint callback configurations."""
 

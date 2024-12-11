@@ -14,8 +14,6 @@ from .checkpoint import OnExceptionCheckpointCallback as OnExceptionCheckpointCa
 from .checkpoint import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
 )
-from .checkpoint import TimeCheckpointCallback as TimeCheckpointCallback
-from .checkpoint import TimeCheckpointCallbackConfig as TimeCheckpointCallbackConfig
 from .debug_flag import DebugFlagCallback as DebugFlagCallback
 from .debug_flag import DebugFlagCallbackConfig as DebugFlagCallbackConfig
 from .directory_setup import DirectorySetupCallback as DirectorySetupCallback
@@ -73,7 +71,6 @@ CallbackConfig = Annotated[
     | BestCheckpointCallbackConfig
     | LastCheckpointCallbackConfig
     | OnExceptionCheckpointCallbackConfig
-    | TimeCheckpointCallbackConfig
     | SharedParametersCallbackConfig
     | RLPSanityChecksCallbackConfig
     | WandbWatchCallbackConfig
