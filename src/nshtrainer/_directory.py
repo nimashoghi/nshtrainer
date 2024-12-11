@@ -81,7 +81,9 @@ class DirectoryConfig(C.Config):
 
         # Save to nshtrainer/{id}/log/{logger name}
         log_dir = self.resolve_subdirectory(run_id, "log")
-        log_dir = log_dir / logger.name
+        log_dir = log_dir / getattr(logger, "name")
+        # ^ NOTE: Logger must have a `name` attribute, as this is
+        # the discriminator for the logger registry
         log_dir.mkdir(exist_ok=True)
 
         return log_dir
