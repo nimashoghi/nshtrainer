@@ -7,18 +7,15 @@ from typing import Literal, Protocol, runtime_checkable
 import torch.nn as nn
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
-from typing_extensions import TypeAliasType, override
+from typing_extensions import TypeAliasType, final, override
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
 
 
-def _parameters_to_names(parameters: Iterable[nn.Parameter], model: nn.Module):
-    mapping = {id(p): n for n, p in model.named_parameters()}
-    return [mapping[id(p)] for p in parameters]
-
-
+@final
+@callback_registry.register
 class SharedParametersCallbackConfig(CallbackConfigBase):
     """A callback that allows scaling the gradients of shared parameters that
     are registered in the ``self.shared_parameters`` list of the root module.
@@ -32,6 +29,11 @@ class SharedParametersCallbackConfig(CallbackConfigBase):
     @override
     def create_callbacks(self, trainer_config):
         yield SharedParametersCallback(self)
+
+
+def _parameters_to_names(parameters: Iterable[nn.Parameter], model: nn.Module):
+    mapping = {id(p): n for n, p in model.named_parameters()}
+    return [mapping[id(p)] for p in parameters]
 
 
 SharedParametersList = TypeAliasType(

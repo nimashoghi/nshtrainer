@@ -4,15 +4,19 @@ import contextlib
 from pathlib import Path
 from typing import Literal
 
-from typing_extensions import TypeAliasType, override
+from typing_extensions import TypeAliasType, final, override
 
 from .._callback import NTCallbackBase
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 Stage = TypeAliasType("Stage", Literal["train", "validation", "test", "predict"])
 
 
+@final
+@callback_registry.register
 class ActSaveConfig(CallbackConfigBase):
+    name: Literal["act_save"] = "act_save"
+
     enabled: bool = True
     """Enable activation saving."""
 

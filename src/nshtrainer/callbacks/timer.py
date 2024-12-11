@@ -7,11 +7,21 @@ from typing import Any, Literal
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.utilities.types import STEP_OUTPUT
-from typing_extensions import override
+from typing_extensions import final, override
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
+
+
+@final
+@callback_registry.register
+class EpochTimerCallbackConfig(CallbackConfigBase):
+    name: Literal["epoch_timer"] = "epoch_timer"
+
+    @override
+    def create_callbacks(self, trainer_config):
+        yield EpochTimerCallback()
 
 
 class EpochTimerCallback(Callback):
@@ -149,11 +159,3 @@ class EpochTimerCallback(Callback):
     def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         self._elapsed_time = state_dict["elapsed_time"]
         self._total_batches = state_dict["total_batches"]
-
-
-class EpochTimerCallbackConfig(CallbackConfigBase):
-    name: Literal["epoch_timer"] = "epoch_timer"
-
-    @override
-    def create_callbacks(self, trainer_config):
-        yield EpochTimerCallback()

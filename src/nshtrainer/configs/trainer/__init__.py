@@ -4,6 +4,7 @@ __codegen__ = True
 
 from nshtrainer.trainer import TrainerConfig as TrainerConfig
 from nshtrainer.trainer import accelerator_registry as accelerator_registry
+from nshtrainer.trainer import callback_registry as callback_registry
 from nshtrainer.trainer import plugin_registry as plugin_registry
 from nshtrainer.trainer._config import AcceleratorConfig as AcceleratorConfig
 from nshtrainer.trainer._config import ActSaveLoggerConfig as ActSaveLoggerConfig
@@ -189,6 +190,7 @@ __all__ = [
     "_config",
     "accelerator",
     "accelerator_registry",
+    "callback_registry",
     "plugin",
     "plugin_registry",
     "strategy",

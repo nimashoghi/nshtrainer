@@ -55,6 +55,9 @@ class CallbackConfigBase(C.Config, ABC):
     ) -> Iterable[Callback | CallbackWithMetadata]: ...
 
 
+callback_registry = C.Registry(CallbackConfigBase, discriminator="name")
+
+
 # region Config resolution helpers
 def _create_callbacks_with_metadata(
     config: CallbackConfigBase, trainer_config: TrainerConfig

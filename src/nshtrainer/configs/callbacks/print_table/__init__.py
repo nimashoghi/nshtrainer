@@ -6,8 +6,10 @@ from nshtrainer.callbacks.print_table import CallbackConfigBase as CallbackConfi
 from nshtrainer.callbacks.print_table import (
     PrintTableMetricsCallbackConfig as PrintTableMetricsCallbackConfig,
 )
+from nshtrainer.callbacks.print_table import callback_registry as callback_registry
 
 __all__ = [
     "CallbackConfigBase",
     "PrintTableMetricsCallbackConfig",
+    "callback_registry",
 ]

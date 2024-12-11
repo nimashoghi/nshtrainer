@@ -53,8 +53,8 @@ from ..loggers.actsave import ActSaveLoggerConfig
 from ..metrics._config import MetricConfig
 from ..profiler import ProfilerConfig
 from ..util._environment_info import EnvironmentConfig
-from .accelerator import AcceleratorConfig, AcceleratorLiteral, accelerator_registry
-from .plugin import PluginConfig, plugin_registry
+from .accelerator import AcceleratorConfig, AcceleratorLiteral
+from .plugin import PluginConfig
 from .strategy import StrategyConfig, StrategyLiteral
 
 log = logging.getLogger(__name__)

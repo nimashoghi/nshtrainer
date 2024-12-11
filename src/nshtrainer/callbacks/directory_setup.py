@@ -5,12 +5,33 @@ import os
 from pathlib import Path
 from typing import Literal
 
-from typing_extensions import override
+from typing_extensions import final, override
 
 from .._callback import NTCallbackBase
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
+
+
+@final
+@callback_registry.register
+class DirectorySetupCallbackConfig(CallbackConfigBase):
+    name: Literal["directory_setup"] = "directory_setup"
+
+    enabled: bool = True
+    """Whether to enable the directory setup callback."""
+
+    create_symlink_to_nshrunner_root: bool = True
+    """Should we create a symlink to the root folder for the Runner (if we're in one)?"""
+
+    def __bool__(self):
+        return self.enabled
+
+    def create_callbacks(self, trainer_config):
+        if not self:
+            return
+
+        yield DirectorySetupCallback(self)
 
 
 def _create_symlink_to_nshrunner(base_dir: Path):
@@ -41,25 +62,6 @@ def _create_symlink_to_nshrunner(base_dir: Path):
         symlink_path.unlink()
 
     symlink_path.symlink_to(session_dir)
-
-
-class DirectorySetupCallbackConfig(CallbackConfigBase):
-    name: Literal["directory_setup"] = "directory_setup"
-
-    enabled: bool = True
-    """Whether to enable the directory setup callback."""
-
-    create_symlink_to_nshrunner_root: bool = True
-    """Should we create a symlink to the root folder for the Runner (if we're in one)?"""
-
-    def __bool__(self):
-        return self.enabled
-
-    def create_callbacks(self, trainer_config):
-        if not self:
-            return
-
-        yield DirectorySetupCallback(self)
 
 
 class DirectorySetupCallback(NTCallbackBase):

@@ -11,13 +11,15 @@ from lightning.pytorch.utilities.types import (
     LRSchedulerConfigType,
     LRSchedulerTypeUnion,
 )
-from typing_extensions import Protocol, override, runtime_checkable
+from typing_extensions import Protocol, final, override, runtime_checkable
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
 
 
+@final
+@callback_registry.register
 class RLPSanityChecksCallbackConfig(CallbackConfigBase):
     """
     If enabled, will do some sanity checks if the `ReduceLROnPlateau` scheduler is used:

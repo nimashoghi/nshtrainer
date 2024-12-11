@@ -6,13 +6,15 @@ from typing import Any, Literal
 
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
-from typing_extensions import override
+from typing_extensions import final, override
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
 
 
+@final
+@callback_registry.register
 class LogEpochCallbackConfig(CallbackConfigBase):
     name: Literal["log_epoch"] = "log_epoch"
 

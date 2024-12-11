@@ -3,11 +3,16 @@ from __future__ import annotations
 from typing import Literal
 
 from lightning.pytorch.callbacks import LearningRateMonitor
+from typing_extensions import final
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 
+@final
+@callback_registry.register
 class LearningRateMonitorConfig(CallbackConfigBase):
+    name: Literal["learning_rate_monitor"] = "learning_rate_monitor"
+
     logging_interval: Literal["step", "epoch"] | None = None
     """
     Set to 'epoch' or 'step' to log 'lr' of all optimizers at the same interval, set to None to log at individual interval according to the 'interval' key of each scheduler. Defaults to None.

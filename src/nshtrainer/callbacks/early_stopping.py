@@ -8,14 +8,16 @@ from lightning.fabric.utilities.rank_zero import _get_rank
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import EarlyStopping as _EarlyStopping
 from lightning.pytorch.utilities.rank_zero import rank_prefixed_message
-from typing_extensions import override
+from typing_extensions import final, override
 
 from ..metrics._config import MetricConfig
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
 
 
+@final
+@callback_registry.register
 class EarlyStoppingCallbackConfig(CallbackConfigBase):
     name: Literal["early_stopping"] = "early_stopping"
 

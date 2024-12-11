@@ -7,12 +7,38 @@ import torch
 import torchmetrics
 from lightning.pytorch import Callback, LightningModule, Trainer
 from torch.optim import Optimizer
-from typing_extensions import override
+from typing_extensions import final, override
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 from .norm_logging import compute_norm
 
 log = logging.getLogger(__name__)
+
+
+@final
+@callback_registry.register
+class GradientSkippingCallbackConfig(CallbackConfigBase):
+    name: Literal["gradient_skipping"] = "gradient_skipping"
+
+    threshold: float
+    """Threshold to use for gradient skipping."""
+
+    norm_type: str | float = 2.0
+    """Norm type to use for gradient skipping."""
+
+    start_after_n_steps: int | None = 100
+    """Number of steps to wait before starting gradient skipping."""
+
+    skip_non_finite: bool = False
+    """
+    If False, it doesn't skip steps with non-finite norms. This is useful when using AMP, as AMP checks for NaN/Inf grads to adjust the loss scale. Otherwise, skips steps with non-finite norms.
+
+    Should almost always be False, especially when using AMP (unless you know what you're doing!).
+    """
+
+    @override
+    def create_callbacks(self, trainer_config):
+        yield GradientSkippingCallback(self)
 
 
 @runtime_checkable
@@ -21,7 +47,7 @@ class HasGradSkippedSteps(Protocol):
 
 
 class GradientSkippingCallback(Callback):
-    def __init__(self, config: "GradientSkippingCallbackConfig"):
+    def __init__(self, config: GradientSkippingCallbackConfig):
         super().__init__()
         self.config = config
 
@@ -73,27 +99,3 @@ class GradientSkippingCallback(Callback):
             on_step=True,
             on_epoch=False,
         )
-
-
-class GradientSkippingCallbackConfig(CallbackConfigBase):
-    name: Literal["gradient_skipping"] = "gradient_skipping"
-
-    threshold: float
-    """Threshold to use for gradient skipping."""
-
-    norm_type: str | float = 2.0
-    """Norm type to use for gradient skipping."""
-
-    start_after_n_steps: int | None = 100
-    """Number of steps to wait before starting gradient skipping."""
-
-    skip_non_finite: bool = False
-    """
-    If False, it doesn't skip steps with non-finite norms. This is useful when using AMP, as AMP checks for NaN/Inf grads to adjust the loss scale. Otherwise, skips steps with non-finite norms.
-
-    Should almost always be False, especially when using AMP (unless you know what you're doing!).
-    """
-
-    @override
-    def create_callbacks(self, trainer_config):
-        yield GradientSkippingCallback(self)

@@ -12,10 +12,14 @@ from nshtrainer.callbacks.checkpoint.best_checkpoint import (
     CheckpointMetadata as CheckpointMetadata,
 )
 from nshtrainer.callbacks.checkpoint.best_checkpoint import MetricConfig as MetricConfig
+from nshtrainer.callbacks.checkpoint.best_checkpoint import (
+    callback_registry as callback_registry,
+)
 
 __all__ = [
     "BaseCheckpointCallbackConfig",
     "BestCheckpointCallbackConfig",
     "CheckpointMetadata",
     "MetricConfig",
+    "callback_registry",
 ]

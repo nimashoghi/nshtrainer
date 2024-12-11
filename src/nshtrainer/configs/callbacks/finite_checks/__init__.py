@@ -6,8 +6,10 @@ from nshtrainer.callbacks.finite_checks import CallbackConfigBase as CallbackCon
 from nshtrainer.callbacks.finite_checks import (
     FiniteChecksCallbackConfig as FiniteChecksCallbackConfig,
 )
+from nshtrainer.callbacks.finite_checks import callback_registry as callback_registry
 
 __all__ = [
     "CallbackConfigBase",
     "FiniteChecksCallbackConfig",
+    "callback_registry",
 ]

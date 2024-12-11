@@ -8,8 +8,12 @@ from nshtrainer.callbacks.gradient_skipping import (
 from nshtrainer.callbacks.gradient_skipping import (
     GradientSkippingCallbackConfig as GradientSkippingCallbackConfig,
 )
+from nshtrainer.callbacks.gradient_skipping import (
+    callback_registry as callback_registry,
+)
 
 __all__ = [
     "CallbackConfigBase",
     "GradientSkippingCallbackConfig",
+    "callback_registry",
 ]

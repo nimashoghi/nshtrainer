@@ -7,11 +7,45 @@ import torch
 import torch.nn as nn
 from lightning.pytorch import Callback, LightningModule, Trainer
 from torch.optim import Optimizer
-from typing_extensions import override
+from typing_extensions import final, override
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
+
+
+@final
+@callback_registry.register
+class NormLoggingCallbackConfig(CallbackConfigBase):
+    name: Literal["norm_logging"] = "norm_logging"
+
+    log_grad_norm: bool | str | float = False
+    """If enabled, will log the gradient norm (averaged across all model parameters) to the logger."""
+    log_grad_norm_per_param: bool | str | float = False
+    """If enabled, will log the gradient norm for each model parameter to the logger."""
+
+    log_param_norm: bool | str | float = False
+    """If enabled, will log the parameter norm (averaged across all model parameters) to the logger."""
+    log_param_norm_per_param: bool | str | float = False
+    """If enabled, will log the parameter norm for each model parameter to the logger."""
+
+    def __bool__(self):
+        return any(
+            v
+            for v in (
+                self.log_grad_norm,
+                self.log_grad_norm_per_param,
+                self.log_param_norm,
+                self.log_param_norm_per_param,
+            )
+        )
+
+    @override
+    def create_callbacks(self, trainer_config):
+        if not self:
+            return
+
+        yield NormLoggingCallback(self)
 
 
 def grad_norm(
@@ -155,35 +189,3 @@ class NormLoggingCallback(Callback):
                 self._perform_norm_logging(
                     pl_module, optimizer, prefix=f"train/optimizer_{i}/"
                 )
-
-
-class NormLoggingCallbackConfig(CallbackConfigBase):
-    name: Literal["norm_logging"] = "norm_logging"
-
-    log_grad_norm: bool | str | float = False
-    """If enabled, will log the gradient norm (averaged across all model parameters) to the logger."""
-    log_grad_norm_per_param: bool | str | float = False
-    """If enabled, will log the gradient norm for each model parameter to the logger."""
-
-    log_param_norm: bool | str | float = False
-    """If enabled, will log the parameter norm (averaged across all model parameters) to the logger."""
-    log_param_norm_per_param: bool | str | float = False
-    """If enabled, will log the parameter norm for each model parameter to the logger."""
-
-    def __bool__(self):
-        return any(
-            v
-            for v in (
-                self.log_grad_norm,
-                self.log_grad_norm_per_param,
-                self.log_param_norm,
-                self.log_param_norm_per_param,
-            )
-        )
-
-    @override
-    def create_callbacks(self, trainer_config):
-        if not self:
-            return
-
-        yield NormLoggingCallback(self)

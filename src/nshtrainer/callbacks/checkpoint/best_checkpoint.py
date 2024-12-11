@@ -9,12 +9,14 @@ from typing_extensions import final, override
 
 from ..._checkpoint.metadata import CheckpointMetadata
 from ...metrics._config import MetricConfig
+from ..base import callback_registry
 from ._base import BaseCheckpointCallbackConfig, CheckpointBase
 
 log = logging.getLogger(__name__)
 
 
 @final
+@callback_registry.register
 class BestCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     name: Literal["best_checkpoint"] = "best_checkpoint"
 

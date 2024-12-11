@@ -9,9 +9,9 @@ from typing import Any, Literal
 
 from lightning.pytorch import Trainer as LightningTrainer
 from lightning.pytorch.callbacks import OnExceptionCheckpoint as _OnExceptionCheckpoint
-from typing_extensions import override
+from typing_extensions import final, override
 
-from ..base import CallbackConfigBase
+from ..base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
 
@@ -44,6 +44,8 @@ def _monkey_patch_disable_barrier(trainer: LightningTrainer):
         log.warning("Reverted monkey-patched barrier.")
 
 
+@final
+@callback_registry.register
 class OnExceptionCheckpointCallbackConfig(CallbackConfigBase):
     name: Literal["on_exception_checkpoint"] = "on_exception_checkpoint"
 

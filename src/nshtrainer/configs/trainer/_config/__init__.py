@@ -55,8 +55,6 @@ from nshtrainer.trainer._config import (
 )
 from nshtrainer.trainer._config import TrainerConfig as TrainerConfig
 from nshtrainer.trainer._config import WandbLoggerConfig as WandbLoggerConfig
-from nshtrainer.trainer._config import accelerator_registry as accelerator_registry
-from nshtrainer.trainer._config import plugin_registry as plugin_registry
 
 __all__ = [
     "AcceleratorConfig",
@@ -90,6 +88,4 @@ __all__ = [
     "TensorboardLoggerConfig",
     "TrainerConfig",
     "WandbLoggerConfig",
-    "accelerator_registry",
-    "plugin_registry",
 ]

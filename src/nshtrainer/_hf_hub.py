@@ -14,7 +14,11 @@ from nshrunner._env import SNAPSHOT_DIR
 from typing_extensions import assert_never, override
 
 from ._callback import NTCallbackBase
-from .callbacks.base import CallbackConfigBase, CallbackMetadataConfig
+from .callbacks.base import (
+    CallbackConfigBase,
+    CallbackMetadataConfig,
+    callback_registry,
+)
 
 if TYPE_CHECKING:
     from huggingface_hub import HfApi  # noqa: F401
@@ -39,8 +43,11 @@ class HuggingFaceHubAutoCreateConfig(C.Config):
         return self.enabled
 
 
+@callback_registry.register
 class HuggingFaceHubConfig(CallbackConfigBase):
     """Configuration options for Hugging Face Hub integration."""
+
+    name: Literal["hf_hub"] = "hf_hub"
 
     metadata: ClassVar[CallbackMetadataConfig] = {"ignore_if_exists": True}
 

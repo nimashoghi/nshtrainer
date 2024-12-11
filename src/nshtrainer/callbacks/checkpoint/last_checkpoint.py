@@ -10,12 +10,14 @@ from lightning.pytorch import LightningModule, Trainer
 from typing_extensions import final, override
 
 from ..._checkpoint.metadata import CheckpointMetadata
+from ..base import callback_registry
 from ._base import BaseCheckpointCallbackConfig, CheckpointBase
 
 log = logging.getLogger(__name__)
 
 
 @final
+@callback_registry.register
 class LastCheckpointCallbackConfig(BaseCheckpointCallbackConfig):
     name: Literal["last_checkpoint"] = "last_checkpoint"
 

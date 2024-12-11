@@ -21,6 +21,9 @@ from nshtrainer.callbacks.checkpoint._base import (
     CheckpointMetadata as CheckpointMetadata,
 )
 from nshtrainer.callbacks.checkpoint.best_checkpoint import MetricConfig as MetricConfig
+from nshtrainer.callbacks.checkpoint.best_checkpoint import (
+    callback_registry as callback_registry,
+)
 
 from . import _base as _base
 from . import best_checkpoint as best_checkpoint
@@ -37,6 +40,7 @@ __all__ = [
     "OnExceptionCheckpointCallbackConfig",
     "_base",
     "best_checkpoint",
+    "callback_registry",
     "last_checkpoint",
     "on_exception_checkpoint",
 ]

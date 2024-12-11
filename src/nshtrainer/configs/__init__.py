@@ -5,6 +5,7 @@ __codegen__ = True
 from nshtrainer import MetricConfig as MetricConfig
 from nshtrainer import TrainerConfig as TrainerConfig
 from nshtrainer import accelerator_registry as accelerator_registry
+from nshtrainer import callback_registry as callback_registry
 from nshtrainer import plugin_registry as plugin_registry
 from nshtrainer._checkpoint.metadata import CheckpointMetadata as CheckpointMetadata
 from nshtrainer._directory import DirectoryConfig as DirectoryConfig
@@ -13,6 +14,7 @@ from nshtrainer._hf_hub import (
     HuggingFaceHubAutoCreateConfig as HuggingFaceHubAutoCreateConfig,
 )
 from nshtrainer._hf_hub import HuggingFaceHubConfig as HuggingFaceHubConfig
+from nshtrainer.callbacks import ActSaveConfig as ActSaveConfig
 from nshtrainer.callbacks import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
 )
@@ -35,6 +37,7 @@ from nshtrainer.callbacks import (
 from nshtrainer.callbacks import (
     LastCheckpointCallbackConfig as LastCheckpointCallbackConfig,
 )
+from nshtrainer.callbacks import LearningRateMonitorConfig as LearningRateMonitorConfig
 from nshtrainer.callbacks import LogEpochCallbackConfig as LogEpochCallbackConfig
 from nshtrainer.callbacks import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from nshtrainer.callbacks import (
@@ -53,7 +56,6 @@ from nshtrainer.callbacks import (
     WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
 )
 from nshtrainer.callbacks import WandbWatchCallbackConfig as WandbWatchCallbackConfig
-from nshtrainer.callbacks.actsave import ActSaveConfig as ActSaveConfig
 from nshtrainer.callbacks.checkpoint._base import (
     BaseCheckpointCallbackConfig as BaseCheckpointCallbackConfig,
 )
@@ -103,9 +105,6 @@ from nshtrainer.trainer._config import (
 from nshtrainer.trainer._config import CheckpointSavingConfig as CheckpointSavingConfig
 from nshtrainer.trainer._config import EnvironmentConfig as EnvironmentConfig
 from nshtrainer.trainer._config import GradientClippingConfig as GradientClippingConfig
-from nshtrainer.trainer._config import (
-    LearningRateMonitorConfig as LearningRateMonitorConfig,
-)
 from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
 from nshtrainer.trainer._config import StrategyConfig as StrategyConfig
 from nshtrainer.trainer.accelerator import CPUAcceleratorConfig as CPUAcceleratorConfig
@@ -333,6 +332,7 @@ __all__ = [
     "_directory",
     "_hf_hub",
     "accelerator_registry",
+    "callback_registry",
     "callbacks",
     "loggers",
     "lr_scheduler",

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __codegen__ = True
 
+from nshtrainer.callbacks import ActSaveConfig as ActSaveConfig
 from nshtrainer.callbacks import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
 )
@@ -25,6 +26,7 @@ from nshtrainer.callbacks import (
 from nshtrainer.callbacks import (
     LastCheckpointCallbackConfig as LastCheckpointCallbackConfig,
 )
+from nshtrainer.callbacks import LearningRateMonitorConfig as LearningRateMonitorConfig
 from nshtrainer.callbacks import LogEpochCallbackConfig as LogEpochCallbackConfig
 from nshtrainer.callbacks import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from nshtrainer.callbacks import (
@@ -43,7 +45,7 @@ from nshtrainer.callbacks import (
     WandbUploadCodeCallbackConfig as WandbUploadCodeCallbackConfig,
 )
 from nshtrainer.callbacks import WandbWatchCallbackConfig as WandbWatchCallbackConfig
-from nshtrainer.callbacks.actsave import ActSaveConfig as ActSaveConfig
+from nshtrainer.callbacks import callback_registry as callback_registry
 from nshtrainer.callbacks.checkpoint._base import (
     BaseCheckpointCallbackConfig as BaseCheckpointCallbackConfig,
 )
@@ -51,9 +53,6 @@ from nshtrainer.callbacks.checkpoint._base import (
     CheckpointMetadata as CheckpointMetadata,
 )
 from nshtrainer.callbacks.early_stopping import MetricConfig as MetricConfig
-from nshtrainer.callbacks.lr_monitor import (
-    LearningRateMonitorConfig as LearningRateMonitorConfig,
-)
 
 from . import actsave as actsave
 from . import base as base
@@ -101,6 +100,7 @@ __all__ = [
     "WandbWatchCallbackConfig",
     "actsave",
     "base",
+    "callback_registry",
     "checkpoint",
     "debug_flag",
     "directory_setup",

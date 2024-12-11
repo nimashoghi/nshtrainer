@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from typing import Annotated
 
-import nshconfig as C
+from typing_extensions import TypeAliasType
 
 from . import checkpoint as checkpoint
+from .actsave import ActSaveCallback as ActSaveCallback
+from .actsave import ActSaveConfig as ActSaveConfig
 from .base import CallbackConfigBase as CallbackConfigBase
+from .base import callback_registry as callback_registry
 from .checkpoint import BestCheckpointCallback as BestCheckpointCallback
 from .checkpoint import BestCheckpointCallbackConfig as BestCheckpointCallbackConfig
 from .checkpoint import LastCheckpointCallback as LastCheckpointCallback
@@ -35,6 +38,8 @@ from .interval import IntervalCallback as IntervalCallback
 from .interval import StepIntervalCallback as StepIntervalCallback
 from .log_epoch import LogEpochCallback as LogEpochCallback
 from .log_epoch import LogEpochCallbackConfig as LogEpochCallbackConfig
+from .lr_monitor import LearningRateMonitor as LearningRateMonitor
+from .lr_monitor import LearningRateMonitorConfig as LearningRateMonitorConfig
 from .norm_logging import NormLoggingCallback as NormLoggingCallback
 from .norm_logging import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from .print_table import PrintTableMetricsCallback as PrintTableMetricsCallback
@@ -58,22 +63,7 @@ from .wandb_upload_code import (
 from .wandb_watch import WandbWatchCallback as WandbWatchCallback
 from .wandb_watch import WandbWatchCallbackConfig as WandbWatchCallbackConfig
 
-CallbackConfig = Annotated[
-    DebugFlagCallbackConfig
-    | EarlyStoppingCallbackConfig
-    | EpochTimerCallbackConfig
-    | PrintTableMetricsCallbackConfig
-    | FiniteChecksCallbackConfig
-    | NormLoggingCallbackConfig
-    | GradientSkippingCallbackConfig
-    | LogEpochCallbackConfig
-    | EMACallbackConfig
-    | BestCheckpointCallbackConfig
-    | LastCheckpointCallbackConfig
-    | OnExceptionCheckpointCallbackConfig
-    | SharedParametersCallbackConfig
-    | RLPSanityChecksCallbackConfig
-    | WandbWatchCallbackConfig
-    | WandbUploadCodeCallbackConfig,
-    C.Field(discriminator="name"),
-]
+CallbackConfig = TypeAliasType(
+    "CallbackConfig",
+    Annotated[CallbackConfigBase, callback_registry.DynamicResolution()],
+)

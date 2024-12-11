@@ -9,11 +9,29 @@ from typing import Literal
 import torch
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks import Callback
-from typing_extensions import override
+from typing_extensions import final, override
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
+
+
+@final
+@callback_registry.register
+class PrintTableMetricsCallbackConfig(CallbackConfigBase):
+    """Configuration class for PrintTableMetricsCallback."""
+
+    name: Literal["print_table_metrics"] = "print_table_metrics"
+
+    enabled: bool = True
+    """Whether to enable the callback or not."""
+
+    metric_patterns: list[str] | None = None
+    """List of patterns to filter the metrics to be displayed. If None, all metrics are displayed."""
+
+    @override
+    def create_callbacks(self, trainer_config):
+        yield PrintTableMetricsCallback(metric_patterns=self.metric_patterns)
 
 
 class PrintTableMetricsCallback(Callback):
@@ -74,19 +92,3 @@ class PrintTableMetricsCallback(Callback):
             table.add_row(*values)
 
         return table
-
-
-class PrintTableMetricsCallbackConfig(CallbackConfigBase):
-    """Configuration class for PrintTableMetricsCallback."""
-
-    name: Literal["print_table_metrics"] = "print_table_metrics"
-
-    enabled: bool = True
-    """Whether to enable the callback or not."""
-
-    metric_patterns: list[str] | None = None
-    """List of patterns to filter the metrics to be displayed. If None, all metrics are displayed."""
-
-    @override
-    def create_callbacks(self, trainer_config):
-        yield PrintTableMetricsCallback(metric_patterns=self.metric_patterns)

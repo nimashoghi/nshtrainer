@@ -8,8 +8,10 @@ from nshtrainer.callbacks.directory_setup import (
 from nshtrainer.callbacks.directory_setup import (
     DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
 )
+from nshtrainer.callbacks.directory_setup import callback_registry as callback_registry
 
 __all__ = [
     "CallbackConfigBase",
     "DirectorySetupCallbackConfig",
+    "callback_registry",
 ]

@@ -9,13 +9,15 @@ from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks.callback import Callback
 from lightning.pytorch.loggers import WandbLogger
 from nshrunner._env import SNAPSHOT_DIR
-from typing_extensions import override
+from typing_extensions import final, override
 
-from .base import CallbackConfigBase
+from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
 
 
+@final
+@callback_registry.register
 class WandbUploadCodeCallbackConfig(CallbackConfigBase):
     name: Literal["wandb_upload_code"] = "wandb_upload_code"
 
