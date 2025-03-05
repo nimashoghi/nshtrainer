@@ -142,7 +142,9 @@ def MLP(
 
     with contextlib.ExitStack() as stack:
         if seed is not None:
-            stack.enter_context(torch.random.fork_rng())
+            stack.enter_context(
+                torch.random.fork_rng(devices=range(torch.cuda.device_count()))
+            )
             torch.manual_seed(seed)
 
         if activation is None:
