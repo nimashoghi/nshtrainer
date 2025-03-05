@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import copy
 from collections.abc import Callable, Sequence
 from typing import Literal, Protocol, runtime_checkable
@@ -44,6 +45,9 @@ class MLPConfigDict(TypedDict):
     residual: bool
     """Whether to use residual connections between layers."""
 
+    seed: int | None
+    """Random seed to use for initialization. If None, the default Torch behavior is used."""
+
 
 class MLPConfig(C.Config):
     bias: bool = True
@@ -64,15 +68,20 @@ class MLPConfig(C.Config):
     residual: bool = False
     """Whether to use residual connections between layers."""
 
+    seed: int | None = None
+    """Random seed to use for initialization. If None, the default Torch behavior is used."""
+
     def to_kwargs(self) -> MLPConfigDict:
-        return {
+        kwargs: MLPConfigDict = {
             "bias": self.bias,
             "no_bias_scalar": self.no_bias_scalar,
             "nonlinearity": self.nonlinearity,
             "ln": self.ln,
             "dropout": self.dropout,
             "residual": self.residual,
+            "seed": self.seed,
         }
+        return kwargs
 
     def create_module(
         self,
@@ -108,6 +117,7 @@ def MLP(
     pre_layers: Sequence[nn.Module] = [],
     post_layers: Sequence[nn.Module] = [],
     linear_cls: LinearModuleConstructor = nn.Linear,
+    seed: int | None = None,
 ):
     """
     Constructs a multi-layer perceptron (MLP) with the given dimensions and activation function.
@@ -123,52 +133,59 @@ def MLP(
         residual (bool, optional): Whether to use residual connections between layers. Defaults to False.
         pre_layers (Sequence[nn.Module], optional): List of layers to insert before the linear layers. Defaults to [].
         post_layers (Sequence[nn.Module], optional): List of layers to insert after the linear layers. Defaults to [].
+        linear_cls (LinearModuleConstructor, optional): Linear module constructor to use. Defaults to nn.Linear.
+        seed (int | None, optional): Random seed to use for initialization. If None, the default Torch behavior is used. Defaults to None.
 
     Returns:
         nn.Sequential: The constructed MLP.
     """
 
-    if activation is None:
-        activation = nonlinearity
+    with contextlib.ExitStack() as stack:
+        if seed is not None:
+            stack.enter_context(torch.random.fork_rng())
+            torch.manual_seed(seed)
 
-    if len(dims) < 2:
-        raise ValueError("mlp requires at least 2 dimensions")
-    if ln is True:
-        ln = "pre"
-    elif isinstance(ln, str) and ln not in ("pre", "post"):
-        raise ValueError("ln must be a boolean or 'pre' or 'post'")
+        if activation is None:
+            activation = nonlinearity
 
-    layers: list[nn.Module] = []
-    if ln == "pre":
-        layers.append(nn.LayerNorm(dims[0]))
+        if len(dims) < 2:
+            raise ValueError("mlp requires at least 2 dimensions")
+        if ln is True:
+            ln = "pre"
+        elif isinstance(ln, str) and ln not in ("pre", "post"):
+            raise ValueError("ln must be a boolean or 'pre' or 'post'")
 
-    layers.extend(pre_layers)
+        layers: list[nn.Module] = []
+        if ln == "pre":
+            layers.append(nn.LayerNorm(dims[0]))
 
-    for i in range(len(dims) - 1):
-        in_features = dims[i]
-        out_features = dims[i + 1]
-        bias_ = bias and not (no_bias_scalar and out_features == 1)
-        layers.append(linear_cls(in_features, out_features, bias=bias_))
-        if dropout is not None:
-            layers.append(nn.Dropout(dropout))
-        if i < len(dims) - 2:
-            match activation:
-                case NonlinearityConfigBase():
-                    layers.append(activation.create_module())
-                case nn.Module():
-                    # In this case, we create a deep copy of the module to avoid sharing parameters (if any).
-                    layers.append(copy.deepcopy(activation))
-                case Callable():
-                    layers.append(activation())
-                case _:
-                    raise ValueError(
-                        "Either `nonlinearity` or `activation` must be provided"
-                    )
+        layers.extend(pre_layers)
 
-    layers.extend(post_layers)
+        for i in range(len(dims) - 1):
+            in_features = dims[i]
+            out_features = dims[i + 1]
+            bias_ = bias and not (no_bias_scalar and out_features == 1)
+            layers.append(linear_cls(in_features, out_features, bias=bias_))
+            if dropout is not None:
+                layers.append(nn.Dropout(dropout))
+            if i < len(dims) - 2:
+                match activation:
+                    case NonlinearityConfigBase():
+                        layers.append(activation.create_module())
+                    case nn.Module():
+                        # In this case, we create a deep copy of the module to avoid sharing parameters (if any).
+                        layers.append(copy.deepcopy(activation))
+                    case Callable():
+                        layers.append(activation())
+                    case _:
+                        raise ValueError(
+                            "Either `nonlinearity` or `activation` must be provided"
+                        )
 
-    if ln == "post":
-        layers.append(nn.LayerNorm(dims[-1]))
+        layers.extend(post_layers)
 
-    cls = ResidualSequential if residual else nn.Sequential
-    return cls(*layers)
+        if ln == "post":
+            layers.append(nn.LayerNorm(dims[-1]))
+
+        cls = ResidualSequential if residual else nn.Sequential
+        return cls(*layers)
