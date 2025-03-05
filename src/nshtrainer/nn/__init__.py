@@ -4,6 +4,7 @@ from .mlp import MLP as MLP
 from .mlp import MLPConfig as MLPConfig
 from .mlp import MLPConfigDict as MLPConfigDict
 from .mlp import ResidualSequential as ResidualSequential
+from .mlp import custom_seed_context as custom_seed_context
 from .module_dict import TypedModuleDict as TypedModuleDict
 from .module_list import TypedModuleList as TypedModuleList
 from .nonlinearity import ELUNonlinearityConfig as ELUNonlinearityConfig

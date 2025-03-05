@@ -99,6 +99,18 @@ class MLPConfig(C.Config):
         )
 
 
+@contextlib.contextmanager
+def custom_seed_context(seed: int | None):
+    with contextlib.ExitStack() as stack:
+        if seed is not None:
+            stack.enter_context(
+                torch.random.fork_rng(devices=range(torch.cuda.device_count()))
+            )
+            torch.manual_seed(seed)
+
+        yield
+
+
 def MLP(
     dims: Sequence[int],
     activation: NonlinearityConfigBase
@@ -140,13 +152,7 @@ def MLP(
         nn.Sequential: The constructed MLP.
     """
 
-    with contextlib.ExitStack() as stack:
-        if seed is not None:
-            stack.enter_context(
-                torch.random.fork_rng(devices=range(torch.cuda.device_count()))
-            )
-            torch.manual_seed(seed)
-
+    with custom_seed_context(seed):
         if activation is None:
             activation = nonlinearity
 
