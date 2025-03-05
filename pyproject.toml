@@ -29,6 +29,8 @@ pyright = "*"
 ruff = "*"
 ipykernel = "*"
 ipywidgets = "*"
+pytest = "^8.3.5"
+pytest-cov = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -57,4 +59,20 @@ extra = [
     "tensorboard",
     "huggingface-hub",
     "nshutils",
+]
+
+[tool.pytest]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+python_classes = "Test*"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+# addopts = "--cov=src/nshtrainer --cov-report=term-missing --cov-report=xml --"
+addopts = [
+    "--import-mode=importlib",
+    "--cov=src/nshtrainer",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
 ]
