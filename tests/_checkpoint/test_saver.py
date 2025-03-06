@@ -96,7 +96,9 @@ def test_link_checkpoint_no_remove_existing(source_checkpoint, metadata_file, te
     assert metadata_link.exists()
 
 
-def test_link_checkpoint_nonexistent_metadata(source_checkpoint, temp_dir):
+def test_link_checkpoint_nonexistent_metadata_nocheck_success(
+    source_checkpoint, temp_dir
+):
     """Test linking a checkpoint with no metadata file."""
     link_path = temp_dir / "no_metadata_link.ckpt"
 
@@ -112,7 +114,7 @@ def test_link_checkpoint_nonexistent_metadata(source_checkpoint, temp_dir):
     assert not metadata_link.exists()
 
 
-def test_link_checkpoint_nonexistent_metadata(source_checkpoint, temp_dir):
+def test_link_checkpoint_nonexistent_metadata_failure(source_checkpoint, temp_dir):
     """Test linking a checkpoint with no metadata file."""
     link_path = temp_dir / "no_metadata_link.ckpt"
 
