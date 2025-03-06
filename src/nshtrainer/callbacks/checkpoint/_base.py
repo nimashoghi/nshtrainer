@@ -12,7 +12,7 @@ from lightning.pytorch.callbacks import Checkpoint
 from typing_extensions import TypeVar, override
 
 from ..._checkpoint.metadata import CheckpointMetadata
-from ..._checkpoint.saver import _link_checkpoint, _remove_checkpoint
+from ..._checkpoint.saver import link_checkpoint, remove_checkpoint
 from ..base import CallbackConfigBase
 
 if TYPE_CHECKING:
@@ -122,7 +122,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
                 )
                 continue
 
-            _remove_checkpoint(trainer, old_ckpt_path, metadata=True)
+            remove_checkpoint(trainer, old_ckpt_path, metadata=True)
             log.debug(f"Removed old checkpoint: {old_ckpt_path}")
 
     def current_metrics(self, trainer: Trainer) -> dict[str, Any]:
@@ -167,7 +167,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
             # Create the latest symlink
             if (symlink_filename := self.symlink_path()) is not None:
                 symlink_path = self.dirpath / symlink_filename
-                _link_checkpoint(filepath, symlink_path, metadata=True)
+                link_checkpoint(filepath, symlink_path, metadata=True)
                 log.debug(f"Created latest symlink: {symlink_path}")
 
         # Barrier to ensure all processes have saved the checkpoint,

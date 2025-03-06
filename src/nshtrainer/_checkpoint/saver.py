@@ -8,12 +8,12 @@ from pathlib import Path
 from lightning.pytorch import Trainer
 
 from ..util.path import try_symlink_or_copy
-from .metadata import _link_checkpoint_metadata, _remove_checkpoint_metadata
+from .metadata import link_checkpoint_metadata, remove_checkpoint_metadata
 
 log = logging.getLogger(__name__)
 
 
-def _link_checkpoint(
+def link_checkpoint(
     filepath: str | Path | os.PathLike,
     linkpath: str | Path | os.PathLike,
     *,
@@ -39,14 +39,14 @@ def _link_checkpoint(
             log.debug(f"Removed {linkpath=}")
 
         if metadata:
-            _remove_checkpoint_metadata(linkpath)
+            remove_checkpoint_metadata(linkpath)
 
     try_symlink_or_copy(filepath, linkpath)
     if metadata:
-        _link_checkpoint_metadata(filepath, linkpath)
+        link_checkpoint_metadata(filepath, linkpath)
 
 
-def _remove_checkpoint(
+def remove_checkpoint(
     trainer: Trainer,
     filepath: str | Path | os.PathLike,
     *,
@@ -57,4 +57,4 @@ def _remove_checkpoint(
     trainer.strategy.remove_checkpoint(filepath)
 
     if metadata:
-        _remove_checkpoint_metadata(filepath)
+        remove_checkpoint_metadata(filepath)

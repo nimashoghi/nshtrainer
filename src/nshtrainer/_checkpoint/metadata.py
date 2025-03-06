@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import datetime
 import logging
-from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -115,7 +114,7 @@ def _metadata_path(checkpoint_path: Path):
     return checkpoint_path.with_suffix(CheckpointMetadata.PATH_SUFFIX)
 
 
-def _write_checkpoint_metadata(trainer: Trainer, checkpoint_path: Path):
+def write_checkpoint_metadata(trainer: Trainer, checkpoint_path: Path):
     metadata_path = _metadata_path(checkpoint_path)
     metadata = _generate_checkpoint_metadata(trainer, checkpoint_path, metadata_path)
 
@@ -130,7 +129,7 @@ def _write_checkpoint_metadata(trainer: Trainer, checkpoint_path: Path):
     return metadata_path
 
 
-def _remove_checkpoint_metadata(checkpoint_path: Path):
+def remove_checkpoint_metadata(checkpoint_path: Path):
     path = _metadata_path(checkpoint_path)
     try:
         path.unlink(missing_ok=True)
@@ -140,11 +139,15 @@ def _remove_checkpoint_metadata(checkpoint_path: Path):
         log.debug(f"Removed {path}")
 
 
-def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Path):
+def link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Path):
     # First, remove any existing metadata files
-    _remove_checkpoint_metadata(linked_checkpoint_path)
+    remove_checkpoint_metadata(linked_checkpoint_path)
 
     # Link the metadata files to the new checkpoint
     path = _metadata_path(checkpoint_path)
     linked_path = _metadata_path(linked_checkpoint_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"Checkpoint path does not exist: {checkpoint_path}")
+
     try_symlink_or_copy(path, linked_path)
