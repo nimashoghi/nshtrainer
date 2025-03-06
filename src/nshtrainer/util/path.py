@@ -81,18 +81,27 @@ def compute_file_checksum(file_path: Path) -> str:
 def try_symlink_or_copy(
     file_path: Path,
     link_path: Path,
+    *,
     target_is_directory: bool = False,
     relative: bool = True,
     remove_existing: bool = True,
+    throw_on_invalid_target: bool = False,
 ):
     """
     Symlinks on Unix, copies on Windows.
     """
 
+    # Check if the target file exists
+    if throw_on_invalid_target and not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
     # If the link already exists, remove it
     if remove_existing:
         try:
-            if link_path.exists():
+            if link_path.exists(follow_symlinks=False):
+                # follow_symlinks=False is EXTREMELY important here
+                # Otherwise, we've already deleted the file that the symlink
+                # used to point to, so this always returns False
                 if link_path.is_dir():
                     shutil.rmtree(link_path)
                 else:

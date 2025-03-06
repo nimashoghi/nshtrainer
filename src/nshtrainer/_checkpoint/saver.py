@@ -25,7 +25,10 @@ def _link_checkpoint(
 
     if remove_existing:
         try:
-            if linkpath.exists():
+            if linkpath.exists(follow_symlinks=False):
+                # follow_symlinks=False is EXTREMELY important here
+                # Otherwise, we've already deleted the file that the symlink
+                # used to point to, so this always returns False
                 if linkpath.is_dir():
                     shutil.rmtree(linkpath)
                 else:

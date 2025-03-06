@@ -18,7 +18,7 @@ from lightning.pytorch.trainer.states import TrainerFn
 from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
 from typing_extensions import Never, Unpack, assert_never, deprecated, override
 
-from .._checkpoint.metadata import _write_checkpoint_metadata
+from .._checkpoint.metadata import write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
 from ..util._environment_info import EnvironmentConfig
 from ..util.bf16 import is_bf16_supported_no_emulation
@@ -478,7 +478,7 @@ class Trainer(LightningTrainer):
         metadata_path = None
         if self.hparams.save_checkpoint_metadata and self.is_global_zero:
             # Generate the metadata and write to disk
-            metadata_path = _write_checkpoint_metadata(self, filepath)
+            metadata_path = write_checkpoint_metadata(self, filepath)
 
         # Call the `on_checkpoint_saved` method on all callbacks
         from .. import _callback

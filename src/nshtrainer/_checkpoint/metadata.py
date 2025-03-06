@@ -148,15 +148,3 @@ def _link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Pat
     path = _metadata_path(checkpoint_path)
     linked_path = _metadata_path(linked_checkpoint_path)
     try_symlink_or_copy(path, linked_path)
-
-
-def _sort_ckpts_by_metadata(
-    checkpoint_paths: list[Path],
-    key: Callable[[CheckpointMetadata, Path], Any],
-    reverse: bool = False,
-):
-    return sorted(
-        [(CheckpointMetadata.from_ckpt_path(path), path) for path in checkpoint_paths],
-        key=lambda args_tuple: key(*args_tuple),
-        reverse=reverse,
-    )
