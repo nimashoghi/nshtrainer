@@ -120,7 +120,8 @@ def try_symlink_or_copy(
                 shutil.copy(file_path, link_path)
         else:
             link_path.symlink_to(
-                symlink_target, target_is_directory=target_is_directory
+                symlink_target,
+                target_is_directory=target_is_directory,
             )
     except Exception:
         log.warning(

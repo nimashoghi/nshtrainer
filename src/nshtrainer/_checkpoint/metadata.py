@@ -139,15 +139,30 @@ def remove_checkpoint_metadata(checkpoint_path: Path):
         log.debug(f"Removed {path}")
 
 
+def remove_checkpoint_metadata_link(ckpt_link_path: Path):
+    path = _metadata_path(ckpt_link_path)
+    # If the metadata does not exist, we can safely ignore this
+    if not path.exists(follow_symlinks=False):
+        # This is EXTREMELY important here
+        # Otherwise, we've already deleted the file that the symlink
+        # used to point to, so this always returns False
+        log.debug(f"Metadata file does not exist: {path}")
+        return
+
+    # If the metadata exists, we can remove it
+    try:
+        path.unlink(missing_ok=True)
+    except Exception:
+        log.warning(f"Failed to remove {path}", exc_info=True)
+    else:
+        log.debug(f"Removed {path}")
+
+
 def link_checkpoint_metadata(checkpoint_path: Path, linked_checkpoint_path: Path):
     # First, remove any existing metadata files
-    remove_checkpoint_metadata(linked_checkpoint_path)
+    remove_checkpoint_metadata_link(linked_checkpoint_path)
 
     # Link the metadata files to the new checkpoint
     path = _metadata_path(checkpoint_path)
     linked_path = _metadata_path(linked_checkpoint_path)
-
-    if not path.exists():
-        raise FileNotFoundError(f"Checkpoint path does not exist: {checkpoint_path}")
-
     try_symlink_or_copy(path, linked_path)
