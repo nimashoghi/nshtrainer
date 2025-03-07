@@ -25,7 +25,6 @@ from ..util.bf16 import is_bf16_supported_no_emulation
 from ._config import LightningTrainerKwargs, TrainerConfig
 from ._runtime_callback import RuntimeTrackerCallback, Stage
 from .accelerator import AcceleratorConfigBase
-from .plugin import PluginConfigBase
 from .signal_connector import _SignalConnector
 from .strategy import StrategyConfigBase
 
