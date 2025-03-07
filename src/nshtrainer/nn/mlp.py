@@ -3,12 +3,12 @@ from __future__ import annotations
 import contextlib
 import copy
 from collections.abc import Callable, Sequence
-from typing import Literal, Protocol, runtime_checkable
+from typing import Any, Literal, Protocol, runtime_checkable
 
 import nshconfig as C
 import torch
 import torch.nn as nn
-from typing_extensions import TypedDict, override
+from typing_extensions import deprecated, override
 
 from .nonlinearity import NonlinearityConfig, NonlinearityConfigBase
 
@@ -24,29 +24,6 @@ class ResidualSequential(nn.Sequential):
     @override
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         return input + super().forward(input)
-
-
-class MLPConfigDict(TypedDict):
-    bias: bool
-    """Whether to include bias terms in the linear layers."""
-
-    no_bias_scalar: bool
-    """Whether to exclude bias terms when the output dimension is 1."""
-
-    nonlinearity: NonlinearityConfig | None
-    """Activation function to use between layers."""
-
-    ln: bool | Literal["pre", "post"]
-    """Whether to apply layer normalization before or after the linear layers."""
-
-    dropout: float | None
-    """Dropout probability to apply between layers."""
-
-    residual: bool
-    """Whether to use residual connections between layers."""
-
-    seed: int | None
-    """Random seed to use for initialization. If None, the default Torch behavior is used."""
 
 
 class MLPConfig(C.Config):
@@ -71,8 +48,15 @@ class MLPConfig(C.Config):
     seed: int | None = None
     """Random seed to use for initialization. If None, the default Torch behavior is used."""
 
-    def to_kwargs(self) -> MLPConfigDict:
-        kwargs: MLPConfigDict = {
+    @deprecated("Use `nt.nn.MLP(config=...)` instead.")
+    def create_module(
+        self,
+        dims: Sequence[int],
+        pre_layers: Sequence[nn.Module] = [],
+        post_layers: Sequence[nn.Module] = [],
+        linear_cls: LinearModuleConstructor = nn.Linear,
+    ):
+        kwargs: dict[str, Any] = {
             "bias": self.bias,
             "no_bias_scalar": self.no_bias_scalar,
             "nonlinearity": self.nonlinearity,
@@ -81,18 +65,9 @@ class MLPConfig(C.Config):
             "residual": self.residual,
             "seed": self.seed,
         }
-        return kwargs
-
-    def create_module(
-        self,
-        dims: Sequence[int],
-        pre_layers: Sequence[nn.Module] = [],
-        post_layers: Sequence[nn.Module] = [],
-        linear_cls: LinearModuleConstructor = nn.Linear,
-    ):
         return MLP(
             dims,
-            **self.to_kwargs(),
+            **kwargs,
             pre_layers=pre_layers,
             post_layers=post_layers,
             linear_cls=linear_cls,
@@ -121,50 +96,73 @@ def MLP(
     | nn.Module
     | Callable[[], nn.Module]
     | None = None,
-    bias: bool = True,
-    no_bias_scalar: bool = True,
-    ln: bool | Literal["pre", "post"] = False,
+    bias: bool | None = None,
+    no_bias_scalar: bool | None = None,
+    ln: bool | Literal["pre", "post"] | None = None,
     dropout: float | None = None,
-    residual: bool = False,
+    residual: bool | None = None,
     pre_layers: Sequence[nn.Module] = [],
     post_layers: Sequence[nn.Module] = [],
     linear_cls: LinearModuleConstructor = nn.Linear,
     seed: int | None = None,
+    config: MLPConfig | None = None,
 ):
     """
     Constructs a multi-layer perceptron (MLP) with the given dimensions and activation function.
 
     Args:
         dims (Sequence[int]): List of integers representing the dimensions of the MLP.
-        nonlinearity (Callable[[], nn.Module]): Activation function to use between layers.
-        activation (Callable[[], nn.Module]): Activation function to use between layers.
-        bias (bool, optional): Whether to include bias terms in the linear layers. Defaults to True.
-        no_bias_scalar (bool, optional): Whether to exclude bias terms when the output dimension is 1. Defaults to True.
-        ln (bool | Literal["pre", "post"], optional): Whether to apply layer normalization before or after the linear layers. Defaults to False.
-        dropout (float | None, optional): Dropout probability to apply between layers. Defaults to None.
-        residual (bool, optional): Whether to use residual connections between layers. Defaults to False.
+        nonlinearity (Callable[[], nn.Module] | None, optional): Activation function to use between layers.
+        activation (Callable[[], nn.Module] | None, optional): Activation function to use between layers.
+        bias (bool | None, optional): Whether to include bias terms in the linear layers.
+        no_bias_scalar (bool | None, optional): Whether to exclude bias terms when the output dimension is 1.
+        ln (bool | Literal["pre", "post"] | None, optional): Whether to apply layer normalization before or after the linear layers.
+        dropout (float | None, optional): Dropout probability to apply between layers.
+        residual (bool | None, optional): Whether to use residual connections between layers.
         pre_layers (Sequence[nn.Module], optional): List of layers to insert before the linear layers. Defaults to [].
         post_layers (Sequence[nn.Module], optional): List of layers to insert after the linear layers. Defaults to [].
         linear_cls (LinearModuleConstructor, optional): Linear module constructor to use. Defaults to nn.Linear.
-        seed (int | None, optional): Random seed to use for initialization. If None, the default Torch behavior is used. Defaults to None.
+        seed (int | None, optional): Random seed to use for initialization. If None, the default Torch behavior is used.
+        config (MLPConfig | None, optional): Configuration object for the MLP. Parameters specified directly take precedence.
 
     Returns:
         nn.Sequential: The constructed MLP.
     """
 
-    with custom_seed_context(seed):
+    # Resolve parameters: arg if not None, otherwise config value if config exists, otherwise default
+    resolved_bias = bias if bias is not None else (config.bias if config else True)
+    resolved_no_bias_scalar = (
+        no_bias_scalar
+        if no_bias_scalar is not None
+        else (config.no_bias_scalar if config else True)
+    )
+    resolved_nonlinearity = (
+        nonlinearity
+        if nonlinearity is not None
+        else (config.nonlinearity if config else None)
+    )
+    resolved_ln = ln if ln is not None else (config.ln if config else False)
+    resolved_dropout = (
+        dropout if dropout is not None else (config.dropout if config else None)
+    )
+    resolved_residual = (
+        residual if residual is not None else (config.residual if config else False)
+    )
+    resolved_seed = seed if seed is not None else (config.seed if config else None)
+
+    with custom_seed_context(resolved_seed):
         if activation is None:
-            activation = nonlinearity
+            activation = resolved_nonlinearity
 
         if len(dims) < 2:
             raise ValueError("mlp requires at least 2 dimensions")
-        if ln is True:
-            ln = "pre"
-        elif isinstance(ln, str) and ln not in ("pre", "post"):
+        if resolved_ln is True:
+            resolved_ln = "pre"
+        elif isinstance(resolved_ln, str) and resolved_ln not in ("pre", "post"):
             raise ValueError("ln must be a boolean or 'pre' or 'post'")
 
         layers: list[nn.Module] = []
-        if ln == "pre":
+        if resolved_ln == "pre":
             layers.append(nn.LayerNorm(dims[0]))
 
         layers.extend(pre_layers)
@@ -172,10 +170,12 @@ def MLP(
         for i in range(len(dims) - 1):
             in_features = dims[i]
             out_features = dims[i + 1]
-            bias_ = bias and not (no_bias_scalar and out_features == 1)
+            bias_ = resolved_bias and not (
+                resolved_no_bias_scalar and out_features == 1
+            )
             layers.append(linear_cls(in_features, out_features, bias=bias_))
-            if dropout is not None:
-                layers.append(nn.Dropout(dropout))
+            if resolved_dropout is not None:
+                layers.append(nn.Dropout(resolved_dropout))
             if i < len(dims) - 2:
                 match activation:
                     case NonlinearityConfigBase():
@@ -192,8 +192,8 @@ def MLP(
 
         layers.extend(post_layers)
 
-        if ln == "post":
+        if resolved_ln == "post":
             layers.append(nn.LayerNorm(dims[-1]))
 
-        cls = ResidualSequential if residual else nn.Sequential
+        cls = ResidualSequential if resolved_residual else nn.Sequential
         return cls(*layers)
