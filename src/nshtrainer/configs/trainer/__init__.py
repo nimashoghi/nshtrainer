@@ -39,6 +39,9 @@ from nshtrainer.trainer._config import LoggerConfig as LoggerConfig
 from nshtrainer.trainer._config import LoggerConfigBase as LoggerConfigBase
 from nshtrainer.trainer._config import MetricConfig as MetricConfig
 from nshtrainer.trainer._config import (
+    MetricValidationCallbackConfig as MetricValidationCallbackConfig,
+)
+from nshtrainer.trainer._config import (
     NormLoggingCallbackConfig as NormLoggingCallbackConfig,
 )
 from nshtrainer.trainer._config import (
@@ -164,6 +167,7 @@ __all__ = [
     "MPIEnvironmentPlugin",
     "MPSAcceleratorConfig",
     "MetricConfig",
+    "MetricValidationCallbackConfig",
     "MixedPrecisionPluginConfig",
     "NormLoggingCallbackConfig",
     "OnExceptionCheckpointCallbackConfig",

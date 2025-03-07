@@ -40,6 +40,10 @@ from .log_epoch import LogEpochCallback as LogEpochCallback
 from .log_epoch import LogEpochCallbackConfig as LogEpochCallbackConfig
 from .lr_monitor import LearningRateMonitor as LearningRateMonitor
 from .lr_monitor import LearningRateMonitorConfig as LearningRateMonitorConfig
+from .metric_validation import MetricValidationCallback as MetricValidationCallback
+from .metric_validation import (
+    MetricValidationCallbackConfig as MetricValidationCallbackConfig,
+)
 from .norm_logging import NormLoggingCallback as NormLoggingCallback
 from .norm_logging import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from .print_table import PrintTableMetricsCallback as PrintTableMetricsCallback

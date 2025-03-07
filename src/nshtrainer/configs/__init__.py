@@ -39,6 +39,9 @@ from nshtrainer.callbacks import (
 )
 from nshtrainer.callbacks import LearningRateMonitorConfig as LearningRateMonitorConfig
 from nshtrainer.callbacks import LogEpochCallbackConfig as LogEpochCallbackConfig
+from nshtrainer.callbacks import (
+    MetricValidationCallbackConfig as MetricValidationCallbackConfig,
+)
 from nshtrainer.callbacks import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from nshtrainer.callbacks import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
@@ -287,6 +290,7 @@ __all__ = [
     "MPIEnvironmentPlugin",
     "MPSAcceleratorConfig",
     "MetricConfig",
+    "MetricValidationCallbackConfig",
     "MishNonlinearityConfig",
     "MixedPrecisionPluginConfig",
     "NonlinearityConfig",

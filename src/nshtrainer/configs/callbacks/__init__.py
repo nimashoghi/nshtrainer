@@ -28,6 +28,9 @@ from nshtrainer.callbacks import (
 )
 from nshtrainer.callbacks import LearningRateMonitorConfig as LearningRateMonitorConfig
 from nshtrainer.callbacks import LogEpochCallbackConfig as LogEpochCallbackConfig
+from nshtrainer.callbacks import (
+    MetricValidationCallbackConfig as MetricValidationCallbackConfig,
+)
 from nshtrainer.callbacks import NormLoggingCallbackConfig as NormLoggingCallbackConfig
 from nshtrainer.callbacks import (
     OnExceptionCheckpointCallbackConfig as OnExceptionCheckpointCallbackConfig,
@@ -65,6 +68,7 @@ from . import finite_checks as finite_checks
 from . import gradient_skipping as gradient_skipping
 from . import log_epoch as log_epoch
 from . import lr_monitor as lr_monitor
+from . import metric_validation as metric_validation
 from . import norm_logging as norm_logging
 from . import print_table as print_table
 from . import rlp_sanity_checks as rlp_sanity_checks
@@ -91,6 +95,7 @@ __all__ = [
     "LearningRateMonitorConfig",
     "LogEpochCallbackConfig",
     "MetricConfig",
+    "MetricValidationCallbackConfig",
     "NormLoggingCallbackConfig",
     "OnExceptionCheckpointCallbackConfig",
     "PrintTableMetricsCallbackConfig",
@@ -110,6 +115,7 @@ __all__ = [
     "gradient_skipping",
     "log_epoch",
     "lr_monitor",
+    "metric_validation",
     "norm_logging",
     "print_table",
     "rlp_sanity_checks",

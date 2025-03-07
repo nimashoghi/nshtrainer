@@ -40,6 +40,7 @@ from ..callbacks.base import CallbackConfigBase
 from ..callbacks.debug_flag import DebugFlagCallbackConfig
 from ..callbacks.log_epoch import LogEpochCallbackConfig
 from ..callbacks.lr_monitor import LearningRateMonitorConfig
+from ..callbacks.metric_validation import MetricValidationCallbackConfig
 from ..callbacks.rlp_sanity_checks import RLPSanityChecksCallbackConfig
 from ..callbacks.shared_parameters import SharedParametersCallbackConfig
 from ..loggers import (
@@ -697,6 +698,10 @@ class TrainerConfig(C.Config):
     - The trainer is running in fast_dev_run mode.
     - The trainer is running a sanity check (which happens before starting the training routine).
     """
+    auto_validate_metrics: MetricValidationCallbackConfig | None = (
+        MetricValidationCallbackConfig()
+    )
+    """If enabled, will automatically validate the metrics before starting the training routine."""
 
     lightning_kwargs: LightningTrainerKwargs = LightningTrainerKwargs()
     """
@@ -768,6 +773,7 @@ class TrainerConfig(C.Config):
         yield self.shared_parameters
         yield self.reduce_lr_on_plateau_sanity_checking
         yield self.auto_set_debug_flag
+        yield self.auto_validate_metrics
         yield from self.callbacks
 
     def _nshtrainer_all_logger_configs(self) -> Iterable[LoggerConfigBase | None]:
