@@ -418,20 +418,6 @@ class Trainer(LightningTrainer):
 
         return tracker.time_elapsed(stage)
 
-    @property
-    def _base_module(self):
-        if self.lightning_module is None:
-            raise ValueError("LightningModule is not set.")
-
-        from ..model.base import LightningModuleBase
-
-        if not isinstance(self.lightning_module, LightningModuleBase):
-            raise ValueError(
-                f"LightningModule is not an instance of {LightningModuleBase}."
-            )
-
-        return self.lightning_module
-
     @override
     def _run(
         self, model: LightningModule, ckpt_path: str | Path | None = None

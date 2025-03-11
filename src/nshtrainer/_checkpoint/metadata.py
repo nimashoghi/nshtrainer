@@ -16,6 +16,18 @@ from ..util.path import compute_file_checksum, try_symlink_or_copy
 if TYPE_CHECKING:
     from ..trainer.trainer import Trainer
 
+try:
+    from pydantic import BaseModel
+
+    _HAS_PYDANTIC = True
+except ImportError:
+    if not TYPE_CHECKING:
+        BaseModel = object
+    else:
+        from pydantic import BaseModel
+    _HAS_PYDANTIC = False
+
+
 log = logging.getLogger(__name__)
 
 
@@ -27,10 +39,10 @@ def _full_hparams_dict(trainer: Trainer):
     hparams["trainer"] = trainer.hparams.model_dump(mode="json")
 
     if trainer.lightning_module is not None:
-        from ..model import LightningModuleBase
-
-        if isinstance(trainer.lightning_module, LightningModuleBase):
-            hparams["model"] = trainer.lightning_module.hparams.model_dump(mode="json")
+        model_hparams = trainer.lightning_module.hparams
+        if _HAS_PYDANTIC and isinstance(model_hparams, BaseModel):
+            model_hparams = model_hparams.model_dump(mode="json")
+        hparams["model"] = dict(model_hparams)
 
     return hparams
 
