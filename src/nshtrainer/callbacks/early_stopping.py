@@ -68,7 +68,7 @@ class EarlyStoppingCallback(_EarlyStopping):
         del config, metric
 
         super().__init__(
-            monitor=self.metric.validation_monitor,
+            monitor=self.metric.monitor,
             mode=self.metric.mode,
             patience=self.config.patience,
             min_delta=self.config.min_delta,

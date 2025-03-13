@@ -49,13 +49,13 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
         if (metric := self.metric) is None:
             from ..trainer import Trainer
 
-            assert isinstance(
-                trainer := lightning_module.trainer, Trainer
-            ), "The trainer must be a `nshtrainer.Trainer` instance."
+            assert isinstance(trainer := lightning_module.trainer, Trainer), (
+                "The trainer must be a `nshtrainer.Trainer` instance."
+            )
 
-            assert (
-                metric := trainer.hparams.primary_metric
-            ) is not None, "Primary metric must be provided if metric is not specified."
+            assert (metric := trainer.hparams.primary_metric) is not None, (
+                "Primary metric must be provided if metric is not specified."
+            )
 
         lr_scheduler = ReduceLROnPlateau(
             optimizer,
@@ -70,7 +70,7 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
         )
         return {
             "scheduler": lr_scheduler,
-            "monitor": metric.validation_monitor,
+            "monitor": metric.monitor,
         }
 
     @override

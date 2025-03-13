@@ -55,14 +55,14 @@ class MetricValidationCallback(Callback):
         self.metrics = metrics
 
     def _check_metrics(self, trainer: Trainer):
-        metric_names = ", ".join(metric.validation_monitor for metric in self.metrics)
+        metric_names = ", ".join(metric.monitor for metric in self.metrics)
         log.info(f"Validating metrics: {metric_names}...")
         logged_metrics = set(trainer.logged_metrics.keys())
 
         invalid_metrics: list[str] = []
         for metric in self.metrics:
-            if metric.validation_monitor not in logged_metrics:
-                invalid_metrics.append(metric.validation_monitor)
+            if metric.monitor not in logged_metrics:
+                invalid_metrics.append(metric.monitor)
 
         if invalid_metrics:
             msg = (
