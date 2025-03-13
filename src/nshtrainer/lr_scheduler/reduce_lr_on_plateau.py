@@ -7,6 +7,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from typing_extensions import final, override
 
 from ..metrics._config import MetricConfig
+from ..util.config import EpochsConfig
 from .base import LRSchedulerConfigBase, LRSchedulerMetadata, lr_scheduler_registry
 
 
@@ -21,13 +22,13 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
     """Metric to monitor.
     If not provided, the primary metric of the runner will be used."""
 
-    patience: int
+    patience: int | EpochsConfig
     r"""Number of epochs with no improvement after which learning rate will be reduced."""
 
     factor: float
     r"""Factor by which the learning rate will be reduced. new_lr = lr * factor."""
 
-    cooldown: int = 0
+    cooldown: int | EpochsConfig = 0
     r"""Number of epochs to wait before resuming normal operation after lr has been reduced."""
 
     min_lr: float | list[float] = 0.0
@@ -57,14 +58,20 @@ class ReduceLROnPlateauConfig(LRSchedulerConfigBase):
                 "Primary metric must be provided if metric is not specified."
             )
 
+        if isinstance(patience := self.patience, EpochsConfig):
+            patience = int(patience.value)
+
+        if isinstance(cooldown := self.cooldown, EpochsConfig):
+            cooldown = int(cooldown.value)
+
         lr_scheduler = ReduceLROnPlateau(
             optimizer,
             mode=metric.mode,
             factor=self.factor,
-            patience=self.patience,
+            patience=patience,
             threshold=self.threshold,
             threshold_mode=self.threshold_mode,
-            cooldown=self.cooldown,
+            cooldown=cooldown,
             min_lr=self.min_lr,
             eps=self.eps,
         )
