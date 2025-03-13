@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Annotated
 
-import nshconfig as C
 from typing_extensions import TypeAliasType
 
 from .actsave import ActSaveLoggerConfig as ActSaveLoggerConfig
