@@ -698,9 +698,7 @@ class TrainerConfig(C.Config):
     - The trainer is running in fast_dev_run mode.
     - The trainer is running a sanity check (which happens before starting the training routine).
     """
-    auto_validate_metrics: MetricValidationCallbackConfig | None = (
-        MetricValidationCallbackConfig()
-    )
+    auto_validate_metrics: MetricValidationCallbackConfig | None = None
     """If enabled, will automatically validate the metrics before starting the training routine."""
 
     lightning_kwargs: LightningTrainerKwargs = LightningTrainerKwargs()
