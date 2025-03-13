@@ -78,12 +78,6 @@ class MetricValidationCallback(Callback):
                     assert_never(self.config.error_behavior)
 
     @override
-    def on_sanity_check_end(self, trainer, pl_module):
-        super().on_sanity_check_end(trainer, pl_module)
-
-        self._check_metrics(trainer)
-
-    @override
     def on_validation_end(self, trainer, pl_module):
         super().on_validation_end(trainer, pl_module)
 
