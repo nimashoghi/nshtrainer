@@ -15,9 +15,9 @@ from lightning.pytorch.utilities.model_helpers import is_overridden
 from lightning.pytorch.utilities.rank_zero import rank_zero_warn
 from typing_extensions import Never, TypeVar, deprecated, override
 
-from ..callbacks.rlp_sanity_checks import _RLPSanityCheckModuleMixin
+from ..callbacks.rlp_sanity_checks import RLPSanityCheckModuleMixin
 from .mixins.callback import CallbackModuleMixin
-from .mixins.debug import _DebugModuleMixin
+from .mixins.debug import DebugModuleMixin
 from .mixins.logger import LoggerLightningModuleMixin
 
 log = logging.getLogger(__name__)
@@ -54,8 +54,8 @@ VALID_REDUCE_OPS = (
 
 
 class LightningModuleBase(
-    _DebugModuleMixin,
-    _RLPSanityCheckModuleMixin,
+    DebugModuleMixin,
+    RLPSanityCheckModuleMixin,
     LoggerLightningModuleMixin,
     CallbackModuleMixin,
     LightningModule,

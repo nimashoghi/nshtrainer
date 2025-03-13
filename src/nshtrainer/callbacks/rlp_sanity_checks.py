@@ -171,7 +171,7 @@ class CustomRLPImplementation(Protocol):
     __reduce_lr_on_plateau__: bool
 
 
-class _RLPSanityCheckModuleMixin(LightningModule):
+class RLPSanityCheckModuleMixin(LightningModule):
     def reduce_lr_on_plateau_config(
         self,
         lr_scheduler: LRSchedulerTypeUnion | LRSchedulerConfigType,

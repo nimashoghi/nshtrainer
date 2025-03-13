@@ -28,7 +28,7 @@ def _trainer(module: Any):
     return trainer
 
 
-class _DebugModuleMixin:
+class DebugModuleMixin:
     @property
     def nshtrainer_or_none(self):
         return _trainer(self)

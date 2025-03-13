@@ -11,13 +11,13 @@ from lightning.pytorch import LightningDataModule
 from typing_extensions import Never, TypeVar, deprecated, override
 
 from ..model.mixins.callback import CallbackRegistrarModuleMixin
-from ..model.mixins.debug import _DebugModuleMixin
+from ..model.mixins.debug import DebugModuleMixin
 
 THparams = TypeVar("THparams", bound=C.Config, infer_variance=True)
 
 
 class LightningDataModuleBase(
-    _DebugModuleMixin,
+    DebugModuleMixin,
     CallbackRegistrarModuleMixin,
     LightningDataModule,
     ABC,
