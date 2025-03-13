@@ -54,6 +54,12 @@ class _LogContextKwargs:
         d = dataclasses.asdict(self)
         for field in self.__ignore_fields__:
             d.pop(field, None)
+
+        # Pop all None values
+        for k in list(d.keys()):
+            if d[k] is None:
+                d.pop(k)
+
         return d
 
 
@@ -134,18 +140,18 @@ class LoggerLightningModuleMixin(mixin_base_type(LightningModule)):
         self,
         name: str,
         value: _METRIC,
-        prog_bar: bool = False,
+        prog_bar: bool | None = None,
         logger: bool | None = None,
         on_step: bool | None = None,
         on_epoch: bool | None = None,
-        reduce_fx: str | Callable = "mean",
-        enable_graph: bool = False,
-        sync_dist: bool = False,
+        reduce_fx: str | Callable | None = None,
+        enable_graph: bool | None = None,
+        sync_dist: bool | None = None,
         sync_dist_group: Any | None = None,
-        add_dataloader_idx: bool = True,
+        add_dataloader_idx: bool | None = None,
         batch_size: int | None = None,
         metric_attribute: str | None = None,
-        rank_zero_only: bool = False,
+        rank_zero_only: bool | None = None,
     ) -> None:
         # If logging is disabled, then do nothing.
         if not self.logging_enabled:
