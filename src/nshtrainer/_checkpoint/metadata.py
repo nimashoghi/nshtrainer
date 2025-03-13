@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from ..util._environment_info import EnvironmentConfig
-from ..util.path import compute_file_checksum, try_symlink_or_copy
+from ..util.path import compute_file_checksum, path_exists, try_symlink_or_copy
 
 if TYPE_CHECKING:
     from ..trainer.trainer import Trainer
@@ -154,7 +154,7 @@ def remove_checkpoint_metadata(checkpoint_path: Path):
 def remove_checkpoint_metadata_link(ckpt_link_path: Path):
     path = _metadata_path(ckpt_link_path)
     # If the metadata does not exist, we can safely ignore this
-    if not path.exists(follow_symlinks=False):
+    if not path_exists(path, follow_symlinks=False):
         # This is EXTREMELY important here
         # Otherwise, we've already deleted the file that the symlink
         # used to point to, so this always returns False

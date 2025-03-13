@@ -7,7 +7,7 @@ from pathlib import Path
 
 from lightning.pytorch import Trainer
 
-from ..util.path import try_symlink_or_copy
+from ..util.path import path_exists, try_symlink_or_copy
 from .metadata import (
     link_checkpoint_metadata,
     remove_checkpoint_metadata,
@@ -29,7 +29,7 @@ def link_checkpoint(
 
     if remove_existing:
         try:
-            if linkpath.exists(follow_symlinks=False):
+            if path_exists(linkpath, follow_symlinks=False):
                 # follow_symlinks=False is EXTREMELY important here
                 # Otherwise, we've already deleted the file that the symlink
                 # used to point to, so this always returns False

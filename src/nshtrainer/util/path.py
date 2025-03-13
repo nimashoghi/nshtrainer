@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import hashlib
 import logging
 import os
@@ -98,7 +99,7 @@ def try_symlink_or_copy(
     # If the link already exists, remove it
     if remove_existing:
         try:
-            if link_path.exists(follow_symlinks=False):
+            if path_exists(link_path, follow_symlinks=False):
                 # follow_symlinks=False is EXTREMELY important here
                 # Otherwise, we've already deleted the file that the symlink
                 # used to point to, so this always returns False
@@ -132,3 +133,43 @@ def try_symlink_or_copy(
     else:
         log.debug(f"Created symlink or copied {file_path} to {link_path}")
         return True
+
+
+_WINERROR_NOT_READY = 21  # drive exists but is not accessible
+_WINERROR_INVALID_NAME = 123  # fix for bpo-35306
+_WINERROR_CANT_RESOLVE_FILENAME = 1921  # broken symlink pointing to itself
+
+# EBADF - guard against macOS `stat` throwing EBADF
+_IGNORED_ERRNOS = (errno.ENOENT, errno.ENOTDIR, errno.EBADF, errno.ELOOP)
+
+_IGNORED_WINERRORS = (
+    _WINERROR_NOT_READY,
+    _WINERROR_INVALID_NAME,
+    _WINERROR_CANT_RESOLVE_FILENAME,
+)
+
+
+def _ignore_error(exception):
+    return (
+        getattr(exception, "errno", None) in _IGNORED_ERRNOS
+        or getattr(exception, "winerror", None) in _IGNORED_WINERRORS
+    )
+
+
+def path_exists(path: Path, follow_symlinks: bool = True):
+    """
+    Whether this path exists.
+
+    This method normally follows symlinks; to check whether a symlink exists,
+    add the argument follow_symlinks=False.
+    """
+    try:
+        path.stat(follow_symlinks=follow_symlinks)
+    except OSError as e:
+        if not _ignore_error(e):
+            raise
+        return False
+    except ValueError:
+        # Non-encodable path
+        return False
+    return True
