@@ -457,7 +457,21 @@ class Trainer(LightningTrainer):
     ):
         filepath = Path(filepath)
 
-        super().save_checkpoint(filepath, weights_only, storage_options)
+        if self.model is None:
+            raise AttributeError(
+                "Saving a checkpoint is only possible if a model is attached to the Trainer. Did you call"
+                " `Trainer.save_checkpoint()` before calling `Trainer.{fit,validate,test,predict}`?"
+            )
+        with self.profiler.profile("save_checkpoint"):  # type: ignore
+            checkpoint = self._checkpoint_connector.dump_checkpoint(weights_only)
+            # Update the checkpoint for the trainer hyperparameters
+            checkpoint[self.CHECKPOINT_HYPER_PARAMS_KEY] = self.hparams.model_dump(
+                mode="json"
+            )
+            self.strategy.save_checkpoint(
+                checkpoint, filepath, storage_options=storage_options
+            )
+            self.strategy.barrier("Trainer.save_checkpoint")
 
         # Save the checkpoint metadata
         metadata_path = None
