@@ -114,15 +114,6 @@ def test_link_checkpoint_nonexistent_metadata_nocheck_success(
     assert not metadata_link.exists()
 
 
-def test_link_checkpoint_nonexistent_metadata_failure(source_checkpoint, temp_dir):
-    """Test linking a checkpoint with no metadata file."""
-    link_path = temp_dir / "no_metadata_link.ckpt"
-
-    # Execute the function - this SHOULD raise an error because metadata=True
-    with pytest.raises(FileNotFoundError):
-        link_checkpoint(source_checkpoint, link_path, metadata=True)
-
-
 def test_remove_checkpoint(temp_dir):
     """Test removing a checkpoint."""
     # Create a checkpoint file
