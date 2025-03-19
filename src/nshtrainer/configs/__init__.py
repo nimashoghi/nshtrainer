@@ -85,6 +85,7 @@ from nshtrainer.nn import NonlinearityConfig as NonlinearityConfig
 from nshtrainer.nn import NonlinearityConfigBase as NonlinearityConfigBase
 from nshtrainer.nn import PReLUConfig as PReLUConfig
 from nshtrainer.nn import ReLUNonlinearityConfig as ReLUNonlinearityConfig
+from nshtrainer.nn import RNGConfig as RNGConfig
 from nshtrainer.nn import SigmoidNonlinearityConfig as SigmoidNonlinearityConfig
 from nshtrainer.nn import SiLUNonlinearityConfig as SiLUNonlinearityConfig
 from nshtrainer.nn import SoftmaxNonlinearityConfig as SoftmaxNonlinearityConfig
@@ -306,6 +307,7 @@ __all__ = [
     "ProfilerConfig",
     "PyTorchProfilerConfig",
     "RLPSanityChecksCallbackConfig",
+    "RNGConfig",
     "ReLUNonlinearityConfig",
     "ReduceLROnPlateauConfig",
     "SLURMEnvironmentPlugin",

@@ -12,6 +12,7 @@ from nshtrainer.lr_scheduler.base import lr_scheduler_registry as lr_scheduler_r
 from nshtrainer.lr_scheduler.linear_warmup_cosine import (
     DurationConfig as DurationConfig,
 )
+from nshtrainer.lr_scheduler.reduce_lr_on_plateau import EpochsConfig as EpochsConfig
 from nshtrainer.lr_scheduler.reduce_lr_on_plateau import MetricConfig as MetricConfig
 
 from . import base as base
@@ -20,6 +21,7 @@ from . import reduce_lr_on_plateau as reduce_lr_on_plateau
 
 __all__ = [
     "DurationConfig",
+    "EpochsConfig",
     "LRSchedulerConfig",
     "LRSchedulerConfigBase",
     "LinearWarmupCosineDecayLRSchedulerConfig",

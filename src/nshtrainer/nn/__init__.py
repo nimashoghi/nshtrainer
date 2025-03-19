@@ -3,7 +3,6 @@ from __future__ import annotations
 from .mlp import MLP as MLP
 from .mlp import MLPConfig as MLPConfig
 from .mlp import ResidualSequential as ResidualSequential
-from .mlp import custom_seed_context as custom_seed_context
 from .module_dict import TypedModuleDict as TypedModuleDict
 from .module_list import TypedModuleList as TypedModuleList
 from .nonlinearity import ELUNonlinearityConfig as ELUNonlinearityConfig
@@ -21,3 +20,5 @@ from .nonlinearity import SoftplusNonlinearityConfig as SoftplusNonlinearityConf
 from .nonlinearity import SoftsignNonlinearityConfig as SoftsignNonlinearityConfig
 from .nonlinearity import SwishNonlinearityConfig as SwishNonlinearityConfig
 from .nonlinearity import TanhNonlinearityConfig as TanhNonlinearityConfig
+from .rng import RNGConfig as RNGConfig
+from .rng import rng_context as rng_context

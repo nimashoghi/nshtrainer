@@ -11,6 +11,7 @@ from nshtrainer.nn import NonlinearityConfig as NonlinearityConfig
 from nshtrainer.nn import NonlinearityConfigBase as NonlinearityConfigBase
 from nshtrainer.nn import PReLUConfig as PReLUConfig
 from nshtrainer.nn import ReLUNonlinearityConfig as ReLUNonlinearityConfig
+from nshtrainer.nn import RNGConfig as RNGConfig
 from nshtrainer.nn import SigmoidNonlinearityConfig as SigmoidNonlinearityConfig
 from nshtrainer.nn import SiLUNonlinearityConfig as SiLUNonlinearityConfig
 from nshtrainer.nn import SoftmaxNonlinearityConfig as SoftmaxNonlinearityConfig
@@ -25,6 +26,7 @@ from nshtrainer.nn.nonlinearity import nonlinearity_registry as nonlinearity_reg
 
 from . import mlp as mlp
 from . import nonlinearity as nonlinearity
+from . import rng as rng
 
 __all__ = [
     "ELUNonlinearityConfig",
@@ -35,6 +37,7 @@ __all__ = [
     "NonlinearityConfig",
     "NonlinearityConfigBase",
     "PReLUConfig",
+    "RNGConfig",
     "ReLUNonlinearityConfig",
     "SiLUNonlinearityConfig",
     "SigmoidNonlinearityConfig",
@@ -47,4 +50,5 @@ __all__ = [
     "mlp",
     "nonlinearity",
     "nonlinearity_registry",
+    "rng",
 ]
