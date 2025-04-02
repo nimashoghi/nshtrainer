@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING
 
 import nshconfig as C
 from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
@@ -12,7 +11,6 @@ from typing_extensions import TypeAliasType
 
 if TYPE_CHECKING:
     from .._config import TrainerConfig
-log = logging.getLogger(__name__)
 
 
 Plugin = TypeAliasType(
@@ -26,8 +24,3 @@ class PluginConfigBase(C.Config, ABC):
 
 
 plugin_registry = C.Registry(PluginConfigBase, discriminator="name")
-
-PluginConfig = TypeAliasType(
-    "PluginConfig",
-    Annotated[PluginConfigBase, plugin_registry.DynamicResolution()],
-)

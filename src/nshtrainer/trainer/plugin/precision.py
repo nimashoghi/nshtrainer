@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from lightning.pytorch.plugins.precision import Precision
 from typing_extensions import override
 
 from ...util.config.dtype import DTypeConfig
@@ -20,7 +19,7 @@ class MixedPrecisionPluginConfig(PluginConfigBase):
     """The device for ``torch.autocast``."""
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.amp import MixedPrecision
 
         return MixedPrecision(self.precision, self.device)
@@ -45,7 +44,7 @@ class BitsandbytesPluginConfig(PluginConfigBase):
     """
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.bitsandbytes import (
             BitsandbytesPrecision,
         )
@@ -66,7 +65,7 @@ class DeepSpeedPluginConfig(PluginConfigBase):
     mixed precision (16-mixed, bf16-mixed)."""
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.deepspeed import DeepSpeedPrecision
 
         return DeepSpeedPrecision(precision=self.precision)
@@ -80,7 +79,7 @@ class DoublePrecisionPluginConfig(PluginConfigBase):
     """Plugin for training with double (``torch.float64``) precision."""
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.double import DoublePrecision
 
         return DoublePrecision()
@@ -95,7 +94,7 @@ class FSDPPrecisionPluginConfig(PluginConfigBase):
     mixed precision (16-mixed, bf16-mixed)."""
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.fsdp import FSDPPrecision
 
         return FSDPPrecision(precision=self.precision)
@@ -109,7 +108,7 @@ class HalfPrecisionPluginConfig(PluginConfigBase):
     """Whether to use ``torch.float16`` (``'16-true'``) or ``torch.bfloat16`` (``'bf16-true'``)."""
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.half import HalfPrecision
 
         return HalfPrecision(precision=self.precision)
@@ -134,7 +133,7 @@ class TransformerEnginePluginConfig(PluginConfigBase):
     Defaults to the same as weights_dtype."""
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.transformer_engine import (
             TransformerEnginePrecision,
         )
@@ -157,7 +156,7 @@ class XLAPluginConfig(PluginConfigBase):
     """Full precision (32-true) or half precision (16-true, bf16-true)."""
 
     @override
-    def create_plugin(self, trainer_config) -> Precision:
+    def create_plugin(self, trainer_config):
         from lightning.pytorch.plugins.precision.xla import XLAPrecision
 
         return XLAPrecision(precision=self.precision)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 __codegen__ = True
 
-from nshtrainer.trainer.plugin.environment import DTypeConfig as DTypeConfig
 from nshtrainer.trainer.plugin.environment import (
     KubeflowEnvironmentPlugin as KubeflowEnvironmentPlugin,
 )
@@ -28,7 +27,6 @@ from nshtrainer.trainer.plugin.environment import (
 from nshtrainer.trainer.plugin.environment import plugin_registry as plugin_registry
 
 __all__ = [
-    "DTypeConfig",
     "KubeflowEnvironmentPlugin",
     "LSFEnvironmentPlugin",
     "LightningEnvironmentPlugin",
