@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "nshtrainer"
-version = "1.0.0-beta55"
+version = "1.0.0-beta56"
 description = ""
 authors = ["Nima Shoghi <nimashoghi@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-nshrunner = { version = "*", allow-prereleases = true }
+nshrunner = { version = "*" }
 nshconfig = "*"
 nshutils = { version = "*", optional = true }
 psutil = "*"
@@ -25,7 +25,7 @@ tensorboard = { version = "*", optional = true }
 huggingface-hub = { version = "*", optional = true }
 
 [tool.poetry.group.dev.dependencies]
-pyright = "*"
+basedpyright = "*"
 ruff = "*"
 ipykernel = "*"
 ipywidgets = "*"
@@ -36,7 +36,7 @@ pytest-cov = "^6.0.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.pyright]
+[tool.basedpyright]
 typeCheckingMode = "standard"
 deprecateTypingAliases = true
 strictListInference = true
