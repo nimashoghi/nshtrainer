@@ -30,9 +30,9 @@ class LightningDataModuleBase(
 
     @property
     @override
-    def hparams_initial(self):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def hparams_initial(self) -> THparams:  # pyright: ignore[reportIncompatibleMethodOverride]
         hparams = cast(THparams, super().hparams_initial)
-        return cast(Never, {"datamodule": hparams.model_dump(mode="json")})
+        return hparams
 
     @property
     @deprecated("Use `hparams` instead")

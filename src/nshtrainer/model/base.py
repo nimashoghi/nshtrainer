@@ -134,16 +134,9 @@ class LightningModuleBase(
 
     @property
     @override
-    def hparams_initial(self):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def hparams_initial(self) -> THparams:  # pyright: ignore[reportIncompatibleMethodOverride]
         hparams = cast(THparams, super().hparams_initial)
-        hparams_dict = {"model": hparams.model_dump(mode="json")}
-        if (trainer := self._trainer) is not None:
-            from ..trainer import Trainer
-
-            if isinstance(trainer, Trainer):
-                hparams_dict["trainer"] = trainer.hparams.model_dump(mode="json")
-
-        return cast(Never, hparams_dict)
+        return hparams
 
     @property
     @deprecated("Use `hparams` instead")
