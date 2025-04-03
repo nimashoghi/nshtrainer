@@ -14,9 +14,6 @@ from .metrics import MetricConfig as MetricConfig
 from .model import LightningModuleBase as LightningModuleBase
 from .trainer import Trainer as Trainer
 from .trainer import TrainerConfig as TrainerConfig
-from .trainer import accelerator_registry as accelerator_registry
-from .trainer import callback_registry as callback_registry
-from .trainer import plugin_registry as plugin_registry
 
 try:
     from . import configs as configs

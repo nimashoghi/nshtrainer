@@ -4,9 +4,6 @@ __codegen__ = True
 
 from nshtrainer import MetricConfig as MetricConfig
 from nshtrainer import TrainerConfig as TrainerConfig
-from nshtrainer import accelerator_registry as accelerator_registry
-from nshtrainer import callback_registry as callback_registry
-from nshtrainer import plugin_registry as plugin_registry
 from nshtrainer._checkpoint.metadata import CheckpointMetadata as CheckpointMetadata
 from nshtrainer._directory import DirectoryConfig as DirectoryConfig
 from nshtrainer._hf_hub import CallbackConfigBase as CallbackConfigBase
@@ -14,6 +11,7 @@ from nshtrainer._hf_hub import (
     HuggingFaceHubAutoCreateConfig as HuggingFaceHubAutoCreateConfig,
 )
 from nshtrainer._hf_hub import HuggingFaceHubConfig as HuggingFaceHubConfig
+from nshtrainer._hf_hub import callback_registry as callback_registry
 from nshtrainer.callbacks import ActSaveConfig as ActSaveConfig
 from nshtrainer.callbacks import (
     BestCheckpointCallbackConfig as BestCheckpointCallbackConfig,
@@ -106,6 +104,8 @@ from nshtrainer.profiler import BaseProfilerConfig as BaseProfilerConfig
 from nshtrainer.profiler import ProfilerConfig as ProfilerConfig
 from nshtrainer.profiler import PyTorchProfilerConfig as PyTorchProfilerConfig
 from nshtrainer.profiler import SimpleProfilerConfig as SimpleProfilerConfig
+from nshtrainer.trainer import accelerator_registry as accelerator_registry
+from nshtrainer.trainer import plugin_registry as plugin_registry
 from nshtrainer.trainer._config import AcceleratorConfig as AcceleratorConfig
 from nshtrainer.trainer._config import (
     CheckpointCallbackConfig as CheckpointCallbackConfig,
