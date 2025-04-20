@@ -23,6 +23,12 @@ from .directory_setup import DirectorySetupCallback as DirectorySetupCallback
 from .directory_setup import (
     DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
 )
+from .distributed_prediction_writer import (
+    DistributedPredictionWriter as DistributedPredictionWriter,
+)
+from .distributed_prediction_writer import (
+    DistributedPredictionWriterConfig as DistributedPredictionWriterConfig,
+)
 from .early_stopping import EarlyStoppingCallback as EarlyStoppingCallback
 from .early_stopping import EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig
 from .ema import EMACallback as EMACallback
