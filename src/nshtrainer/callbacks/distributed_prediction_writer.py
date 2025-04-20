@@ -29,6 +29,18 @@ class DistributedPredictionWriterConfig(CallbackConfigBase):
     dirpath: Path | None = None
     """Directory to save the predictions to. If None, will use the default directory."""
 
+    save_predictions: bool = True
+    """Whether to save the predictions. If False, only batch indices are saved."""
+
+    save_batch_indices: bool = True
+    """Whether to save the batch indices. If False, only predictions are saved."""
+
+    save_batches: bool = True
+    """Whether to save the batch. If False, only predictions are saved."""
+
+    save_world_size: bool = True
+    """Whether to save the world size. If False, the world size will not be saved."""
+
     @override
     def create_callbacks(self, trainer_config):
         if (dirpath := self.dirpath) is None:
@@ -62,33 +74,41 @@ class DistributedPredictionWriter(BasePredictionWriter):
         batch_idx,
         dataloader_idx,
     ):
+        output_base_dir = self.output_dir / "per_batch"
+        output_base_dir.mkdir(parents=True, exist_ok=True)
+        if trainer.is_global_zero:
+            if self.config.save_world_size:
+                torch.save(trainer.world_size, output_base_dir / "world_size.pt")
+
         output_dir = (
-            self.output_dir
-            / "per_batch"
+            output_base_dir
             / f"dataloader_{dataloader_idx}"
             / f"rank_{trainer.global_rank}"
         )
         output_dir.mkdir(parents=True, exist_ok=True)
-        if trainer.is_global_zero:
-            torch.save(trainer.world_size, output_dir / "world_size.pt")
-
-        torch.save(
-            prediction,
-            output_dir / f"predictions_{batch_idx}.pt",
-        )
-        torch.save(
-            batch,
-            output_dir / f"batch_{batch_idx}.pt",
-        )
-        torch.save(
-            batch_indices,
-            output_dir / f"batch_indices_{batch_idx}.pt",
-        )
+        if self.config.save_predictions:
+            torch.save(prediction, output_dir / f"predictions_{batch_idx}.pt")
+        if self.config.save_batches:
+            torch.save(batch, output_dir / f"batch_{batch_idx}.pt")
+        if self.config.save_batch_indices:
+            torch.save(batch_indices, output_dir / f"batch_indices_{batch_idx}.pt")
 
     @override
     def write_on_epoch_end(self, trainer, pl_module, predictions, batch_indices):
-        output_dir = self.output_dir / "per_epoch" / f"rank_{trainer.global_rank}"
+        output_base_dir = self.output_dir / "per_epoch"
+        output_base_dir.mkdir(parents=True, exist_ok=True)
+        if trainer.is_global_zero:
+            if self.config.save_world_size:
+                torch.save(trainer.world_size, output_base_dir / "world_size.pt")
+
+        output_dir = output_base_dir / f"rank_{trainer.global_rank}"
         output_dir.mkdir(parents=True, exist_ok=True)
+        if self.config.save_predictions:
+            torch.save(predictions, output_dir / f"predictions.pt")
+        if self.config.save_batch_indices:
+            torch.save(batch_indices, output_dir / f"batch_indices.pt")
+
+
         if trainer.is_global_zero:
             torch.save(trainer.world_size, output_dir / "world_size.pt")
 
