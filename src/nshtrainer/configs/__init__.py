@@ -22,6 +22,9 @@ from nshtrainer.callbacks import (
     DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
 )
 from nshtrainer.callbacks import (
+    DistributedPredictionWriterConfig as DistributedPredictionWriterConfig,
+)
+from nshtrainer.callbacks import (
     EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig,
 )
 from nshtrainer.callbacks import EMACallbackConfig as EMACallbackConfig
@@ -95,9 +98,21 @@ from nshtrainer.nn.nonlinearity import (
     SwiGLUNonlinearityConfig as SwiGLUNonlinearityConfig,
 )
 from nshtrainer.nn.nonlinearity import nonlinearity_registry as nonlinearity_registry
+from nshtrainer.optimizer import AdadeltaConfig as AdadeltaConfig
+from nshtrainer.optimizer import AdafactorConfig as AdafactorConfig
+from nshtrainer.optimizer import AdagradConfig as AdagradConfig
+from nshtrainer.optimizer import AdamaxConfig as AdamaxConfig
+from nshtrainer.optimizer import AdamConfig as AdamConfig
 from nshtrainer.optimizer import AdamWConfig as AdamWConfig
+from nshtrainer.optimizer import ASGDConfig as ASGDConfig
+from nshtrainer.optimizer import NAdamConfig as NAdamConfig
 from nshtrainer.optimizer import OptimizerConfig as OptimizerConfig
 from nshtrainer.optimizer import OptimizerConfigBase as OptimizerConfigBase
+from nshtrainer.optimizer import RAdamConfig as RAdamConfig
+from nshtrainer.optimizer import RMSpropConfig as RMSpropConfig
+from nshtrainer.optimizer import RpropConfig as RpropConfig
+from nshtrainer.optimizer import SGDConfig as SGDConfig
+from nshtrainer.optimizer import Union as Union
 from nshtrainer.optimizer import optimizer_registry as optimizer_registry
 from nshtrainer.profiler import AdvancedProfilerConfig as AdvancedProfilerConfig
 from nshtrainer.profiler import BaseProfilerConfig as BaseProfilerConfig
@@ -225,11 +240,17 @@ from . import trainer as trainer
 from . import util as util
 
 __all__ = [
+    "ASGDConfig",
     "AcceleratorConfig",
     "AcceleratorConfigBase",
     "ActSaveConfig",
     "ActSaveLoggerConfig",
+    "AdadeltaConfig",
+    "AdafactorConfig",
+    "AdagradConfig",
+    "AdamConfig",
     "AdamWConfig",
+    "AdamaxConfig",
     "AdvancedProfilerConfig",
     "AsyncCheckpointIOPlugin",
     "BaseCheckpointCallbackConfig",
@@ -249,6 +270,7 @@ __all__ = [
     "DeepSpeedPluginConfig",
     "DirectoryConfig",
     "DirectorySetupCallbackConfig",
+    "DistributedPredictionWriterConfig",
     "DoublePrecisionPluginConfig",
     "DurationConfig",
     "ELUNonlinearityConfig",
@@ -294,6 +316,7 @@ __all__ = [
     "MetricValidationCallbackConfig",
     "MishNonlinearityConfig",
     "MixedPrecisionPluginConfig",
+    "NAdamConfig",
     "NonlinearityConfig",
     "NonlinearityConfigBase",
     "NormLoggingCallbackConfig",
@@ -306,10 +329,14 @@ __all__ = [
     "PrintTableMetricsCallbackConfig",
     "ProfilerConfig",
     "PyTorchProfilerConfig",
+    "RAdamConfig",
     "RLPSanityChecksCallbackConfig",
+    "RMSpropConfig",
     "RNGConfig",
     "ReLUNonlinearityConfig",
     "ReduceLROnPlateauConfig",
+    "RpropConfig",
+    "SGDConfig",
     "SLURMEnvironmentPlugin",
     "SanityCheckingConfig",
     "SharedParametersCallbackConfig",
@@ -331,6 +358,7 @@ __all__ = [
     "TorchSyncBatchNormPlugin",
     "TrainerConfig",
     "TransformerEnginePluginConfig",
+    "Union",
     "WandbLoggerConfig",
     "WandbUploadCodeCallbackConfig",
     "WandbWatchCallbackConfig",

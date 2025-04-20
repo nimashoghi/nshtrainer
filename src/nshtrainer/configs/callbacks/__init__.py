@@ -13,6 +13,9 @@ from nshtrainer.callbacks import (
     DirectorySetupCallbackConfig as DirectorySetupCallbackConfig,
 )
 from nshtrainer.callbacks import (
+    DistributedPredictionWriterConfig as DistributedPredictionWriterConfig,
+)
+from nshtrainer.callbacks import (
     EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig,
 )
 from nshtrainer.callbacks import EMACallbackConfig as EMACallbackConfig
@@ -62,6 +65,7 @@ from . import base as base
 from . import checkpoint as checkpoint
 from . import debug_flag as debug_flag
 from . import directory_setup as directory_setup
+from . import distributed_prediction_writer as distributed_prediction_writer
 from . import early_stopping as early_stopping
 from . import ema as ema
 from . import finite_checks as finite_checks
@@ -86,6 +90,7 @@ __all__ = [
     "CheckpointMetadata",
     "DebugFlagCallbackConfig",
     "DirectorySetupCallbackConfig",
+    "DistributedPredictionWriterConfig",
     "EMACallbackConfig",
     "EarlyStoppingCallbackConfig",
     "EpochTimerCallbackConfig",
@@ -109,6 +114,7 @@ __all__ = [
     "checkpoint",
     "debug_flag",
     "directory_setup",
+    "distributed_prediction_writer",
     "early_stopping",
     "ema",
     "finite_checks",

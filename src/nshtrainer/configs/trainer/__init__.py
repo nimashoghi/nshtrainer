@@ -23,6 +23,9 @@ from nshtrainer.trainer._config import (
 )
 from nshtrainer.trainer._config import DirectoryConfig as DirectoryConfig
 from nshtrainer.trainer._config import (
+    DistributedPredictionWriterConfig as DistributedPredictionWriterConfig,
+)
+from nshtrainer.trainer._config import (
     EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig,
 )
 from nshtrainer.trainer._config import EnvironmentConfig as EnvironmentConfig
@@ -149,6 +152,7 @@ __all__ = [
     "DebugFlagCallbackConfig",
     "DeepSpeedPluginConfig",
     "DirectoryConfig",
+    "DistributedPredictionWriterConfig",
     "DoublePrecisionPluginConfig",
     "EarlyStoppingCallbackConfig",
     "EnvironmentConfig",
