@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import functools
 import logging
+from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import ClassVar, Literal
+from typing import Any, ClassVar, Literal, overload
 
 import torch
+from lightning.fabric.utilities.apply_func import move_data_to_device
 from lightning.pytorch.callbacks import BasePredictionWriter
 from typing_extensions import final, override
 
@@ -23,23 +26,21 @@ class DistributedPredictionWriterConfig(CallbackConfigBase):
 
     name: Literal["distributed_prediction_writer"] = "distributed_prediction_writer"
 
-    write_interval: Literal["batch", "epoch", "batch_and_epoch"] = "epoch"
-    """When to write the predictions. Can be 'batch', 'epoch' or 'batch_and_epoch'."""
-
     dirpath: Path | None = None
     """Directory to save the predictions to. If None, will use the default directory."""
 
-    save_predictions: bool = True
-    """Whether to save the predictions. If False, only batch indices are saved."""
+    move_to_cpu_on_save: bool = True
+    """Whether to move the predictions to CPU before saving. Default is True."""
 
-    save_batch_indices: bool = True
-    """Whether to save the batch indices. If False, only predictions are saved."""
+    save_raw: bool = True
+    """Whether to save the raw predictions."""
 
-    save_batches: bool = True
-    """Whether to save the batch. If False, only predictions are saved."""
+    save_processed: bool = True
+    """Whether to process and save the predictions.
 
-    save_world_size: bool = True
-    """Whether to save the world size. If False, the world size will not be saved."""
+    "Processing" means that the model's batched predictions are split into individual predictions
+    and saved as a list of tensors.
+    """
 
     @override
     def create_callbacks(self, trainer_config):
@@ -51,6 +52,14 @@ class DistributedPredictionWriterConfig(CallbackConfigBase):
         yield DistributedPredictionWriter(self, dirpath)
 
 
+def _move_and_save(data, path: Path, move_to_cpu: bool):
+    if move_to_cpu:
+        data = move_data_to_device(data, "cpu")
+
+    # Save the data to the specified path
+    torch.save(data, path)
+
+
 class DistributedPredictionWriter(BasePredictionWriter):
     def __init__(
         self,
@@ -59,7 +68,7 @@ class DistributedPredictionWriter(BasePredictionWriter):
     ):
         self.config = config
 
-        super().__init__(write_interval=self.config.write_interval)
+        super().__init__(write_interval="batch")
 
         self.output_dir = output_dir
 
@@ -74,49 +83,84 @@ class DistributedPredictionWriter(BasePredictionWriter):
         batch_idx,
         dataloader_idx,
     ):
-        output_base_dir = self.output_dir / "per_batch"
-        output_base_dir.mkdir(parents=True, exist_ok=True)
-        if trainer.is_global_zero:
-            if self.config.save_world_size:
-                torch.save(trainer.world_size, output_base_dir / "world_size.pt")
-
-        output_dir = (
-            output_base_dir
-            / f"dataloader_{dataloader_idx}"
-            / f"rank_{trainer.global_rank}"
+        save = functools.partial(
+            _move_and_save,
+            move_to_cpu=self.config.move_to_cpu_on_save,
         )
-        output_dir.mkdir(parents=True, exist_ok=True)
-        if self.config.save_predictions:
-            torch.save(prediction, output_dir / f"predictions_{batch_idx}.pt")
-        if self.config.save_batches:
-            torch.save(batch, output_dir / f"batch_{batch_idx}.pt")
-        if self.config.save_batch_indices:
-            torch.save(batch_indices, output_dir / f"batch_indices_{batch_idx}.pt")
+
+        # Regular, unstructured writing.
+        if self.config.save_raw:
+            output_dir = (
+                self.output_dir
+                / "raw"
+                / f"dataloader_{dataloader_idx}"
+                / f"rank_{trainer.global_rank}"
+                / f"batch_{batch_idx}"
+            )
+            output_dir.mkdir(parents=True, exist_ok=True)
+            save(prediction, output_dir / "predictions.pt")
+            save(batch, output_dir / "batch.pt")
+            save(batch_indices, output_dir / "batch_indices.pt")
+
+        if self.config.save_processed:
+            # Processed writing.
+            from ..model.base import LightningModuleBase
+
+            if not isinstance(pl_module, LightningModuleBase):
+                raise ValueError(
+                    "The model must be a subclass of LightningModuleBase to use the distributed prediction writer."
+                )
+
+            output_dir = self.output_dir / "processed" / f"dataloader_{dataloader_idx}"
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            # Split into individual predictions
+            assert batch_indices is not None, (
+                "Batch indices must be provided for processed writing."
+            )
+            for sample in pl_module.split_batched_predictions(
+                batch, prediction, batch_indices
+            ):
+                sample = {
+                    **sample,
+                    "global_rank": trainer.global_rank,
+                    "world_size": trainer.world_size,
+                    "is_global_zero": trainer.is_global_zero,
+                }
+                save(sample, output_dir / f"{sample['index']}.pt")
+
+
+class DistributedPredictionReader(Sequence[tuple[Any, Any]]):
+    def __init__(self, output_dir: Path):
+        self.output_dir = output_dir
 
     @override
-    def write_on_epoch_end(self, trainer, pl_module, predictions, batch_indices):
-        output_base_dir = self.output_dir / "per_epoch"
-        output_base_dir.mkdir(parents=True, exist_ok=True)
-        if trainer.is_global_zero:
-            if self.config.save_world_size:
-                torch.save(trainer.world_size, output_base_dir / "world_size.pt")
+    def __len__(self) -> int:
+        return len(list(self.output_dir.glob("*.pt")))
 
-        output_dir = output_base_dir / f"rank_{trainer.global_rank}"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        if self.config.save_predictions:
-            torch.save(predictions, output_dir / f"predictions.pt")
-        if self.config.save_batch_indices:
-            torch.save(batch_indices, output_dir / f"batch_indices.pt")
+    @overload
+    def __getitem__(self, index: int) -> tuple[Any, Any]: ...
 
+    @overload
+    def __getitem__(self, index: slice) -> list[tuple[Any, Any]]: ...
 
-        if trainer.is_global_zero:
-            torch.save(trainer.world_size, output_dir / "world_size.pt")
+    @override
+    def __getitem__(
+        self, index: int | slice
+    ) -> tuple[Any, Any] | list[tuple[Any, Any]]:
+        if isinstance(index, slice):
+            # Handle slice indexing
+            indices = range(*index.indices(len(self)))
+            return [self.__getitem__(i) for i in indices]
 
-        torch.save(
-            predictions,
-            output_dir / f"predictions.pt",
-        )
-        torch.save(
-            batch_indices,
-            output_dir / f"batch_indices.pt",
-        )
+        # Handle integer indexing
+        path = self.output_dir / f"{index}.pt"
+        if not path.exists():
+            raise FileNotFoundError(f"File {path} does not exist.")
+        sample = torch.load(path)
+        return sample["batch"], sample["prediction"]
+
+    @override
+    def __iter__(self) -> Iterator[tuple[Any, Any]]:
+        for i in range(len(self)):
+            yield self[i]

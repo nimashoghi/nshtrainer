@@ -65,9 +65,9 @@ class DirectoryConfig(C.Config):
     ) -> Path:
         # The subdir will be $CWD/nshtrainer/{id}/{log, stdio, checkpoint, activation}/
         if (subdir := getattr(self, subdirectory, None)) is not None:
-            assert isinstance(
-                subdir, Path
-            ), f"Expected a Path for {subdirectory}, got {type(subdir)}"
+            assert isinstance(subdir, Path), (
+                f"Expected a Path for {subdirectory}, got {type(subdir)}"
+            )
             return subdir
 
         dir = self.resolve_run_root_directory(run_id)

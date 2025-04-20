@@ -10,12 +10,16 @@ import torch
 from lightning.fabric.plugins.environments.lsf import LSFEnvironment
 from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
-from lightning.pytorch import LightningModule
+from lightning.pytorch import LightningDataModule, LightningModule
 from lightning.pytorch import Trainer as LightningTrainer
 from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.profilers import Profiler
 from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities.types import _EVALUATE_OUTPUT, _PREDICT_OUTPUT
+from lightning.pytorch.utilities.types import (
+    _EVALUATE_OUTPUT,
+    _PREDICT_OUTPUT,
+    EVAL_DATALOADERS,
+)
 from typing_extensions import Never, Unpack, assert_never, deprecated, override
 
 from .._checkpoint.metadata import write_checkpoint_metadata
@@ -532,3 +536,18 @@ class Trainer(LightningTrainer):
             update_hparams_dict=update_hparams_dict,
         )
         return cls(hparams)
+
+    def distributed_predict(
+        self,
+        model: LightningModule | None = None,
+        dataloaders: EVAL_DATALOADERS | LightningDataModule | None = None,
+        datamodule: LightningDataModule | None = None,
+        ckpt_path: str | Path | None = None,
+    ):
+        self.predict(
+            model,
+            dataloaders,
+            datamodule,
+            return_predictions=False,
+            ckpt_path=ckpt_path,
+        )

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Generic, Literal, cast
+from typing import Any, Generic, Literal, TypedDict, cast
 
 import nshconfig as C
 import torch
@@ -51,6 +51,47 @@ VALID_REDUCE_OPS = (
     "product",
     "sum",
 )
+
+
+class IndividualSample(TypedDict):
+    """
+    A dictionary that contains the individual sample.
+    This is used to split the batched predictions into individual predictions.
+    """
+
+    index: int
+    """The index of the sample in the batch."""
+
+    batch: Any
+    """The batch to split."""
+
+    prediction: Any
+    """The batched prediction to split."""
+
+
+def default_split_batched_predictions(
+    batch: Any,
+    prediction: Any,
+    batch_indices: Sequence[Any],
+) -> Iterable[IndividualSample]:
+    """
+    Splits the batched predictions into a list of individual predictions.
+    Args:
+        batch: The batch to split.
+        prediction: The batched prediction to split.
+        batch_indices: The indices of the batches.
+    Returns:
+        A tuple of two sequences: the corresponding batches and the individual predictions.
+    """
+    import torch.utils._pytree as tree
+
+    for sample_idx, batch_idx in enumerate(batch_indices):
+        # Create a dictionary for each sample
+        yield IndividualSample(
+            index=batch_idx,
+            batch=tree.tree_map(lambda x: x[sample_idx], batch),
+            prediction=tree.tree_map(lambda x: x[sample_idx], prediction),
+        )
 
 
 class LightningModuleBase(
@@ -170,6 +211,23 @@ class LightningModuleBase(
         loss = sum((0.0 * v).sum() for v in self.parameters() if v.requires_grad)
         loss = cast(torch.Tensor, loss)
         return loss
+
+    def split_batched_predictions(
+        self,
+        batch: Any,
+        prediction: Any,
+        batch_indices: Sequence[Any],
+    ) -> Iterable[IndividualSample]:
+        """
+        Splits the batched predictions into a list of individual predictions.
+        Args:
+            batch: The batch to split.
+            prediction: The batched prediction to split.
+            batch_indices: The indices of the batches.
+        Returns:
+            A tuple of two sequences: the corresponding batches and the individual predictions.
+        """
+        return default_split_batched_predictions(batch, prediction, batch_indices)
 
     @override
     @classmethod
