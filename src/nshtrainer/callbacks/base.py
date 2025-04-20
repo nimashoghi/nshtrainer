@@ -23,6 +23,10 @@ class CallbackMetadataConfig(TypedDict, total=False):
     """Priority of the callback. Callbacks with higher priority will be loaded first.
     Default is `0`."""
 
+    enabled_for_barebones: bool
+    """Whether this callback is enabled for barebones mode.
+    Default is `False`."""
+
 
 @dataclass(frozen=True)
 class CallbackWithMetadata:
@@ -91,9 +95,19 @@ def _filter_ignore_if_exists(callbacks: list[CallbackWithMetadata]):
 
 
 def _process_and_filter_callbacks(
+    trainer_config: TrainerConfig,
     callbacks: Iterable[CallbackWithMetadata],
 ) -> list[Callback]:
     callbacks = list(callbacks)
+
+    # If we're in barebones mode, used the callback metadata
+    # to decide to keep/remove the callback.
+    if trainer_config.barebones:
+        callbacks = [
+            callback
+            for callback in callbacks
+            if callback.metadata.get("enabled_for_barebones", False)
+        ]
 
     # Sort by priority (higher priority first)
     callbacks.sort(
@@ -114,9 +128,14 @@ def resolve_all_callbacks(trainer_config: TrainerConfig):
         if config is not None
     ]
     callbacks = _process_and_filter_callbacks(
-        callback
-        for callback_config in callback_configs
-        for callback in _create_callbacks_with_metadata(callback_config, trainer_config)
+        trainer_config,
+        (
+            callback
+            for callback_config in callback_configs
+            for callback in _create_callbacks_with_metadata(
+                callback_config, trainer_config
+            )
+        ),
     )
     return callbacks
 

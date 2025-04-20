@@ -752,10 +752,6 @@ class TrainerConfig(C.Config):
         )
 
     def _nshtrainer_all_callback_configs(self) -> Iterable[CallbackConfigBase | None]:
-        # Disable all callbacks if barebones mode is enabled
-        if self.barebones:
-            return
-
         yield self.early_stopping
         yield self.checkpoint_saving
         yield self.lr_monitor
