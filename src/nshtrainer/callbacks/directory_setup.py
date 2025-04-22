@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from typing import Literal
 
@@ -27,6 +26,7 @@ class DirectorySetupCallbackConfig(CallbackConfigBase):
     def __bool__(self):
         return self.enabled
 
+    @override
     def create_callbacks(self, trainer_config):
         if not self:
             return
@@ -35,21 +35,28 @@ class DirectorySetupCallbackConfig(CallbackConfigBase):
 
 
 def _create_symlink_to_nshrunner(base_dir: Path):
-    # Resolve the current nshrunner session directory
-    if not (session_dir := os.environ.get("NSHRUNNER_SESSION_DIR")):
-        log.warning("NSHRUNNER_SESSION_DIR is not set. Skipping symlink creation.")
+    try:
+        import nshrunner as nr
+    except ImportError:
+        log.info("nshrunner is not installed. Skipping symlink creation to nshrunner.")
         return
-    session_dir = Path(session_dir)
+
+    # Check if we are in a nshrunner session
+    if (session := nr.Session.from_current_session()) is None:
+        log.info("No current nshrunner session found. Skipping symlink creation.")
+        return
+
+    session_dir = session.session_dir
     if not session_dir.exists() or not session_dir.is_dir():
         log.warning(
-            f"NSHRUNNER_SESSION_DIR is not a valid directory: {session_dir}. "
+            f"nshrunner's session_dir is not a valid directory: {session_dir}. "
             "Skipping symlink creation."
         )
         return
 
     # Create the symlink
     symlink_path = base_dir / "nshrunner"
-    if symlink_path.exists():
+    if symlink_path.exists(follow_symlinks=False):
         # If it already points to the correct directory, we're done
         if symlink_path.resolve() == session_dir.resolve():
             return
@@ -61,7 +68,7 @@ def _create_symlink_to_nshrunner(base_dir: Path):
         )
         symlink_path.unlink()
 
-    symlink_path.symlink_to(session_dir)
+    symlink_path.symlink_to(session_dir, target_is_directory=True)
 
 
 class DirectorySetupCallback(NTCallbackBase):

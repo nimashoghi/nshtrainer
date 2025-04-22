@@ -761,6 +761,7 @@ class TrainerConfig(C.Config):
         )
 
     def _nshtrainer_all_callback_configs(self) -> Iterable[CallbackConfigBase | None]:
+        yield self.directory.setup_callback
         yield self.early_stopping
         yield self.checkpoint_saving
         yield self.lr_monitor
