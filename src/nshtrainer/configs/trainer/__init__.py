@@ -23,9 +23,6 @@ from nshtrainer.trainer._config import (
 )
 from nshtrainer.trainer._config import DirectoryConfig as DirectoryConfig
 from nshtrainer.trainer._config import (
-    DistributedPredictionWriterConfig as DistributedPredictionWriterConfig,
-)
-from nshtrainer.trainer._config import (
     EarlyStoppingCallbackConfig as EarlyStoppingCallbackConfig,
 )
 from nshtrainer.trainer._config import EnvironmentConfig as EnvironmentConfig
@@ -126,6 +123,9 @@ from nshtrainer.trainer.plugin.precision import (
 )
 from nshtrainer.trainer.plugin.precision import XLAPluginConfig as XLAPluginConfig
 from nshtrainer.trainer.trainer import AcceleratorConfigBase as AcceleratorConfigBase
+from nshtrainer.trainer.trainer import (
+    DistributedPredictionWriterConfig as DistributedPredictionWriterConfig,
+)
 from nshtrainer.trainer.trainer import StrategyConfigBase as StrategyConfigBase
 
 from . import _config as _config
