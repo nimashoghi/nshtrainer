@@ -12,11 +12,11 @@ import nshconfig as C
 import pytest
 import torch
 from torch.utils.data import DataLoader, Dataset
+from typing_extensions import override
 
 import nshtrainer
 from nshtrainer.callbacks.distributed_prediction_writer import (
     DistributedPredictionWriter,
-    DistributedPredictionWriterConfig,
 )
 from nshtrainer.trainer._config import TrainerConfig
 from nshtrainer.trainer.trainer import Trainer as NSHTrainer
@@ -31,6 +31,7 @@ class SimpleDataset(Dataset):
     def __len__(self) -> int:
         return self.num_samples
 
+    @override
     def __getitem__(self, idx: int) -> torch.Tensor:
         return torch.tensor([idx])
 
@@ -42,6 +43,7 @@ class SimpleModuleConfig(C.Config):
 class SimpleModule(nshtrainer.LightningModuleBase):
     """Simple module that returns known constants for testing prediction."""
 
+    @override
     @classmethod
     def hparams_cls(cls):
         return SimpleModuleConfig
@@ -50,6 +52,7 @@ class SimpleModule(nshtrainer.LightningModuleBase):
         super().__init__(hparams)
         self.linear = torch.nn.Linear(2, 3)
 
+    @override
     def forward(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
         # Return predictable outputs based on the input
         # We'll create a dictionary to test complex output handling
@@ -85,7 +88,6 @@ def test_distributed_prediction_writer_and_reader(tmp_path):
         devices=(0, 1),  # Run on 2 devices
         accelerator="gpu",
         strategy="ddp_notebook",
-        distributed_predict=DistributedPredictionWriterConfig(),
     ).with_project_root(logs_dir)
 
     # Create trainer, module, and datamodule
@@ -100,40 +102,28 @@ def test_distributed_prediction_writer_and_reader(tmp_path):
     )
 
     # Run prediction
-    trainer.distributed_predict(model, dl)
-
-    trainer.strategy.barrier()  # Ensure all processes finish before checking output
+    result = trainer.distributed_predict(model, dl)
     if not trainer.strategy.is_global_zero:
         # Skip the test for non-global zero processes
         return
 
-    # Check if the output directory exists
-    assert (
-        writer_callback := next(
-            (
-                c
-                for c in trainer.callbacks
-                if isinstance(c, DistributedPredictionWriter)
-            ),
-            None,
-        )
-    ) is not None, "Writer callback not found in trainer callbacks."
-    output_dir = writer_callback.output_dir
+    output_dir = result.root_dir
     assert output_dir.exists(), "Output directory does not exist."
 
-    from nshtrainer.callbacks.distributed_prediction_writer import (
-        DistributedPredictionReader,
+    assert (reader := result.get_processed_reader()) is not None, (
+        "Reader should not be None."
     )
-
-    reader = DistributedPredictionReader(output_dir / "processed" / "dataloader_0")
     assert len(reader) == 20, "Reader length does not match dataset size."
 
     # Check if the predictions are as expected
-    for i, (batch, predictions) in enumerate(reader):
+    for i, sample in enumerate(reader):
+        batch, predictions = sample["batch"], sample["prediction"]
         assert predictions["predictions"].tolist() == [[i], [i * 2], [i + 100]], (
-            f"Prediction mismatch at index {i}."
+            f"Prediction mismatch at index {i}: {sample['index']=}."
         )
         assert predictions["batch_indices"].tolist() == [i], (
-            f"Batch index mismatch at index {i}."
+            f"Batch index mismatch at index {i}: {sample['index']=}."
         )
-        assert batch.tolist() == [i], f"Batch index mismatch at index {i}."
+        assert batch.tolist() == [i], (
+            f"Batch index mismatch at index {i}: {sample['index']=}."
+        )

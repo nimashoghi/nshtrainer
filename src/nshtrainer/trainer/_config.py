@@ -31,7 +31,6 @@ from .._hf_hub import HuggingFaceHubConfig
 from ..callbacks import (
     BestCheckpointCallbackConfig,
     CallbackConfig,
-    DistributedPredictionWriterConfig,
     EarlyStoppingCallbackConfig,
     LastCheckpointCallbackConfig,
     NormLoggingCallbackConfig,
@@ -702,14 +701,6 @@ class TrainerConfig(C.Config):
     auto_validate_metrics: MetricValidationCallbackConfig | None = None
     """If enabled, will automatically validate the metrics before starting the training routine."""
 
-    distributed_predict: DistributedPredictionWriterConfig | None = (
-        DistributedPredictionWriterConfig()
-    )
-    """If enabled, will use a custom BasePredictionWriter callback to automatically
-    handle distributed prediction. This is useful for running prediction on multiple GPUs
-    seamlessly.
-    """
-
     lightning_kwargs: LightningTrainerKwargs = LightningTrainerKwargs()
     """
     Additional keyword arguments to pass to the Lightning `pl.Trainer` constructor.
@@ -778,7 +769,6 @@ class TrainerConfig(C.Config):
         yield self.reduce_lr_on_plateau_sanity_checking
         yield self.auto_set_debug_flag
         yield self.auto_validate_metrics
-        yield self.distributed_predict
         yield from self.callbacks
 
     def _nshtrainer_all_logger_configs(self) -> Iterable[LoggerConfigBase | None]:

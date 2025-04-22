@@ -4,7 +4,7 @@ import logging
 import os
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, overload
 
 import torch
 from lightning.fabric.plugins.environments.lsf import LSFEnvironment
@@ -24,9 +24,14 @@ from typing_extensions import Never, Unpack, assert_never, deprecated, override
 
 from .._checkpoint.metadata import write_checkpoint_metadata
 from ..callbacks.base import resolve_all_callbacks
+from ..callbacks.distributed_prediction_writer import (
+    DistributedPredictionWriter,
+    DistributedPredictionWriterConfig,
+)
 from ..util._environment_info import EnvironmentConfig
 from ..util.bf16 import is_bf16_supported_no_emulation
 from ._config import LightningTrainerKwargs, TrainerConfig
+from ._distributed_prediction_result import DistributedPredictionResult
 from ._log_hparams import patch_log_hparams_function
 from ._runtime_callback import RuntimeTrackerCallback, Stage
 from .accelerator import AcceleratorConfigBase
@@ -537,13 +542,66 @@ class Trainer(LightningTrainer):
         )
         return cls(hparams)
 
+    @overload
     def distributed_predict(
         self,
         model: LightningModule | None = None,
         dataloaders: EVAL_DATALOADERS | LightningDataModule | None = None,
         datamodule: LightningDataModule | None = None,
         ckpt_path: str | Path | None = None,
-    ):
+        *,
+        config: DistributedPredictionWriterConfig,
+    ) -> DistributedPredictionResult: ...
+
+    @overload
+    def distributed_predict(
+        self,
+        model: LightningModule | None = None,
+        dataloaders: EVAL_DATALOADERS | LightningDataModule | None = None,
+        datamodule: LightningDataModule | None = None,
+        ckpt_path: str | Path | None = None,
+        *,
+        dirpath: Path | None = None,
+        move_to_cpu_on_save: bool = True,
+        save_raw: bool = True,
+        save_processed: bool = True,
+    ) -> DistributedPredictionResult: ...
+
+    def distributed_predict(
+        self,
+        model: LightningModule | None = None,
+        dataloaders: EVAL_DATALOADERS | LightningDataModule | None = None,
+        datamodule: LightningDataModule | None = None,
+        ckpt_path: str | Path | None = None,
+        *,
+        config: DistributedPredictionWriterConfig | None = None,
+        dirpath: Path | None = None,
+        move_to_cpu_on_save: bool = True,
+        save_raw: bool = True,
+        save_processed: bool = True,
+    ) -> DistributedPredictionResult:
+        if config is None:
+            config = DistributedPredictionWriterConfig(
+                dirpath=dirpath,
+                move_to_cpu_on_save=move_to_cpu_on_save,
+                save_raw=save_raw,
+                save_processed=save_processed,
+            )
+
+        # Remove any DistributedPredictionWriter callbacks that are already set
+        # and add the new one.
+        callbacks = self.callbacks.copy()
+        callbacks = [
+            callback
+            for callback in callbacks
+            if not isinstance(callback, DistributedPredictionWriter)
+        ]
+        writer_callbacks = list(config.create_callbacks(self.hparams))
+        assert len(writer_callbacks) == 1
+        callback = writer_callbacks[0]
+        callbacks.append(callback)
+        self.callbacks = self._callback_connector._reorder_callbacks(callbacks)
+
         self.predict(
             model,
             dataloaders,
@@ -551,3 +609,9 @@ class Trainer(LightningTrainer):
             return_predictions=False,
             ckpt_path=ckpt_path,
         )
+
+        # Wait for all processes to finish
+        self.strategy.barrier("Trainer.distributed_predict")
+
+        # Return an object that contains information about the predictions
+        return DistributedPredictionResult(root_dir=callback.output_dir)

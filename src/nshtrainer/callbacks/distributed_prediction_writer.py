@@ -4,14 +4,18 @@ import functools
 import logging
 from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Any, ClassVar, Literal, overload
+from typing import TYPE_CHECKING, ClassVar, Generic, Literal, cast, overload
 
 import torch
 from lightning.fabric.utilities.apply_func import move_data_to_device
 from lightning.pytorch.callbacks import BasePredictionWriter
-from typing_extensions import final, override
+from typing_extensions import TypeVar, final, override
 
 from .base import CallbackConfigBase, CallbackMetadataConfig, callback_registry
+
+if TYPE_CHECKING:
+    from ..model.base import IndividualSample
+
 
 log = logging.getLogger(__name__)
 
@@ -130,7 +134,15 @@ class DistributedPredictionWriter(BasePredictionWriter):
                 save(sample, output_dir / f"{sample['index']}.pt")
 
 
-class DistributedPredictionReader(Sequence[tuple[Any, Any]]):
+SampleT = TypeVar(
+    "SampleT",
+    bound="IndividualSample",
+    default="IndividualSample",
+    infer_variance=True,
+)
+
+
+class DistributedPredictionReader(Sequence[SampleT], Generic[SampleT]):
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir
 
@@ -139,15 +151,13 @@ class DistributedPredictionReader(Sequence[tuple[Any, Any]]):
         return len(list(self.output_dir.glob("*.pt")))
 
     @overload
-    def __getitem__(self, index: int) -> tuple[Any, Any]: ...
+    def __getitem__(self, index: int) -> SampleT: ...
 
     @overload
-    def __getitem__(self, index: slice) -> list[tuple[Any, Any]]: ...
+    def __getitem__(self, index: slice) -> list[SampleT]: ...
 
     @override
-    def __getitem__(
-        self, index: int | slice
-    ) -> tuple[Any, Any] | list[tuple[Any, Any]]:
+    def __getitem__(self, index: int | slice) -> SampleT | list[SampleT]:
         if isinstance(index, slice):
             # Handle slice indexing
             indices = range(*index.indices(len(self)))
@@ -157,10 +167,11 @@ class DistributedPredictionReader(Sequence[tuple[Any, Any]]):
         path = self.output_dir / f"{index}.pt"
         if not path.exists():
             raise FileNotFoundError(f"File {path} does not exist.")
-        sample = torch.load(path)
-        return sample["batch"], sample["prediction"]
+
+        sample = cast(SampleT, torch.load(path))
+        return sample
 
     @override
-    def __iter__(self) -> Iterator[tuple[Any, Any]]:
+    def __iter__(self) -> Iterator[SampleT]:
         for i in range(len(self)):
             yield self[i]
