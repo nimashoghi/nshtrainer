@@ -19,20 +19,8 @@ class DirectoryConfig(C.Config):
     This isn't specific to the run; it is the parent directory of all runs.
     """
 
-    log: Path | None = None
-    """Base directory for all experiment tracking (e.g., WandB, Tensorboard, etc.) files. If None, will use nshtrainer/{id}/log/."""
-
-    stdio: Path | None = None
-    """stdout/stderr log directory to use for the trainer. If None, will use nshtrainer/{id}/stdio/."""
-
-    checkpoint: Path | None = None
-    """Checkpoint directory to use for the trainer. If None, will use nshtrainer/{id}/checkpoint/."""
-
-    activation: Path | None = None
-    """Activation directory to use for the trainer. If None, will use nshtrainer/{id}/activation/."""
-
-    profile: Path | None = None
-    """Directory to save profiling information to. If None, will use nshtrainer/{id}/profile/."""
+    logdir_basename: str = "nshtrainer"
+    """Base name for the log directory."""
 
     setup_callback: DirectorySetupCallbackConfig = DirectorySetupCallbackConfig()
     """Configuration for the directory setup PyTorch Lightning callback."""
@@ -41,11 +29,11 @@ class DirectoryConfig(C.Config):
         if (project_root_dir := self.project_root) is None:
             project_root_dir = Path.cwd()
 
-        # The default base dir is $CWD/nshtrainer/{id}/
-        base_dir = project_root_dir / "nshtrainer"
+        # The default base dir is $CWD/{logdir_basename}/{id}/
+        base_dir = project_root_dir / self.logdir_basename
         base_dir.mkdir(exist_ok=True)
 
-        # Add a .gitignore file to the nshtrainer directory
+        # Add a .gitignore file to the {logdir_basename} directory
         #   which will ignore all files except for the .gitignore file itself
         gitignore_path = base_dir / ".gitignore"
         if not gitignore_path.exists():
@@ -57,13 +45,8 @@ class DirectoryConfig(C.Config):
 
         return base_dir
 
-    def resolve_subdirectory(
-        self,
-        run_id: str,
-        # subdirectory: Literal["log", "stdio", "checkpoint", "activation", "profile"],
-        subdirectory: str,
-    ) -> Path:
-        # The subdir will be $CWD/nshtrainer/{id}/{log, stdio, checkpoint, activation}/
+    def resolve_subdirectory(self, run_id: str, subdirectory: str) -> Path:
+        # The subdir will be $CWD/{logdir_basename}/{id}/{log, stdio, checkpoint, activation}/
         if (subdir := getattr(self, subdirectory, None)) is not None:
             assert isinstance(subdir, Path), (
                 f"Expected a Path for {subdirectory}, got {type(subdir)}"
@@ -79,7 +62,7 @@ class DirectoryConfig(C.Config):
         if (log_dir := logger.log_dir) is not None:
             return log_dir
 
-        # Save to nshtrainer/{id}/log/{logger name}
+        # Save to {logdir_basename}/{id}/log/{logger name}
         log_dir = self.resolve_subdirectory(run_id, "log")
         log_dir = log_dir / logger.resolve_logger_dirname()
         # ^ NOTE: Logger must have a `name` attribute, as this is
