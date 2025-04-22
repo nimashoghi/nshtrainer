@@ -85,12 +85,25 @@ def default_split_batched_predictions(
     """
     import torch.utils._pytree as tree
 
-    for sample_idx, batch_idx in enumerate(batch_indices):
+    for i, global_idx in enumerate(batch_indices):
+
+        def _verify_and_index(x: torch.Tensor):
+            # Make sure dim 0 length is equal to the batch size,
+            # otherwise we can't index it and should prompt
+            # the user to implement a splitter
+            if x.shape[0] != len(batch_indices):
+                raise ValueError(
+                    f"Batch size {x.shape[0]} does not match the number of batch indices {len(batch_indices)}. "
+                    "Please implement a custom `split_batched_predictions` method in your LightningModuleBase class."
+                )
+
+            return x[i]
+
         # Create a dictionary for each sample
         yield IndividualSample(
-            index=batch_idx,
-            batch=tree.tree_map(lambda x: x[sample_idx], batch),
-            prediction=tree.tree_map(lambda x: x[sample_idx], prediction),
+            index=global_idx,
+            batch=tree.tree_map(_verify_and_index, batch),
+            prediction=tree.tree_map(_verify_and_index, prediction),
         )
 
 
