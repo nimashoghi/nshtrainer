@@ -8,7 +8,6 @@ readme = "README.md"
 
 dependencies = [
     "nshconfig>0.39",
-    "nshrunner",
     "psutil",
     "numpy",
     "torch",
@@ -20,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 extra = [
+    "nshrunner",
     "wrapt",
     "GitPython",
     "wandb",

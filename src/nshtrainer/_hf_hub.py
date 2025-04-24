@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import contextlib
 import logging
-import os
 import re
 from dataclasses import dataclass
 from functools import cached_property
@@ -10,7 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
 import nshconfig as C
-from nshrunner._env import SNAPSHOT_DIR
 from typing_extensions import assert_never, override
 
 from ._callback import NTCallbackBase
@@ -19,6 +17,7 @@ from .callbacks.base import (
     CallbackMetadataConfig,
     callback_registry,
 )
+from .util.code_upload import get_code_dir
 
 if TYPE_CHECKING:
     from huggingface_hub import HfApi  # noqa: F401
@@ -319,20 +318,13 @@ class HFHubCallback(NTCallbackBase):
     def _save_code(self):
         # If a snapshot has been taken (which can be detected using the SNAPSHOT_DIR env),
         # then upload all contents within the snapshot directory to the repository.
-        if not (snapshot_dir := os.environ.get(SNAPSHOT_DIR)):
+        if (snapshot_dir := get_code_dir()) is None:
             log.debug("No snapshot directory found. Skipping upload.")
             return
 
         with self._with_error_handling("save code"):
-            snapshot_dir = Path(snapshot_dir)
-            if not snapshot_dir.exists() or not snapshot_dir.is_dir():
-                log.warning(
-                    f"Snapshot directory '{snapshot_dir}' does not exist or is not a directory."
-                )
-                return
-
             self.api.upload_folder(
-                folder_path=str(snapshot_dir),
+                folder_path=str(snapshot_dir.absolute()),
                 repo_id=self.repo_id,
                 repo_type="model",
                 path_in_repo="code",  # Prefix with "code" folder

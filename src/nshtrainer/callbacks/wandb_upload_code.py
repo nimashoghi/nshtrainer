@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import logging
-import os
-from pathlib import Path
 from typing import Literal, cast
 
 from lightning.pytorch import LightningModule, Trainer
 from lightning.pytorch.callbacks.callback import Callback
 from lightning.pytorch.loggers import WandbLogger
-from nshrunner._env import SNAPSHOT_DIR
 from typing_extensions import final, override
 
+from ..util.code_upload import get_code_dir
 from .base import CallbackConfigBase, callback_registry
 
 log = logging.getLogger(__name__)
@@ -62,22 +60,12 @@ class WandbUploadCodeCallback(Callback):
             log.warning("Wandb logger not found. Skipping code upload.")
             return
 
+        if (snapshot_dir := get_code_dir()) is None:
+            log.info("No nshrunner snapshot found. Skipping code upload.")
+            return
+
         from wandb.wandb_run import Run
 
         run = cast(Run, logger.experiment)
-
-        # If a snapshot has been taken (which can be detected using the SNAPSHOT_DIR env),
-        # then upload all contents within the snapshot directory to the repository.
-        if not (snapshot_dir := os.environ.get(SNAPSHOT_DIR)):
-            log.debug("No snapshot directory found. Skipping upload.")
-            return
-
-        snapshot_dir = Path(snapshot_dir)
-        if not snapshot_dir.exists() or not snapshot_dir.is_dir():
-            log.warning(
-                f"Snapshot directory '{snapshot_dir}' does not exist or is not a directory."
-            )
-            return
-
         log.info(f"Uploading code from snapshot directory '{snapshot_dir}'")
         run.log_code(str(snapshot_dir.absolute()))

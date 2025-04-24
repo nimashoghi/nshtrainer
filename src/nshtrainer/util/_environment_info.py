@@ -356,12 +356,20 @@ class EnvironmentSnapshotConfig(C.Config):
 
     @classmethod
     def from_current_environment(cls):
-        draft = cls.draft()
-        if snapshot_dir := os.environ.get("NSHRUNNER_SNAPSHOT_DIR"):
-            draft.snapshot_dir = Path(snapshot_dir)
-        if modules := os.environ.get("NSHRUNNER_SNAPSHOT_MODULES"):
-            draft.modules = modules.split(",")
-        return draft.finalize()
+        try:
+            import nshrunner as nr
+
+            if (session := nr.Session.from_current_session()) is None:
+                log.warning("No active session found, skipping snapshot information")
+                return cls.empty()
+
+            draft = cls.draft()
+            draft.snapshot_dir = session.snapshot_dir
+            draft.modules = session.snapshot_modules
+            return draft.finalize()
+        except ImportError:
+            log.warning("nshrunner not found, skipping snapshot information")
+            return cls.empty()
 
 
 class EnvironmentPackageConfig(C.Config):

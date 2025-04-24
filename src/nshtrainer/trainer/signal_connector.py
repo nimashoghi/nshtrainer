@@ -14,7 +14,6 @@ from pathlib import Path
 from types import FrameType
 from typing import Any
 
-import nshrunner as nr
 import torch.utils.data
 from lightning.fabric.plugins.environments.lsf import LSFEnvironment
 from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
@@ -34,6 +33,12 @@ _IS_WINDOWS = platform.system() == "Windows"
 
 
 def _resolve_requeue_signals():
+    try:
+        import nshrunner as nr
+    except ImportError:
+        log.debug("nshrunner not found. Skipping signal requeueing.")
+        return None
+
     if (session := nr.Session.from_current_session()) is None:
         return None
 
@@ -52,9 +57,9 @@ class _SignalConnector(_LightningSignalConnector):
 
         signals_set = set(signals)
         valid_signals: set[signal.Signals] = signal.valid_signals()
-        assert signals_set.issubset(
-            valid_signals
-        ), f"Invalid signal(s) found: {signals_set - valid_signals}"
+        assert signals_set.issubset(valid_signals), (
+            f"Invalid signal(s) found: {signals_set - valid_signals}"
+        )
         return signals
 
     def _compose_and_register(
@@ -241,9 +246,9 @@ class _SignalConnector(_LightningSignalConnector):
                 "Writing requeue script to exit script directory."
             )
             exit_script_dir = Path(exit_script_dir)
-            assert (
-                exit_script_dir.is_dir()
-            ), f"Exit script directory {exit_script_dir} does not exist"
+            assert exit_script_dir.is_dir(), (
+                f"Exit script directory {exit_script_dir} does not exist"
+            )
 
             exit_script_path = exit_script_dir / f"requeue_{job_id}.sh"
             log.info(f"Writing requeue script to {exit_script_path}")
