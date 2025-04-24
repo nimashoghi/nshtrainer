@@ -43,6 +43,13 @@ class EarlyStoppingCallbackConfig(CallbackConfigBase):
     the training will be stopped.
     """
 
+    skip_first_n_epochs: int = 0
+    """
+    Number of initial epochs to skip before starting to monitor for early stopping.
+    This helps avoid false early stopping when the model might temporarily perform worse
+    during early training phases.
+    """
+
     strict: bool = True
     """
     Whether to enforce that the monitored quantity must improve by at least `min_delta`
@@ -92,6 +99,16 @@ class EarlyStoppingCallback(_EarlyStopping):
 
         # Disable early_stopping with fast_dev_run
         if getattr(trainer, "fast_dev_run", False):
+            return
+
+        # Skip early stopping check for the first n epochs
+        if trainer.current_epoch < self.config.skip_first_n_epochs:
+            if self.verbose and trainer.current_epoch == 0:
+                self._log_info(
+                    trainer,
+                    f"Early stopping checks are disabled for the first {self.config.skip_first_n_epochs} epochs",
+                    self.log_rank_zero_only,
+                )
             return
 
         should_stop, reason = False, None
