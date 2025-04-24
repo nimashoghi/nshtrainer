@@ -374,6 +374,10 @@ class TrainerConfig(C.Config):
     """Tags for the run."""
     notes: list[str] = []
     """Human readable notes for the run."""
+    meta: dict[str, Any] = {}
+    """Metadata information for the run. This is a dictionary that can be used to store any additional information
+    about the run. It is not used by nshtrainer, but can be useful for logging or tracking purposes.
+    """
 
     @property
     def full_name(self):
