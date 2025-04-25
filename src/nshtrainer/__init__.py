@@ -19,3 +19,17 @@ try:
     from . import configs as configs
 except BaseException:
     pass
+
+try:
+    from importlib.metadata import PackageNotFoundError, version
+except ImportError:
+    # For Python <3.8
+    from importlib_metadata import (  # pyright: ignore[reportMissingImports]
+        PackageNotFoundError,
+        version,
+    )
+
+try:
+    __version__ = version(__name__)
+except PackageNotFoundError:
+    __version__ = "unknown"
