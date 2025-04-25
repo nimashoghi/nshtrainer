@@ -352,16 +352,6 @@ class LightningTrainerKwargs(TypedDict, total=False):
     """
 
 
-class SanityCheckingConfig(C.Config):
-    reduce_lr_on_plateau: Literal["disable", "error", "warn"] = "error"
-    """
-    If enabled, will do some sanity checks if the `ReduceLROnPlateau` scheduler is used:
-        - If the `interval` is step, it makes sure that validation is called every `frequency` steps.
-        - If the `interval` is epoch, it makes sure that validation is called every `frequency` epochs.
-    Valid values are: "disable", "warn", "error".
-    """
-
-
 class TrainerConfig(C.Config):
     # region Active Run Configuration
     id: str = C.Field(default_factory=lambda: TrainerConfig.generate_id())

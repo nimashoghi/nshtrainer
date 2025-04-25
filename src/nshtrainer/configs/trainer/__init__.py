@@ -51,7 +51,6 @@ from nshtrainer.trainer._config import ProfilerConfig as ProfilerConfig
 from nshtrainer.trainer._config import (
     RLPSanityChecksCallbackConfig as RLPSanityChecksCallbackConfig,
 )
-from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
 from nshtrainer.trainer._config import (
     SharedParametersCallbackConfig as SharedParametersCallbackConfig,
 )
@@ -180,7 +179,6 @@ __all__ = [
     "ProfilerConfig",
     "RLPSanityChecksCallbackConfig",
     "SLURMEnvironmentPlugin",
-    "SanityCheckingConfig",
     "SharedParametersCallbackConfig",
     "StrategyConfig",
     "StrategyConfigBase",

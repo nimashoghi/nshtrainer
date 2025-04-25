@@ -128,7 +128,6 @@ from nshtrainer.trainer._config import (
 from nshtrainer.trainer._config import CheckpointSavingConfig as CheckpointSavingConfig
 from nshtrainer.trainer._config import EnvironmentConfig as EnvironmentConfig
 from nshtrainer.trainer._config import GradientClippingConfig as GradientClippingConfig
-from nshtrainer.trainer._config import SanityCheckingConfig as SanityCheckingConfig
 from nshtrainer.trainer._config import StrategyConfig as StrategyConfig
 from nshtrainer.trainer.accelerator import CPUAcceleratorConfig as CPUAcceleratorConfig
 from nshtrainer.trainer.accelerator import (
@@ -338,7 +337,6 @@ __all__ = [
     "RpropConfig",
     "SGDConfig",
     "SLURMEnvironmentPlugin",
-    "SanityCheckingConfig",
     "SharedParametersCallbackConfig",
     "SiLUNonlinearityConfig",
     "SigmoidNonlinearityConfig",
