@@ -5,7 +5,6 @@ __codegen__ = True
 from nshtrainer import MetricConfig as MetricConfig
 from nshtrainer import TrainerConfig as TrainerConfig
 from nshtrainer._checkpoint.metadata import CheckpointMetadata as CheckpointMetadata
-from nshtrainer._directory import DirectoryConfig as DirectoryConfig
 from nshtrainer._hf_hub import CallbackConfigBase as CallbackConfigBase
 from nshtrainer._hf_hub import (
     HuggingFaceHubAutoCreateConfig as HuggingFaceHubAutoCreateConfig,
@@ -126,6 +125,7 @@ from nshtrainer.trainer._config import (
     CheckpointCallbackConfig as CheckpointCallbackConfig,
 )
 from nshtrainer.trainer._config import CheckpointSavingConfig as CheckpointSavingConfig
+from nshtrainer.trainer._config import DirectoryConfig as DirectoryConfig
 from nshtrainer.trainer._config import EnvironmentConfig as EnvironmentConfig
 from nshtrainer.trainer._config import GradientClippingConfig as GradientClippingConfig
 from nshtrainer.trainer._config import StrategyConfig as StrategyConfig
@@ -226,7 +226,6 @@ from nshtrainer.util.config import EpochsConfig as EpochsConfig
 from nshtrainer.util.config import StepsConfig as StepsConfig
 
 from . import _checkpoint as _checkpoint
-from . import _directory as _directory
 from . import _hf_hub as _hf_hub
 from . import callbacks as callbacks
 from . import loggers as loggers
@@ -365,7 +364,6 @@ __all__ = [
     "XLAEnvironmentPlugin",
     "XLAPluginConfig",
     "_checkpoint",
-    "_directory",
     "_hf_hub",
     "accelerator_registry",
     "callback_registry",
