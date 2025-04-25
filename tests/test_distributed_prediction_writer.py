@@ -15,9 +15,6 @@ from torch.utils.data import DataLoader, Dataset
 from typing_extensions import override
 
 import nshtrainer
-from nshtrainer.callbacks.distributed_prediction_writer import (
-    DistributedPredictionWriter,
-)
 from nshtrainer.trainer._config import TrainerConfig
 from nshtrainer.trainer.trainer import Trainer as NSHTrainer
 
