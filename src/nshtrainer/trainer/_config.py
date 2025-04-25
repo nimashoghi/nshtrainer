@@ -789,6 +789,39 @@ class TrainerConfig(C.Config):
             raise ValueError("shared_parameters is not supported under barebones mode")
 
     # region Helper Methods
+    def id_(self, value: str):
+        """
+        Set the id for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        value : str
+            The id value to set
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.id = value
+        return self
+
+    def with_id(self, value: str):
+        """
+        Create a copy of the current configuration with an updated id.
+
+        Parameters
+        ----------
+        value : str
+            The id value to set
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated id
+        """
+        return copy.deepcopy(self).id_(value)
+
     def fast_dev_run_(self, value: int | bool = True, /):
         """
         Enables fast_dev_run mode for the trainer.
@@ -830,6 +863,349 @@ class TrainerConfig(C.Config):
             self: The current instance of the class.
         """
         return copy.deepcopy(self).project_root_(project_root)
+
+    def name_(self, *parts: str):
+        """
+        Set the name for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        *parts : str
+            The parts of the name to set. Will be joined with spaces.
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.name = list(parts)
+        return self
+
+    def with_name(self, *parts: str):
+        """
+        Create a copy of the current configuration with an updated name.
+
+        Parameters
+        ----------
+        *parts : str
+            The parts of the name to set. Will be joined with spaces.
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated name
+        """
+        return copy.deepcopy(self).name_(*parts)
+
+    def project_(self, project: str | None):
+        """
+        Set the project name for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        project : str | None
+            The project name to set
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.project = project
+        return self
+
+    def with_project(self, project: str | None):
+        """
+        Create a copy of the current configuration with an updated project name.
+
+        Parameters
+        ----------
+        project : str | None
+            The project name to set
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated project name
+        """
+        return copy.deepcopy(self).project_(project)
+
+    def tags_(self, *tags: str):
+        """
+        Set the tags for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        *tags : str
+            The tags to set
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.tags = list(tags)
+        return self
+
+    def with_tags(self, *tags: str):
+        """
+        Create a copy of the current configuration with updated tags.
+
+        Parameters
+        ----------
+        *tags : str
+            The tags to set
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated tags
+        """
+        return copy.deepcopy(self).tags_(*tags)
+
+    def add_tags_(self, *tags: str):
+        """
+        Add tags to the trainer configuration in-place.
+
+        Parameters
+        ----------
+        *tags : str
+            The tags to add
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.tags.extend(tags)
+        return self
+
+    def with_added_tags(self, *tags: str):
+        """
+        Create a copy of the current configuration with additional tags.
+
+        Parameters
+        ----------
+        *tags : str
+            The tags to add
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the additional tags
+        """
+        return copy.deepcopy(self).add_tags_(*tags)
+
+    def notes_(self, *notes: str):
+        """
+        Set the notes for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        *notes : str
+            The notes to set
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.notes = list(notes)
+        return self
+
+    def with_notes(self, *notes: str):
+        """
+        Create a copy of the current configuration with updated notes.
+
+        Parameters
+        ----------
+        *notes : str
+            The notes to set
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated notes
+        """
+        return copy.deepcopy(self).notes_(*notes)
+
+    def add_notes_(self, *notes: str):
+        """
+        Add notes to the trainer configuration in-place.
+
+        Parameters
+        ----------
+        *notes : str
+            The notes to add
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.notes.extend(notes)
+        return self
+
+    def with_added_notes(self, *notes: str):
+        """
+        Create a copy of the current configuration with additional notes.
+
+        Parameters
+        ----------
+        *notes : str
+            The notes to add
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the additional notes
+        """
+        return copy.deepcopy(self).add_notes_(*notes)
+
+    def meta_(self, meta: dict[str, Any] | None = None, /, **kwargs: Any):
+        """
+        Update the `meta` dictionary in-place with the provided key-value pairs.
+
+        This method allows updating the meta information associated with the trainer
+        configuration by either passing a dictionary or keyword arguments.
+
+        Parameters
+        ----------
+        meta : dict[str, Any] | None, optional
+            A dictionary containing meta information to be added, by default None
+        **kwargs : Any
+            Additional key-value pairs to be added to the meta dictionary
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        if meta is not None:
+            self.meta.update(meta)
+        self.meta.update(kwargs)
+        return self
+
+    def with_meta(self, meta: dict[str, Any] | None = None, /, **kwargs: Any):
+        """
+        Create a copy of the current configuration with updated meta information.
+
+        This method is similar to `meta_`, but it returns a new instance of the configuration
+        with the updated meta information instead of modifying the current instance.
+
+        Parameters
+        ----------
+        meta : dict[str, Any] | None, optional
+            A dictionary containing meta information to be added, by default None
+        **kwargs : Any
+            Additional key-value pairs to be added to the meta dictionary
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with updated meta information
+        """
+
+        return self.model_copy(deep=True).meta_(meta, **kwargs)
+
+    def debug_(self, value: bool = True):
+        """
+        Set the debug flag for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        value : bool, optional
+            The debug flag value to set, by default True
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.debug = value
+        return self
+
+    def with_debug(self, value: bool = True):
+        """
+        Create a copy of the current configuration with an updated debug flag.
+
+        Parameters
+        ----------
+        value : bool, optional
+            The debug flag value to set, by default True
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated debug flag
+        """
+        return copy.deepcopy(self).debug_(value)
+
+    def ckpt_path_(self, path: Literal["none"] | str | Path | None):
+        """
+        Set the checkpoint path for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        path : Literal["none"] | str | Path | None
+            The checkpoint path to set
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.ckpt_path = path
+        return self
+
+    def with_ckpt_path(self, path: Literal["none"] | str | Path | None):
+        """
+        Create a copy of the current configuration with an updated checkpoint path.
+
+        Parameters
+        ----------
+        path : Literal["none"] | str | Path | None
+            The checkpoint path to set
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated checkpoint path
+        """
+        return copy.deepcopy(self).ckpt_path_(path)
+
+    def barebones_(self, value: bool = True):
+        """
+        Set the barebones flag for the trainer configuration in-place.
+
+        Parameters
+        ----------
+        value : bool, optional
+            The barebones flag value to set, by default True
+
+        Returns
+        -------
+        self
+            Returns self for method chaining
+        """
+        self.barebones = value
+        return self
+
+    def with_barebones(self, value: bool = True):
+        """
+        Create a copy of the current configuration with an updated barebones flag.
+
+        Parameters
+        ----------
+        value : bool, optional
+            The barebones flag value to set, by default True
+
+        Returns
+        -------
+        TrainerConfig
+            A new instance of the configuration with the updated barebones flag
+        """
+        return copy.deepcopy(self).barebones_(value)
 
     def reset_run(
         self,
