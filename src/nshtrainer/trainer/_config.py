@@ -352,7 +352,7 @@ class LightningTrainerKwargs(TypedDict, total=False):
     """
 
 
-DEFAULT_LOGDIR_BASENAME = "nshtrainer"
+DEFAULT_LOGDIR_BASENAME = "nshtrainer_logs"
 """Default base name for the log directory."""
 
 
