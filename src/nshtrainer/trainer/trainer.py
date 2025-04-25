@@ -316,6 +316,7 @@ class Trainer(LightningTrainer):
                 f"Trainer hparams must either be an instance of {hparams_cls} or a mapping. "
                 f"Got {type(hparams)=} instead."
             )
+        hparams._nshtrainer_set_id_if_missing()
         hparams = hparams.model_deep_validate()
         hparams._nshtrainer_validate_before_run()
 
