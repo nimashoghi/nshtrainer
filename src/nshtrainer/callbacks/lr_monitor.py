@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Literal
 
 from lightning.pytorch.callbacks import LearningRateMonitor
-from typing_extensions import final
+from typing_extensions import final, override
 
 from .base import CallbackConfigBase, callback_registry
+
+log = logging.getLogger(__name__)
 
 
 @final
@@ -28,7 +31,12 @@ class LearningRateMonitorConfig(CallbackConfigBase):
     Option to also log the weight decay values of the optimizer. Defaults to False.
     """
 
+    @override
     def create_callbacks(self, trainer_config):
+        if not list(trainer_config.enabled_loggers()):
+            log.warning("No loggers enabled. LearningRateMonitor will not be used.")
+            return
+
         yield LearningRateMonitor(
             logging_interval=self.logging_interval,
             log_momentum=self.log_momentum,
