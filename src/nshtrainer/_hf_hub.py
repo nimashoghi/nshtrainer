@@ -91,6 +91,9 @@ class HuggingFaceHubConfig(CallbackConfigBase):
 
     @override
     def create_callbacks(self, trainer_config):
+        if not self:
+            return
+
         # Attempt to login. If it fails, we'll log a warning or error based on the configuration.
         try:
             api = _api(self.token)
