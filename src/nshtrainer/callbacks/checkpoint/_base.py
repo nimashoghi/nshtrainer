@@ -160,7 +160,7 @@ class CheckpointBase(Checkpoint, ABC, Generic[TConfig]):
         filepath = self.resolve_checkpoint_path(self.current_metrics(trainer))
         trainer.save_checkpoint(filepath, self.config.save_weights_only)
 
-        if trainer.hparams.save_checkpoint_metadata and trainer.is_global_zero:
+        if trainer.is_global_zero:
             # Remove old checkpoints
             self.remove_old_checkpoints(trainer)
 

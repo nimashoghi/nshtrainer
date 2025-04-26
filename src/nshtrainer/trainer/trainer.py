@@ -472,6 +472,11 @@ class Trainer(LightningTrainer):
         weights_only: bool = False,
         storage_options: Any | None = None,
     ):
+        assert self.hparams.save_checkpoint_metadata, (
+            "Checkpoint metadata is not enabled. "
+            "Please set `hparams.save_checkpoint_metadata=True`."
+        )
+
         filepath = Path(filepath)
 
         if self.model is None:
@@ -492,7 +497,7 @@ class Trainer(LightningTrainer):
 
         # Save the checkpoint metadata
         metadata_path = None
-        if self.hparams.save_checkpoint_metadata and self.is_global_zero:
+        if self.is_global_zero:
             # Generate the metadata and write to disk
             metadata_path = write_checkpoint_metadata(self, filepath)
 

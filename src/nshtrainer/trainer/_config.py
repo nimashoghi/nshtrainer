@@ -717,8 +717,9 @@ class TrainerConfig(C.Config):
 
     auto_set_default_root_dir: bool = True
     """If enabled, will automatically set the default root dir to [cwd/lightning_logs/<id>/]. There is basically no reason to disable this."""
-    save_checkpoint_metadata: bool = True
-    """If enabled, will save additional metadata whenever a checkpoint is saved."""
+    save_checkpoint_metadata: Literal[True] = True
+    """Will save additional metadata whenever a checkpoint is saved.
+    This is a core feature of nshtrainer and cannot be disabled."""
     auto_set_debug_flag: DebugFlagCallbackConfig | None = DebugFlagCallbackConfig()
     """If enabled, will automatically set the debug flag to True if:
     - The trainer is running in fast_dev_run mode.
@@ -1307,6 +1308,11 @@ class TrainerConfig(C.Config):
         # shared_parameters is not supported under barebones mode
         if self.barebones and self.shared_parameters:
             raise ValueError("shared_parameters is not supported under barebones mode")
+
+        if not self.save_checkpoint_metadata:
+            raise ValueError(
+                "save_checkpoint_metadata must be True. This is a core feature of nshtrainer and cannot be disabled."
+            )
 
     def _nshtrainer_set_id_if_missing(self):
         """
