@@ -85,6 +85,7 @@ def _generate_checkpoint_metadata(
     trainer: Trainer,
     checkpoint_path: Path,
     metadata_path: Path,
+    compute_checksum: bool = True,
 ):
     checkpoint_timestamp = datetime.datetime.now()
     start_timestamp = trainer.start_time()
@@ -105,7 +106,9 @@ def _generate_checkpoint_metadata(
         # moving the checkpoint directory
         checkpoint_path=checkpoint_path.relative_to(metadata_path.parent),
         checkpoint_filename=checkpoint_path.name,
-        checkpoint_checksum=compute_file_checksum(checkpoint_path),
+        checkpoint_checksum=compute_file_checksum(checkpoint_path)
+        if compute_checksum
+        else "",
         run_id=trainer.hparams.id,
         name=trainer.hparams.full_name,
         project=trainer.hparams.project,
