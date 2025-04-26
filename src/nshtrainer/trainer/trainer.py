@@ -45,6 +45,9 @@ patch_log_hparams_function()
 
 
 class Trainer(LightningTrainer):
+    profiler: Profiler
+    """Profiler used for profiling the training process."""
+
     CHECKPOINT_HYPER_PARAMS_KEY = "trainer_hyper_parameters"
 
     @property
@@ -476,7 +479,7 @@ class Trainer(LightningTrainer):
                 "Saving a checkpoint is only possible if a model is attached to the Trainer. Did you call"
                 " `Trainer.save_checkpoint()` before calling `Trainer.{fit,validate,test,predict}`?"
             )
-        with self.profiler.profile("save_checkpoint"):  # type: ignore
+        with self.profiler.profile("save_checkpoint"):
             checkpoint = self._checkpoint_connector.dump_checkpoint(weights_only)
             # Update the checkpoint for the trainer hyperparameters
             checkpoint[self.CHECKPOINT_HYPER_PARAMS_KEY] = self.hparams.model_dump(
