@@ -240,6 +240,5 @@ class SwiGLUNonlinearityConfig(NonlinearityConfigBase):
 
 
 NonlinearityConfig = TypeAliasType(
-    "NonlinearityConfig",
-    Annotated[NonlinearityConfigBase, nonlinearity_registry.DynamicResolution()],
+    "NonlinearityConfig", Annotated[NonlinearityConfigBase, nonlinearity_registry]
 )

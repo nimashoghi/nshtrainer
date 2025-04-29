@@ -23,8 +23,7 @@ class AcceleratorConfigBase(C.Config, ABC):
 accelerator_registry = C.Registry(AcceleratorConfigBase, discriminator="name")
 
 AcceleratorConfig = TypeAliasType(
-    "AcceleratorConfig",
-    Annotated[AcceleratorConfigBase, accelerator_registry.DynamicResolution()],
+    "AcceleratorConfig", Annotated[AcceleratorConfigBase, accelerator_registry]
 )
 
 

@@ -619,8 +619,6 @@ class SGDConfig(OptimizerConfigBase):
             fused=self.fused,
         )
 
-
 OptimizerConfig = TypeAliasType(
-    "OptimizerConfig",
-    Annotated[OptimizerConfigBase, optimizer_registry.DynamicResolution()],
+    "OptimizerConfig", Annotated[OptimizerConfigBase, optimizer_registry]
 )

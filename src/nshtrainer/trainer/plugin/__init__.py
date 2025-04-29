@@ -13,6 +13,5 @@ from .base import PluginConfigBase as PluginConfigBase
 from .base import plugin_registry as plugin_registry
 
 PluginConfig = TypeAliasType(
-    "PluginConfig",
-    Annotated[PluginConfigBase, plugin_registry.DynamicResolution()],
+    "PluginConfig", Annotated[PluginConfigBase, plugin_registry]
 )

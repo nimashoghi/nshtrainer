@@ -12,6 +12,5 @@ from .tensorboard import TensorboardLoggerConfig as TensorboardLoggerConfig
 from .wandb import WandbLoggerConfig as WandbLoggerConfig
 
 LoggerConfig = TypeAliasType(
-    "LoggerConfig",
-    Annotated[LoggerConfigBase, logger_registry.DynamicResolution()],
+    "LoggerConfig", Annotated[LoggerConfigBase, logger_registry]
 )

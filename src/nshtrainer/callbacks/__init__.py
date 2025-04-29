@@ -75,5 +75,5 @@ from .wandb_watch import WandbWatchCallbackConfig as WandbWatchCallbackConfig
 
 CallbackConfig = TypeAliasType(
     "CallbackConfig",
-    Annotated[CallbackConfigBase, callback_registry.DynamicResolution()],
+    Annotated[CallbackConfigBase, callback_registry],
 )
