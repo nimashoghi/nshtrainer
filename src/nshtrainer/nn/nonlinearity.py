@@ -30,6 +30,7 @@ class ReLUNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.ReLU()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.relu(x)
 
@@ -43,6 +44,7 @@ class SigmoidNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.Sigmoid()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return torch.sigmoid(x)
 
@@ -56,6 +58,7 @@ class TanhNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.Tanh()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return torch.tanh(x)
 
@@ -72,6 +75,7 @@ class SoftmaxNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.Softmax(dim=self.dim)
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return torch.softmax(x, dim=self.dim)
 
@@ -91,6 +95,7 @@ class SoftplusNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.Softplus(beta=self.beta, threshold=self.threshold)
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.softplus(x, beta=self.beta, threshold=self.threshold)
 
@@ -104,6 +109,7 @@ class SoftsignNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.Softsign()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.softsign(x)
 
@@ -120,6 +126,7 @@ class ELUNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.ELU()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.elu(x, alpha=self.alpha)
 
@@ -136,6 +143,7 @@ class LeakyReLUNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.LeakyReLU(negative_slope=self.negative_slope)
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.leaky_relu(x, negative_slope=self.negative_slope)
 
@@ -157,6 +165,7 @@ class PReLUConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.PReLU(num_parameters=self.num_parameters, init=self.init)
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError(
             "PReLU requires learnable parameters and cannot be called directly."
@@ -175,6 +184,7 @@ class GELUNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.GELU(approximate=self.approximate)
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.gelu(x, approximate=self.approximate)
 
@@ -188,6 +198,7 @@ class SwishNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.SiLU()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.silu(x)
 
@@ -201,6 +212,7 @@ class SiLUNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.SiLU()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.silu(x)
 
@@ -214,6 +226,7 @@ class MishNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return nn.Mish()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return F.mish(x)
 
@@ -234,6 +247,7 @@ class SwiGLUNonlinearityConfig(NonlinearityConfigBase):
     def create_module(self) -> nn.Module:
         return SwiGLU()
 
+    @override
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         input, gate = x.chunk(2, dim=-1)
         return input * F.silu(gate)
