@@ -419,7 +419,7 @@ class DirectoryConfig(C.Config):
 
 class TrainerConfig(C.Config):
     # region Active Run Configuration
-    id: Annotated[str, C.AllowMissing()] = C.MISSING
+    id: C.AllowMissing[str] = C.MISSING
     """ID of the run."""
     name: list[str] = []
     """Run name in parts. Full name is constructed by joining the parts with spaces."""
