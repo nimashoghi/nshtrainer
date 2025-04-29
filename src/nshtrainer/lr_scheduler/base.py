@@ -81,7 +81,7 @@ class LRSchedulerConfigBase(C.Config, ABC):
             scheduler["monitor"] = metadata["monitor"]
         # - `strict`
         if scheduler.get("strict") is None and "strict" in metadata:
-            scheduler["strict"] = metadata["strict"]  # type: ignore
+            scheduler["strict"] = metadata["strict"]
 
         return scheduler
 

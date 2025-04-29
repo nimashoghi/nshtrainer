@@ -5,13 +5,13 @@ import string
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Literal
 
 import numpy as np
 import torch
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import Checkpoint
-from typing_extensions import override
+from typing_extensions import TypeVar, override
 
 from ..._checkpoint.metadata import CheckpointMetadata, _generate_checkpoint_metadata
 from ..._checkpoint.saver import link_checkpoint, remove_checkpoint

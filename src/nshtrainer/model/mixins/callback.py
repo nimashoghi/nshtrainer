@@ -41,23 +41,6 @@ class CallbackModuleMixin(
     CallbackRegistrarModuleMixin,
     mixin_base_type(LightningModule),
 ):
-    @property
-    def _nshtrainer_callbacks(self) -> list[CallbackFn]:
-        if not hasattr(self, "_private_nshtrainer_callbacks_list"):
-            self._private_nshtrainer_callbacks_list = []
-        return self._private_nshtrainer_callbacks_list
-
-    def register_callback(
-        self,
-        callback: _Callback | Iterable[_Callback] | CallbackFn | None = None,
-    ):
-        if not callable(callback):
-            callback_ = cast(CallbackFn, lambda: callback)
-        else:
-            callback_ = callback
-
-        self._nshtrainer_callbacks.append(callback_)
-
     def _gather_all_callbacks(self):
         modules: list[Any] = []
         if isinstance(self, CallbackRegistrarModuleMixin):

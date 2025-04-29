@@ -17,7 +17,7 @@ def get_code_dir() -> Path | None:
         # New versions of nshrunner will have the code_dir attribute
         #   in the session object. We should use that. Otherwise, use snapshot_dir.
         try:
-            code_dir = session.code_dir  # type: ignore
+            code_dir = session.code_dir
         except AttributeError:
             code_dir = session.snapshot_dir
 

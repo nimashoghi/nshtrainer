@@ -111,7 +111,6 @@ from nshtrainer.optimizer import RAdamConfig as RAdamConfig
 from nshtrainer.optimizer import RMSpropConfig as RMSpropConfig
 from nshtrainer.optimizer import RpropConfig as RpropConfig
 from nshtrainer.optimizer import SGDConfig as SGDConfig
-from nshtrainer.optimizer import Union as Union
 from nshtrainer.optimizer import optimizer_registry as optimizer_registry
 from nshtrainer.profiler import AdvancedProfilerConfig as AdvancedProfilerConfig
 from nshtrainer.profiler import BaseProfilerConfig as BaseProfilerConfig
@@ -355,7 +354,6 @@ __all__ = [
     "TorchSyncBatchNormPlugin",
     "TrainerConfig",
     "TransformerEnginePluginConfig",
-    "Union",
     "WandbLoggerConfig",
     "WandbUploadCodeCallbackConfig",
     "WandbWatchCallbackConfig",

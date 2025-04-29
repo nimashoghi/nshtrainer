@@ -16,7 +16,6 @@ from nshtrainer.optimizer import RAdamConfig as RAdamConfig
 from nshtrainer.optimizer import RMSpropConfig as RMSpropConfig
 from nshtrainer.optimizer import RpropConfig as RpropConfig
 from nshtrainer.optimizer import SGDConfig as SGDConfig
-from nshtrainer.optimizer import Union as Union
 from nshtrainer.optimizer import optimizer_registry as optimizer_registry
 
 __all__ = [
@@ -34,6 +33,5 @@ __all__ = [
     "RMSpropConfig",
     "RpropConfig",
     "SGDConfig",
-    "Union",
     "optimizer_registry",
 ]

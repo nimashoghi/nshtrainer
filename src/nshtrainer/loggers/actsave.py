@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 import numpy as np
 from lightning.pytorch.loggers import Logger
-from typing_extensions import final
+from typing_extensions import final, override
 
 from .base import LoggerConfigBase, logger_registry
 
@@ -15,6 +15,7 @@ from .base import LoggerConfigBase, logger_registry
 class ActSaveLoggerConfig(LoggerConfigBase):
     name: Literal["actsave"] = "actsave"
 
+    @override
     def create_logger(self, trainer_config):
         if not self.enabled:
             return None
@@ -24,10 +25,12 @@ class ActSaveLoggerConfig(LoggerConfigBase):
 
 class ActSaveLogger(Logger):
     @property
+    @override
     def name(self):
         return None
 
     @property
+    @override
     def version(self):
         from nshutils import ActSave
 
@@ -37,6 +40,7 @@ class ActSaveLogger(Logger):
         return ActSave._saver._id
 
     @property
+    @override
     def save_dir(self):
         from nshutils import ActSave
 
@@ -45,6 +49,7 @@ class ActSaveLogger(Logger):
 
         return str(ActSave._saver._save_dir)
 
+    @override
     def log_hyperparams(
         self,
         params: dict[str, Any] | Namespace,
@@ -56,6 +61,7 @@ class ActSaveLogger(Logger):
         # Wrap the hparams as a object-dtype np array
         return ActSave.save({"hyperparameters": np.array(params, dtype=object)})
 
+    @override
     def log_metrics(self, metrics: dict[str, float], step: int | None = None) -> None:
         from nshutils import ActSave
 

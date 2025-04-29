@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Annotated, Any, Literal, Tuple, Union
+from typing import Annotated, Any, Literal
 
 import nshconfig as C
 import torch.nn as nn
-from torch import Tensor
 from torch.optim import Optimizer
 from typing_extensions import TypeAliasType, final, override
 
@@ -618,6 +617,7 @@ class SGDConfig(OptimizerConfigBase):
             differentiable=self.differentiable,
             fused=self.fused,
         )
+
 
 OptimizerConfig = TypeAliasType(
     "OptimizerConfig", Annotated[OptimizerConfigBase, optimizer_registry]

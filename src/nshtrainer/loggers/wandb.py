@@ -63,7 +63,7 @@ class FinishWandbOnTeardownCallback(Callback):
         stage: str,
     ):
         try:
-            import wandb  # type: ignore
+            import wandb
         except ImportError:
             return
 
@@ -139,7 +139,7 @@ class WandbLoggerConfig(CallbackConfigBase, LoggerConfigBase):
         # If `wandb-core` is enabled, we should use the new backend.
         if self.use_wandb_core:
             try:
-                import wandb  # type: ignore
+                import wandb
 
                 # The minimum version that supports the new backend is 0.17.5
                 wandb_version = version.parse(importlib.metadata.version("wandb"))
@@ -151,7 +151,7 @@ class WandbLoggerConfig(CallbackConfigBase, LoggerConfigBase):
                     )
                 # W&B versions 0.18.0 use wandb-core by default
                 elif wandb_version < version.parse("0.18.0"):
-                    wandb.require("core")  # type: ignore
+                    wandb.require("core")
                     log.critical("Using the `wandb-core` backend for WandB.")
             except ImportError:
                 pass
@@ -166,9 +166,9 @@ class WandbLoggerConfig(CallbackConfigBase, LoggerConfigBase):
                     "If you want to use the new `wandb-core` backend, set `use_wandb_core=True`."
                 )
                 try:
-                    import wandb  # type: ignore
+                    import wandb
 
-                    wandb.require("legacy-service")  # type: ignore
+                    wandb.require("legacy-service")
                 except ImportError:
                     pass
 

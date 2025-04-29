@@ -203,6 +203,7 @@ class LoggerLightningModuleMixin(mixin_base_type(LightningModule)):
         name = f"{prefix}{name}"
         return super().log(name, value, metric_attribute=metric_attribute, **fn_kwargs)
 
+    @override
     def log_dict(
         self,
         dictionary: Mapping[str, _METRIC] | torchmetrics.MetricCollection,

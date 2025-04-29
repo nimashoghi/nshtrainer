@@ -28,9 +28,9 @@ class TypedModuleDict(nn.Module, Generic[TModule]):
         return f"{self.key_prefix}{key}"
 
     def _remove_prefix(self, key: str) -> str:
-        assert key.startswith(
-            self.key_prefix
-        ), f"{key} does not start with {self.key_prefix}"
+        assert key.startswith(self.key_prefix), (
+            f"{key} does not start with {self.key_prefix}"
+        )
         return key[len(self.key_prefix) :]
 
     def __setitem__(self, key: str, module: TModule) -> None:
@@ -39,7 +39,7 @@ class TypedModuleDict(nn.Module, Generic[TModule]):
 
     def __getitem__(self, key: str) -> TModule:
         key = self._with_prefix(key)
-        return self._module_dict.__getitem__(key)  # type: ignore
+        return cast(TModule, self._module_dict.__getitem__(key))
 
     def update(self, modules: Mapping[str, TModule]) -> None:
         return self._module_dict.update(

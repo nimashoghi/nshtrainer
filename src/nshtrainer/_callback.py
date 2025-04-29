@@ -8,38 +8,46 @@ from lightning.pytorch import LightningModule
 from lightning.pytorch.callbacks import Callback as _LightningCallback
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch.optim import Optimizer
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from .trainer import Trainer
 
 
 class NTCallbackBase(_LightningCallback):
+    @override
     def setup(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule, stage: str
     ) -> None:
         """Called when fit, validate, test, predict, or tune begins."""
 
+    @override
     def teardown(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule, stage: str
     ) -> None:
         """Called when fit, validate, test, predict, or tune ends."""
 
+    @override
     def on_fit_start(self, trainer: Trainer, pl_module: LightningModule) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Called when fit begins."""
 
+    @override
     def on_fit_end(self, trainer: Trainer, pl_module: LightningModule) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Called when fit ends."""
 
+    @override
     def on_sanity_check_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the validation sanity check starts."""
 
+    @override
     def on_sanity_check_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the validation sanity check ends."""
 
+    @override
     def on_train_batch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -49,6 +57,7 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when the train batch begins."""
 
+    @override
     def on_train_batch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -65,11 +74,13 @@ class NTCallbackBase(_LightningCallback):
 
         """
 
+    @override
     def on_train_epoch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the train epoch begins."""
 
+    @override
     def on_train_epoch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
@@ -81,10 +92,12 @@ class NTCallbackBase(_LightningCallback):
         .. code-block:: python
 
             class MyLightningModule(L.LightningModule):
+                 @override
                  def __init__(self):
                     super().__init__() # pyright: ignore[reportIncompatibleMethodOverride]
                     self.training_step_outputs = []
 
+                 @override
                  def training_step(self):
                     loss = ... # pyright: ignore[reportIncompatibleMethodOverride]
                     self.training_step_outputs.append(loss)
@@ -92,6 +105,7 @@ class NTCallbackBase(_LightningCallback):
 
 
             class MyCallback(L.Callback):
+                 @override
                  def on_train_epoch_end(self, trainer, pl_module):
                     # do something with all training_step outputs, for example: # pyright: ignore[reportIncompatibleMethodOverride]
                     epoch_mean = torch.stack(pl_module.training_step_outputs).mean()
@@ -101,36 +115,43 @@ class NTCallbackBase(_LightningCallback):
 
         """
 
+    @override
     def on_validation_epoch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the val epoch begins."""
 
+    @override
     def on_validation_epoch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the val epoch ends."""
 
+    @override
     def on_test_epoch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the test epoch begins."""
 
+    @override
     def on_test_epoch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the test epoch ends."""
 
+    @override
     def on_predict_epoch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the predict epoch begins."""
 
+    @override
     def on_predict_epoch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the predict epoch ends."""
 
+    @override
     def on_validation_batch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -141,6 +162,7 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when the validation batch begins."""
 
+    @override
     def on_validation_batch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -152,6 +174,7 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when the validation batch ends."""
 
+    @override
     def on_test_batch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -162,6 +185,7 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when the test batch begins."""
 
+    @override
     def on_test_batch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -173,6 +197,7 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when the test batch ends."""
 
+    @override
     def on_predict_batch_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -183,6 +208,7 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when the predict batch begins."""
 
+    @override
     def on_predict_batch_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -194,36 +220,45 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when the predict batch ends."""
 
+    @override
     def on_train_start(self, trainer: Trainer, pl_module: LightningModule) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Called when the train begins."""
 
+    @override
     def on_train_end(self, trainer: Trainer, pl_module: LightningModule) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Called when the train ends."""
 
+    @override
     def on_validation_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the validation loop begins."""
 
+    @override
     def on_validation_end(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the validation loop ends."""
 
+    @override
     def on_test_start(self, trainer: Trainer, pl_module: LightningModule) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Called when the test begins."""
 
+    @override
     def on_test_end(self, trainer: Trainer, pl_module: LightningModule) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Called when the test ends."""
 
+    @override
     def on_predict_start(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called when the predict begins."""
 
+    @override
     def on_predict_end(self, trainer: Trainer, pl_module: LightningModule) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         """Called when predict ends."""
 
+    @override
     def on_exception(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -232,7 +267,8 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called when any trainer execution is interrupted by an exception."""
 
-    def state_dict(self) -> dict[str, Any]:  # pyright: ignore[reportIncompatibleMethodOverride]
+    @override
+    def state_dict(self) -> dict[str, Any]:
         """Called when saving a checkpoint, implement to generate callback's ``state_dict``.
 
         Returns:
@@ -241,7 +277,8 @@ class NTCallbackBase(_LightningCallback):
         """
         return {}
 
-    def load_state_dict(self, state_dict: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
+    @override
+    def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         """Called when loading a checkpoint, implement to reload callback state given callback's ``state_dict``.
 
         Args:
@@ -250,6 +287,7 @@ class NTCallbackBase(_LightningCallback):
         """
         pass
 
+    @override
     def on_save_checkpoint(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -265,6 +303,7 @@ class NTCallbackBase(_LightningCallback):
 
         """
 
+    @override
     def on_load_checkpoint(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -280,16 +319,19 @@ class NTCallbackBase(_LightningCallback):
 
         """
 
+    @override
     def on_before_backward(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule, loss: torch.Tensor
     ) -> None:
         """Called before ``loss.backward()``."""
 
+    @override
     def on_after_backward(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, trainer: Trainer, pl_module: LightningModule
     ) -> None:
         """Called after ``loss.backward()`` and before optimizers are stepped."""
 
+    @override
     def on_before_optimizer_step(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -298,6 +340,7 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called before ``optimizer.step()``."""
 
+    @override
     def on_before_zero_grad(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         trainer: Trainer,
@@ -306,7 +349,10 @@ class NTCallbackBase(_LightningCallback):
     ) -> None:
         """Called before ``optimizer.zero_grad()``."""
 
-    def on_checkpoint_saved(  # pyright: ignore[reportIncompatibleMethodOverride]
+    # =================================================================
+    # Our own new callbacks
+    # =================================================================
+    def on_checkpoint_saved(
         self,
         ckpt_path: Path,
         metadata_path: Path | None,
@@ -317,6 +363,7 @@ class NTCallbackBase(_LightningCallback):
         pass
 
 
+@override
 def _call_on_checkpoint_saved(
     trainer: Trainer,
     ckpt_path: str | Path,
