@@ -17,6 +17,21 @@ dependencies = [
     "torchmetrics",
 ]
 
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "basedpyright",
+    "ruff",
+    "ipykernel",
+    "ipywidgets",
+    "pytest",
+    "pytest-cov",
+    "pytest-forked",
+]
+
 [project.optional-dependencies]
 extra = [
     "nshrunner",
@@ -27,19 +42,6 @@ extra = [
     "huggingface-hub",
     "nshutils",
 ]
-
-[tool.poetry.group.dev.dependencies]
-basedpyright = "*"
-ruff = "*"
-ipykernel = "*"
-ipywidgets = "*"
-pytest = "*"
-pytest-cov = "*"
-pytest-forked = "*"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.basedpyright]
 typeCheckingMode = "standard"
