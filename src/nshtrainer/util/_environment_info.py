@@ -595,17 +595,24 @@ class EnvironmentHardwareConfig(C.Config):
 
         if draft.cuda.is_available:
             draft.gpu_count = torch.cuda.device_count()
-            draft.gpus = []
-            for i in range(draft.gpu_count):
-                gpu_props = torch.cuda.get_device_properties(i)
-                gpu_config = EnvironmentGPUConfig(
-                    name=gpu_props.name,
-                    total_memory=gpu_props.total_memory,
-                    major=gpu_props.major,
-                    minor=gpu_props.minor,
-                    multi_processor_count=gpu_props.multi_processor_count,
+            try:
+                draft.gpus = []
+                for i in range(draft.gpu_count):
+                    gpu_props = torch.cuda.get_device_properties(i)
+                    gpu_config = EnvironmentGPUConfig(
+                        name=gpu_props.name,
+                        total_memory=gpu_props.total_memory,
+                        major=gpu_props.major,
+                        minor=gpu_props.minor,
+                        multi_processor_count=gpu_props.multi_processor_count,
+                    )
+                    draft.gpus.append(gpu_config)
+            except RuntimeError:
+                # CUDA properties cannot be queried in forked subprocesses
+                # (e.g., DDP). Skip GPU details in that case.
+                log.debug(
+                    "Could not query CUDA device properties (likely a forked subprocess)."
                 )
-                draft.gpus.append(gpu_config)
 
         return draft.finalize()
 
