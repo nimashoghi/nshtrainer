@@ -67,15 +67,12 @@ ignore = ["F722", "F821", "E731", "E741"]
 [tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
 
-[tool.pytest]
+[tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
 python_classes = "Test*"
-
-[tool.pytest.ini_options]
 minversion = "6.0"
-# addopts = "--cov=src/nshtrainer --cov-report=term-missing --cov-report=xml --"
 addopts = [
     "--import-mode=importlib",
     "--cov=src/nshtrainer",
