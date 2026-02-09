@@ -150,7 +150,7 @@ The `project_root` is set via `with_project_root()` or `project_root_()`. A `.gi
 
 ```python
 config = TrainerConfig(
-    primary_metric=nshtrainer.MetricConfig(name="val_loss", mode="min"),
+    primary_metric=nt.MetricConfig(name="val_loss", mode="min"),
 )
 ```
 

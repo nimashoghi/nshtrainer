@@ -8,13 +8,13 @@
 
 ```python
 import nshconfig as C
-import nshtrainer
+import nshtrainer as nt
 
 class MyConfig(C.Config):
     hidden_size: int = 128
     lr: float = 1e-3
 
-class MyModel(nshtrainer.LightningModuleBase[MyConfig]):
+class MyModel(nt.LightningModuleBase[MyConfig]):
     @classmethod
     def hparams_cls(cls):
         return MyConfig
@@ -213,7 +213,7 @@ class MyDataConfig(C.Config):
     batch_size: int = 32
     num_workers: int = 4
 
-class MyDataModule(nshtrainer.LightningDataModuleBase[MyDataConfig]):
+class MyDataModule(nt.LightningDataModuleBase[MyDataConfig]):
     @classmethod
     def hparams_cls(cls):
         return MyDataConfig

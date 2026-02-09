@@ -10,11 +10,11 @@ Configuration-driven wrapper around PyTorch Lightning. Every component has a pai
 ## Import Convention
 
 ```python
-import nshtrainer
-# Core: nshtrainer.Trainer, nshtrainer.TrainerConfig
-# Model: nshtrainer.LightningModuleBase
-# Data: nshtrainer.LightningDataModuleBase
-# Metric: nshtrainer.MetricConfig
+import nshtrainer as nt
+# Core: nt.Trainer, nt.TrainerConfig
+# Model: nt.LightningModuleBase
+# Data: nt.LightningDataModuleBase
+# Metric: nt.MetricConfig
 ```
 
 ## Core Pattern
@@ -29,7 +29,7 @@ class MyModelConfig(C.Config):
     lr: float = 1e-3
 
 # 2. Model subclass parameterized by config
-class MyModel(nshtrainer.LightningModuleBase[MyModelConfig]):
+class MyModel(nt.LightningModuleBase[MyModelConfig]):
     @override
     @classmethod
     def hparams_cls(cls):
@@ -40,14 +40,14 @@ class MyModel(nshtrainer.LightningModuleBase[MyModelConfig]):
         # Access config via self.hparams (type-safe)
 
 # 3. Configure trainer
-config = nshtrainer.TrainerConfig(
+config = nt.TrainerConfig(
     max_epochs=10,
     accelerator="gpu",
-    primary_metric=nshtrainer.MetricConfig(name="val_loss", mode="min"),
+    primary_metric=nt.MetricConfig(name="val_loss", mode="min"),
 ).with_project_root("./outputs")
 
 # 4. Train
-trainer = nshtrainer.Trainer(config)
+trainer = nt.Trainer(config)
 trainer.fit(model, train_dataloaders=..., val_dataloaders=...)
 ```
 

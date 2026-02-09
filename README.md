@@ -29,7 +29,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 from typing_extensions import override
 
-import nshtrainer
+import nshtrainer as nt
 
 # 1. Define your hyperparameters as a config class
 class MyModelConfig(C.Config):
@@ -37,7 +37,7 @@ class MyModelConfig(C.Config):
     lr: float = 1e-3
 
 # 2. Subclass LightningModuleBase with your config
-class MyModel(nshtrainer.LightningModuleBase[MyModelConfig]):
+class MyModel(nt.LightningModuleBase[MyModelConfig]):
     @override
     @classmethod
     def hparams_cls(cls):
@@ -64,14 +64,14 @@ class MyModel(nshtrainer.LightningModuleBase[MyModelConfig]):
         return torch.optim.AdamW(self.parameters(), lr=self.hparams.lr)
 
 # 3. Configure the trainer
-trainer_config = nshtrainer.TrainerConfig(
+trainer_config = nt.TrainerConfig(
     max_epochs=10,
     accelerator="cpu",
-    primary_metric=nshtrainer.MetricConfig(name="train_loss", mode="min"),
+    primary_metric=nt.MetricConfig(name="train_loss", mode="min"),
 ).with_project_root("./outputs")
 
 # 4. Train
-trainer = nshtrainer.Trainer(trainer_config)
+trainer = nt.Trainer(trainer_config)
 model = MyModel(MyModelConfig())
 
 dataset = TensorDataset(torch.randn(100, 10), torch.randn(100, 1))

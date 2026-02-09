@@ -87,6 +87,7 @@ Components use registries for extensibility. For example, `callback_registry` al
 
 ## Code Style
 
+- **Import convention**: Always use `import nshtrainer as nt` (not bare `import nshtrainer` or `from nshtrainer import ...`). Access top-level exports via `nt.Trainer`, `nt.TrainerConfig`, `nt.LightningModuleBase`, etc.
 - **Formatter**: `ruff format` (mandatory before committing)
 - **Linter/Type Checker**: `basedpyright` with `standard` type checking mode; `ruff check` for additional linting
 - **`from __future__ import annotations`**: Required in every file (enforced by ruff `FA100`/`FA102` rules)

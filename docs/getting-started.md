@@ -43,9 +43,9 @@ import torch
 import torch.nn as nn
 from typing_extensions import override
 
-import nshtrainer
+import nshtrainer as nt
 
-class MyModel(nshtrainer.LightningModuleBase[MyModelConfig]):
+class MyModel(nt.LightningModuleBase[MyModelConfig]):
     @override
     @classmethod
     def hparams_cls(cls):
@@ -102,16 +102,16 @@ Key points:
 `TrainerConfig` is the root configuration. Key fields to set:
 
 ```python
-import nshtrainer
+import nshtrainer as nt
 
-trainer_config = nshtrainer.TrainerConfig(
+trainer_config = nt.TrainerConfig(
     # Training loop
     max_epochs=100,
     accelerator="cuda",
     precision="bf16-mixed",
 
     # The metric used for best-checkpoint selection, early stopping, etc.
-    primary_metric=nshtrainer.MetricConfig(name="val_loss", mode="min"),
+    primary_metric=nt.MetricConfig(name="val_loss", mode="min"),
 )
 
 # Set the output directory (returns a new config copy)
@@ -127,7 +127,7 @@ See [Configuration](configuration.md) for the full list of options.
 ## Running Training
 
 ```python
-trainer = nshtrainer.Trainer(trainer_config)
+trainer = nt.Trainer(trainer_config)
 model = MyModel(MyModelConfig())
 
 trainer.fit(
@@ -174,7 +174,7 @@ To resume training from a checkpoint, set the `ckpt_path` on the config:
 ```python
 # Resume from a specific checkpoint
 trainer_config = trainer_config.with_ckpt_path("./experiments/nshtrainer_logs/abc123/checkpoint/last.ckpt")
-trainer = nshtrainer.Trainer(trainer_config)
+trainer = nt.Trainer(trainer_config)
 trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 

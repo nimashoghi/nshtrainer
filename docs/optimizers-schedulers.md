@@ -18,7 +18,7 @@ optimizer = optimizer_config.create_optimizer(model.parameters())
 Typically, you use these in your model's `configure_optimizers`:
 
 ```python
-class MyModel(nshtrainer.LightningModuleBase[MyConfig]):
+class MyModel(nt.LightningModuleBase[MyConfig]):
     def configure_optimizers(self):
         optimizer = self.hparams.optimizer.create_optimizer(self.parameters())
         return optimizer
@@ -93,7 +93,7 @@ scheduler_config = LinearWarmupCosineDecayLRSchedulerConfig(
 Use in `configure_optimizers`:
 
 ```python
-class MyModel(nshtrainer.LightningModuleBase[MyConfig]):
+class MyModel(nt.LightningModuleBase[MyConfig]):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=1e-3)
         scheduler = self.hparams.scheduler.create_scheduler(optimizer, self)

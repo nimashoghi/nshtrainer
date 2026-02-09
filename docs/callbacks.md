@@ -37,10 +37,10 @@ Configs can specify metadata via `CallbackMetadataConfig`:
 Saves the model with the best value of a monitored metric.
 
 ```python
-from nshtrainer import TrainerConfig, MetricConfig
+import nshtrainer as nt
 
-config = TrainerConfig(
-    primary_metric=MetricConfig(name="val_loss", mode="min"),
+config = nt.TrainerConfig(
+    primary_metric=nt.MetricConfig(name="val_loss", mode="min"),
     # Best checkpoint is auto-configured when primary_metric is set
 )
 ```
@@ -105,7 +105,7 @@ Stops training when a monitored metric stops improving. Set at the top level of 
 from nshtrainer.configs import EarlyStoppingCallbackConfig
 
 config = TrainerConfig(
-    primary_metric=MetricConfig(name="val_loss", mode="min"),
+    primary_metric=nt.MetricConfig(name="val_loss", mode="min"),
     early_stopping=EarlyStoppingCallbackConfig(patience=10, min_delta=1e-4),
 )
 ```
@@ -198,14 +198,14 @@ Key options: `enabled`, `save_dir`
 Callbacks can be configured in several ways:
 
 ```python
-from nshtrainer import TrainerConfig
+import nshtrainer as nt
 from nshtrainer.configs import (
     EMACallbackConfig,
     GradientSkippingCallbackConfig,
     NormLoggingCallbackConfig,
 )
 
-config = TrainerConfig(
+config = nt.TrainerConfig(
     # Top-level config fields for common callbacks
     log_norms=NormLoggingCallbackConfig(log_grad_norm=True),
     early_stopping=EarlyStoppingCallbackConfig(patience=10),
