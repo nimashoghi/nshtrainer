@@ -7,7 +7,7 @@ requires-python = ">=3.10,<4.0"
 readme = "README.md"
 
 dependencies = [
-    "nshconfig>=0.43",
+    "nshconfig>=0.56",
     "psutil",
     "numpy",
     "torch",

@@ -1549,15 +1549,16 @@ wheels = [
 
 [[package]]
 name = "nshconfig"
-version = "0.54.1"
+version = "0.56.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "nshskill" },
     { name = "pydantic" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9a/72/0dbd1e90ce1c642c7649345bdc595ce6092b9d21206d6f16eceea8fa1d0e/nshconfig-0.54.1.tar.gz", hash = "sha256:e5a9b74ca675f21e894f2fc317ea40adc4eb9d11fd7ba30674272efca1fb56af", size = 43998, upload-time = "2026-02-08T20:43:35.556Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5c/80/8022cd7a3cafc530582f73e8c822ffba52de371bdebc20acbac39c2d65c3/nshconfig-0.56.0.tar.gz", hash = "sha256:6a181aa6413743bfd5bfd844719111f57a5e5773430a014ddc462eee8c857372", size = 43316, upload-time = "2026-02-09T02:11:11.224Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/2a/715b5e863c48fe2246aa706c22081b57e20ae8b40649424f545f5e26c358/nshconfig-0.54.1-py3-none-any.whl", hash = "sha256:fb285ce0e1af551d20ef7acbb1709ed568d1a6ef659c9d7e1cb01008eacd9655", size = 51679, upload-time = "2026-02-08T20:43:34.535Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/3e/a9ea16bd4eb03a78f840698c8b89d2abdfdf20dbe362c4be9f55ffe98a6c/nshconfig-0.56.0-py3-none-any.whl", hash = "sha256:480efe0a6d5d8d699def0ec27c8a71cbf810060f1f342a7dd79fffc8eaf97036", size = 50917, upload-time = "2026-02-09T02:11:12.161Z" },
 ]
 
 [[package]]
@@ -1606,7 +1607,7 @@ wheels = [
 
 [[package]]
 name = "nshtrainer"
-version = "1.5.1"
+version = "1.5.2"
 source = { editable = "." }
 dependencies = [
     { name = "lightning" },
@@ -1648,7 +1649,7 @@ requires-dist = [
     { name = "gitpython", marker = "extra == 'extra'" },
     { name = "huggingface-hub", marker = "extra == 'extra'" },
     { name = "lightning" },
-    { name = "nshconfig", specifier = ">=0.43" },
+    { name = "nshconfig", specifier = ">=0.56" },
     { name = "nshrunner", marker = "extra == 'extra'" },
     { name = "nshskill", specifier = ">=0.1.0" },
     { name = "nshutils", marker = "extra == 'extra'" },
