@@ -4,6 +4,7 @@ import math
 import warnings
 from typing import Literal
 
+import torch
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from typing_extensions import final, override
@@ -88,7 +89,7 @@ class LinearWarmupCosineAnnealingLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
-    def get_lr(self) -> list[float]:
+    def get_lr(self) -> list[float | torch.Tensor]:
         if not self._get_lr_called_within_step:
             warnings.warn(
                 "To get the last learning rate computed by the scheduler, "

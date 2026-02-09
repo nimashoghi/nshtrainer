@@ -437,7 +437,10 @@ class Trainer(LightningTrainer):
 
     @override
     def _run(
-        self, model: LightningModule, ckpt_path: str | Path | None = None
+        self,
+        model: LightningModule,
+        ckpt_path: str | Path | None = None,
+        weights_only: bool | None = None,
     ) -> _EVALUATE_OUTPUT | _PREDICT_OUTPUT | None:
         """Lightning doesn't support gradient clipping with manual optimization.
         We patch the `Trainer._run` method to throw if gradient clipping is enabled
@@ -463,13 +466,13 @@ class Trainer(LightningTrainer):
                 "or disable automatic gradient clipping. "
             )
 
-        return super()._run(model, ckpt_path)
+        return super()._run(model, ckpt_path, weights_only=weights_only)
 
     @override
     def save_checkpoint(
         self,
         filepath: str | Path,
-        weights_only: bool = False,
+        weights_only: bool | None = None,
         storage_options: Any | None = None,
     ):
         assert self.hparams.save_checkpoint_metadata, (
@@ -485,7 +488,7 @@ class Trainer(LightningTrainer):
                 " `Trainer.save_checkpoint()` before calling `Trainer.{fit,validate,test,predict}`?"
             )
         with self.profiler.profile("save_checkpoint"):
-            checkpoint = self._checkpoint_connector.dump_checkpoint(weights_only)
+            checkpoint = self._checkpoint_connector.dump_checkpoint(weights_only=weights_only)
             # Update the checkpoint for the trainer hyperparameters
             checkpoint[self.CHECKPOINT_HYPER_PARAMS_KEY] = self.hparams.model_dump(
                 mode="json"
